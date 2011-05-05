@@ -1,0 +1,84 @@
+
+
+body 
+{
+  font: normal small "Lucida Sans Unicode", "Lucida Grande", Verdana, Arial, Helvetica, sans-serif;
+  font-size: 12pt;
+	background: #fffdda;;
+	margin: 0;
+	padding: 0;
+	text-align: center;
+}
+.log_in{
+  padding: 8px 8px 8px 360px;
+}
+.log_in_form{
+  text-align: left;
+  width: 50%
+}
+.user_input
+{
+  margin: 8px 8px 8px 8px;
+}
+.accordion_headings{
+	padding:5px;
+	background:#666677;
+	color:#FFFFFF;
+	border:1px solid #FFF;
+	cursor:pointer;
+	font-weight:normal;
+  margin: 2px;
+}
+
+.accordion_headings:hover{
+	background:#888899;
+}
+
+.accordion_child{
+	padding:15px;
+	background:#EEE;
+}
+
+
+#header 
+{
+	background: url("/images/share.png")
+				gray no-repeat 16px 16px;  
+	height: 74px;
+	color: White;
+	font-size: 24pt;
+	font-weight: 200;
+	padding: 16px 16px 16px 325px;
+  text-align: left;
+}
+#header-text-wrapper
+{
+  position: relative;
+  top: 18px;
+  vertical-align: middle;
+}
+
+#main-header 
+{
+	background: url("/images/share-small.png")
+				gray no-repeat 0px 0px;  
+	height: 24px;
+	color: White;
+	font-size: 12pt;
+	font-weight: 200;
+	padding: 8px 8px 8px 150px;
+  text-align: left;
+}
+#main-header-wrapper
+{
+  position: relative;
+  top: 4px;
+  vertical-align: middle;
+}
+
+#content 
+{
+	background: white;
+  color: Gray;
+	padding: 1em;
+}

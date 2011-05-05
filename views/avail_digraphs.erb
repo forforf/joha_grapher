@@ -1,0 +1,6 @@
+<div> Choose a graph </div>
+<ul>
+<% @avail_digraphs.each do |top_node, graph|%>
+  <li><%= "<a href=\"#{@base_graph_url}/#{top_node}\">#{top_node}</a> : #{graph.size}" %></li>
+<% end %>
+</ul>
