@@ -166,13 +166,14 @@ function routeClickedNodeDataToElements(nodeStale) {
   var attachmentListBox = $('attachment_list');
   var linksListBox = $('links_list');
   //distribute node data
-  parentCatEditBox.value = node.data.parent_categories;
-  nodeIdBox.value = node.name;
+  parentCatEditBox.value = node.data.parents;
+  nodeIdBox.value = node.id;
   nodeIdBoxLabel.innerHTML = node.name;
   //functions to distribute data to 
-  show_edit_node_form(node.name);
-  add_descendant_data($('desc-nodes'), 'nodes');
-  add_descendant_data($('desc-files'), 'files');
+  show_edit_node_form(node.id);
+  //TODO: Make this dynamic based on dataset
+  add_descendant_data($('desc-nodes'), 'label');
+  add_descendant_data($('desc-files'), 'attached_files');
   add_descendant_data($('desc-links'), 'links');
   make_attachment_list(node.data.attached_files, attachmentListBox);
   make_links_list(node.data.links, linksListBox);
@@ -180,7 +181,8 @@ function routeClickedNodeDataToElements(nodeStale) {
 
 function make_attachment_list(attachments, el_name){
    if(!attachments) attachments = [];
-   var node_id = $('node_id_edit_label').innerHTML;
+   //var node_id = $('node_id_edit_label').innerHTML;
+   var node_id = $('node_id_edit').value;
    newHTML = "" //"<span id='dynamic_attachment_label'>Attachments</span><br />";
    for (var index = 0, len = attachments.length; index < len; ++ index) {
      var attachment = attachments[index];
@@ -416,8 +418,9 @@ function create_node_data(){
 
 function add_descendant_data(el, node_data_type){
   var attach_name = el.previousSibling.innerHTML;
-  var node_id = $('node_id_edit_label').innerHTML;
-  new Ajax.Updater(el, '/bufs_info_doc/get_borged_data',{
+  //var node_id = $('node_id_edit_label').innerHTML;
+  var node_id = $('node_id_edit').value;
+  new Ajax.Updater(el, '/desc_data',{
     parameters: {'node_id': node_id, 'node_data_type':node_data_type }
  });
 }
@@ -447,7 +450,6 @@ function insertNodesIntoGraph(aGraph, nodeLoc){
         uniqIteration += 1;
         json = transport.responseJSON;
         //traverseObj(json, clog);
-        alert(json);
         aGraph.loadJSON(json);
         aGraph.refresh();
         myGraph = aGraph; //remember this is Asynchonous.  This won't be set right away.

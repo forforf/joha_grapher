@@ -1,0 +1,8 @@
+<% @desc_data.each do |field, node_data| %>
+<div id="desc-info-<%=field%>">
+<h2><%= field %></h2>
+  <% node_data.each do |node_id, field_data| %>
+    <a href="javascript:void(0)" onclick="actLikeNodeClicked('<%=node_id%>')"><%= field_data %></a>
+    <span>, </span>
+  <% end %>
+<% end %>

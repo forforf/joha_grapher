@@ -1,4 +1,5 @@
 require 'sinatra'
+#require 'sinatra/reloader' #if development?
 require 'joha_model'
 require 'erb'
 
@@ -31,7 +32,9 @@ helpers do
 
   def check_credentials(creds)
     #TODO: Check a protected secure database or something
-    un_pw_ok = (creds[:un] == 'joha_test_user' && creds[:pw] == 'test2')
+    ok_user1 = (creds[:un] == 'joha_test_user' && creds[:pw] == 'test2')
+    ok_user2 = (creds[:un] == "me" && creds[:pw] == 'mefi1')
+    valid = ok_user1 || ok_user2
   end
 end
 
@@ -57,7 +60,14 @@ get '/login' do
     session[:username] = username
     @@authed[username] = token
     #ToDo Assign default joha class  if none exist
-    joha_class_name = "JohaTestClass"
+    joha_class_name = case username
+      when "joha_test_user"
+        "JohaTestClass"
+      when "me"
+        "MefiMusicCharts"
+      else
+        raise "unknown user"
+    end
     #TODO don't clobber existing classes
     @@session[token] = {joha_class_name => JohaModel.new(joha_class_name, username)}
   else
@@ -112,4 +122,23 @@ get '/index_nodes' do
   @jm = @@session[token][joha_class_name] #|| create it
   content_type :json
   ret_json = @jm.tree_graph(top_node)
+end
+
+post '/desc_data' do
+  top_node = session[:top_node]
+  token = session[:token]
+  joha_class_name = session[:joha_class_name]
+  @jm = @@session[token][joha_class_name] #|| create it
+  node_id = params[:node_id]
+  field = params[:node_data_type]
+  raise "no node id" unless node_id
+  @desc_data =  @jm.find_all_descendant_data(node_id, field)
+  case field
+    when 'attached_files'
+      erb :descendant_attached_files
+    when 'links'
+      erb :descendant_links
+    else
+      erb :descendant_data
+  end
 end

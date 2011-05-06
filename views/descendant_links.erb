@@ -1,0 +1,15 @@
+<div id="desc-info-links">
+<h2>All Links</h2>
+
+<% @desc_data.each do |field, node_data| %>
+  <% node_data.each do |node_id, field_data| %>
+    <% if field_data %>
+      <% field_data.each do |url, link_name| %>
+        <% [link_name].flatten.each do |link| %>
+          [<a href="<%=url%>"><%=link%></a>]
+        <% end %>
+        <span>, </span>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>
