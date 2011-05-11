@@ -4,8 +4,10 @@
 //Event.observe(window, "load", initialize_page );
 document.observe("dom:loaded", initialize_page );
 
+//Global Variables (try and refactor these out)
 var myGraph = "not set yet";
 var uniqIteration = 0;
+window.johaDataDefn = null;
 
 //trigger an event after a browser has finished resizing
 
@@ -88,12 +90,41 @@ function toggle(divId) {
 function initialize_page(){
   //alert($(document).height);
   blankGraph = rgraph_init(); //insert canvas into here if you can figure it out
+  getDataDefn(); 
+  //Ugly hack because I can't be bothered to figure out prototype's approach
+  // to Synch JAX (btw, migrating soon to jQuery)
+  while(window.johaDataDefn == null){
+    alert("Need to load data definition, it is currently: " + johaDataDefn);
+  }
+ 
+  alert(window.johaDataDefn);
+   
   nodeSource = '/index_nodes';
   //the below assigns the graph to myGraph (via Ajax)
   insertNodesIntoGraph(blankGraph, nodeSource);
   $('node_id_input_edit').value = " ";
   //setAuthToken('authtok_attach_form');  
 };
+
+function getDataDefn(){
+   new Ajax.Request('/data_definition',
+    {
+       method:'get',
+      onSuccess: function(transport){
+        window.johaDataDefn = transport.responseJSON;
+       },
+       onFailure: function(){alert('Data Definition not retrieved');}
+     });
+ };
+
+//Using JQuery Here!!
+//function getDataDefn(){
+//  var ret = "";
+//  jQuery.ajax({'/data_definition',success:function(json){ret = json;}, async:false });
+//  return ret; 
+// };
+
+
 
 function window_resized(){
   console.log(window.innerHeight + ', ' + window.innerWidth);
@@ -397,13 +428,13 @@ function create_node_data(){
  //TODO Create Node using local information
  // then use ajax to update it to the final authoritative view
 
- var node_data = { node_cat: node_cat.value, related_tags: related_tags.value, uniqIterator : uniqIteration}
- new Ajax.Request('/bufs_info_doc/create_node', { method:'get',
+ var node_data = { "node_id": node_cat.value, "parents": related_tags.value, uniqIterator : uniqIteration}
+ new Ajax.Request('/create_node', { method:'get',
     parameters: node_data,
     onSuccess: function(transport, json){
-        uniqIteration += 1; 
+        //uniqIteration += 1; 
         json = transport.responseJSON;
-        //traverseObj(json, clog);
+        traverseObj(json, clog);
         //The below should move to the local section
         //using locally provided json manipulation
         myGraph.op.morph(json, {

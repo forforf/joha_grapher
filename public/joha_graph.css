@@ -1,0 +1,348 @@
+
+html, body {
+    margin:0;
+    padding:0;
+    font-family: "Lucida Grande", Verdana;
+    font-size: 0.9em;
+    text-align: center;
+    background-color:#F2F2F2;
+}
+
+.accordion_headings:hover{
+	background:#888899;
+}
+
+.accordion_child{
+	padding:15px;
+	background:#EEE;
+}
+
+.header_highlight{
+	background:#AAAABB;
+}
+
+#main-header 
+{
+	background: url("/images/share-small.png")
+				gray no-repeat 0px 0px;  
+	height: 24px;
+	color: White;
+	font-size: 12pt;
+	font-weight: 200;
+	padding: 8px 8px 8px 150px;
+  text-align: left;
+}
+
+#main-header-wrapper
+{
+  position: relative;
+  top: 4px;
+  vertical-align: middle;
+}
+
+/* jit2 base.css */
+
+input, select {
+    font-size:0.9em;
+}
+
+table {
+    margin-top:-10px;
+    margin-left:7px;
+}
+
+h4 {
+    font-size:1.1em;
+    text-decoration:none;
+    font-weight:normal;
+    color:#23A4FF;
+}
+
+a {
+    color:#23A4FF;
+}
+
+#container {
+    width: 1000px;
+    height: 600px;
+    margin:0 auto;
+    position:relative;
+}
+
+#left-container, 
+#right-container, 
+#center-container {
+    height:600px;
+    position:absolute;
+    top:0;
+}
+
+#left-container, #right-container {
+    width:200px;
+    color:#686c70;
+    text-align: left;
+    overflow: auto;
+    background-color:#fff;
+    background-repeat:no-repeat;
+    border-bottom:1px solid #ddd;
+}
+
+#left-container {
+    left:0;
+    background-image:url('col2.png');
+    background-position:center right;
+    border-left:1px solid #ddd;
+    
+}
+
+#right-container {
+    right:0;
+    background-image:url('col1.png');
+    background-position:center left;
+    border-right:1px solid #ddd;
+}
+
+#right-container h4{
+    text-indent:8px;
+}
+
+#center-container {
+    width:600px;
+    left:200px;
+    background-color:#1a1a1a;
+    color:#ccc;
+}
+
+.text {
+    margin: 7px;
+}
+
+#inner-details {
+    font-size:0.8em;
+    list-style:none;
+    margin:7px;
+}
+
+#log {
+    position:absolute;
+    top:10px;
+    font-size:1.0em;
+    font-weight:bold;
+    color:#23A4FF;
+}
+
+
+#infovis {
+    position:relative;
+    width:600px;
+    height:600px;
+    margin:auto;
+    overflow:hidden;
+}
+
+/*TOOLTIPS*/
+.tip {
+    color: #111;
+    width: 139px;
+    background-color: white;
+    border:1px solid #ccc;
+    -moz-box-shadow:#555 2px 2px 8px;
+    -webkit-box-shadow:#555 2px 2px 8px;
+    -o-box-shadow:#555 2px 2px 8px;
+    box-shadow:#555 2px 2px 8px;
+    opacity:0.9;
+    filter:alpha(opacity=90);
+    font-size:10px;
+    font-family:Verdana, Geneva, Arial, Helvetica, sans-serif;
+    padding:7px;
+}
+
+
+/* bufs_info_doc.css */
+
+et {
+    margin:5px;
+}
+
+input {
+  margin:2px;    
+}
+
+button {
+ margin:5px;
+}
+
+.footnote {
+    font-size:0.7em;
+}
+
+
+.accordion_child_wide{
+    /* many settings are dynamically set in accordion-src.js  or in default.css*/
+    background:none repeat scroll 0 0 #EEEEEE;
+    padding:15px;
+    width:500px;
+}
+
+
+
+
+textarea#related_tags_edit {
+    width:330px;
+}
+
+#infovis-bkcanvas {
+    background-color: #303045;
+}
+
+#container {
+    width: 1400px;
+    height: 700px;
+    margin:0 auto;
+    position:relative;
+}
+
+#left-container, 
+#right-container, 
+#center-container {
+    overflow: auto;
+    width: 500px;
+    height:700px;
+    /*
+    position:absolute;
+    top:0;
+    */
+}
+
+#left-container,#right-container {
+    color:#686c70;
+    text-align: left;
+    overflow: auto;
+    background-color:#fff;
+    background-repeat:no-repeat;
+    border-bottom:1px solid #ddd;
+}
+
+#left-container {
+    position: relative;
+    overflow: visible;
+    width: 200px;
+    left: 0;
+    background-position: center right;
+    border-left: 1px solid #ddd;
+    z-index: 1;
+}
+
+#right-container {
+    width:400px;
+    right:0;
+    background-position:center left;
+    border-right:1px solid #ddd;
+}
+
+#right-container h4{
+    text-indent:8px;
+}
+
+#center-container {
+    width:900px;
+    left: 200px;
+    background-color:#1a1a1a;
+    color:#ccc;
+}
+
+#infovis {
+    /* many settings are dynamically set */
+    position:relative;
+    width:900px;
+    height:700px;
+    margin:auto;
+    overflow:hidden;
+}
+
+
+#edit-node-form, #create-node-form {
+    margin:5px;
+    padding:5px;
+    border-top-style:solid;
+    background-color:#F5F5F5;
+    /*display:none;*/
+}
+
+#att_button_area, #link_button_area {
+    margin:5px;
+    padding:5px;
+    border-color:gray;
+    border-width:1px;
+    border-style:solid;
+}
+
+#node_id_edit_label {
+    background-color:#CFCFFF;
+    padding:2px;
+    font-weight:bold;
+    border-width:1px;
+    border-bottom-style:solid;
+    border-right-style:solid;
+    
+}
+
+#attachment-form {
+    background-color:#DDDDFF;
+    padding: 2px 2px 4px 2px;
+    font-weight:bold;
+    border-top-style:solid;
+    border-bottom-style:dashed;
+    border-top-width:2px;
+    border-bottom-width:1px
+}
+
+.element-list {
+    margin:2px 2px 2px 10px;
+    font-weight:normal;
+}
+.toggler {
+    font-size:80%;
+    margin:0px 0px 0px 15px;
+}
+
+.desc-stuff {
+}
+
+a.borg_node_text {
+  color:#544;
+ }
+ 
+a.borg_file_text {
+  color:#877;
+}
+
+a.borg_link_text {
+  color:#FDD;
+}
+
+#desc-nodes {
+    background-color:#DDDDFF;
+}
+
+#desc-files {
+    background-color:#CDCDEF;
+}
+
+#desc-links {
+    background-color:#9D9DAF;
+}
+#link-form {
+    background-color:#BBBBDD;
+    padding: 2px 2px 4px 2px;    
+    font-weight:bold;
+    border-top-style:dashed;
+    border-bottom-style:solid;
+    border-top-width:1px;
+    border-bottom-width:2px;
+}
+
+/* Dynamically Appearing Elements */
+/* .element-list */
+
+

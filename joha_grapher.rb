@@ -112,7 +112,7 @@ get '/graph/*/*/*' do
   session[:joha_class_name] = joha_class_name
   token = session[:token]
   @jm = @@session[token][joha_class_name] #|| create it
-  redirect '/bufs_graph.html'
+  redirect '/joha_graph.html'
 end
 
 get '/index_nodes' do
@@ -122,6 +122,14 @@ get '/index_nodes' do
   @jm = @@session[token][joha_class_name] #|| create it
   content_type :json
   ret_json = @jm.tree_graph(top_node)
+end
+
+get '/data_definition' do
+  basic_data_def = JohaModel::JohaDataDefn
+  file_data_def = {:attached_files => :file_ops}
+  data_def = file_data_def.merge(basic_data_def)
+  content_type :json
+  data_def.to_json
 end
 
 post '/desc_data' do
@@ -141,4 +149,17 @@ post '/desc_data' do
     else
       erb :descendant_data
   end
+end
+
+get '/create_node' do
+  #top_node = session[:top_node]
+  token = session[:token]
+  joha_class_name = session[:joha_class_name]
+  @jm = @@session[token][joha_class_name] #|| create it
+
+  content_type :json
+  node_data = params[:node_data]
+  #@jm.create_node(node_data)
+  #top_node_id = node.id
+  #ret_json = @jm.tree_graph(top_node_id)
 end

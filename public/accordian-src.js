@@ -11,9 +11,9 @@ Website : http://dezinerfolio.com
 */
 
 // Prototype Method to get the element based on ID
-//function $(d){
-//	return document.getElementById(d);
-//}
+function $(d){
+	return document.getElementById(d);
+}
 
 // set or get the current display style of the div
 function dsp(d,v){
