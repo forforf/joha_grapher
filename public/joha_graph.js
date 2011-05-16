@@ -5,7 +5,26 @@ $(document).ready(function() {
   //Constants
   JOHA_DATA_DEF = syncJax('/data_definition');
 
-  initializePage();
+  initializeGraph();
+  
+  //Set up editing in place (JQuery plugin Jeditable)
+  //-- wrap it in .live so that future elements can use it
+  jQuery('.edit').live('click', function(event) {
+    event.preventDefault();
+    var nodeField = map_dom_to_node_data(this.id); // 'this' is the element being edited.
+
+    //jQuery('.edit').editable('node_data_update', {   /call URL
+    jQuery('.edit').editable( function(value, settings){return update_form_data(this, value, settings)}, {
+      //submitdata: function(oldValue, settings) {
+      //  //var nodeField = map_dom_to_node_data(this.id); // 'this' is the element being edited.
+      //  var nodeId = jQuery('#current_node_id').text();
+      //  //alert(dynValue);
+      //  return {node_id: nodeId, node_field: nodeField, orig_val: oldValue}; 
+      //},
+      style: 'display: inline'
+    });
+   
+   });
   
 });
 
@@ -49,17 +68,17 @@ function array_contains_all(a, subset){
   return retVal
 }
 
-function initializePage(){
+function initializeGraph(){
   blankGraph = rgraphInit(); //insert canvas into here if you can figure it out
    
   var nodeSource = '/index_nodes';
   //the below assigns the graph to myGraph (via Ajax)
   insertNodesIntoGraph(blankGraph, nodeSource);
-  // - remove? - jQuery('node_id_input_edit').value = " ";
   //setAuthToken('authtok_attach_form');  
 }
     
 //Element Manipulation functions
+//--Showing/Hiding Edit Forms
 function show_create_node_form(){
   jQuery('#edit-node-form').hide();
   jQuery('#create-node-form').show();
@@ -82,6 +101,19 @@ function toggle(divId) {
 }
 
 //Dynamic element creation based on data structure
+//-- get current node
+//TODO: Refactor to use this method?
+//function get_current_node() {
+//  alert("called get current node");
+//  return jQuery('#current_node_id').text();
+//}
+
+//-- handle updating data
+function update_form_data(el, value, settings){
+  //is Jeditable overkill with this approach?
+  return value;
+}
+
 //-- common look and feel 
 var file_elements_format = function(filenames, divIdLabel, el){
   if (filenames.length > 0 ){
@@ -93,8 +125,6 @@ var file_elements_format = function(filenames, divIdLabel, el){
         click: function(){get_current_node_attachment(filenames[i])}
       }).appendTo(el);
     }
-    
-  //alert("Attached filename: " + filename + " in special html");
   } else {
     alert('zero length filenames passed');
   }
@@ -131,18 +161,19 @@ var static_elements_format = function(staticKey, staticVal, divIdLabel, el){
 }
 
 var replace_elements_format = function(replaceKey, replaceVal, divIdLabel, el){
+  var span_id = divIdLabel + "_span";
   jQuery("<div />", {
     "id": divIdLabel,
-    html: "<span class=\"replace_key\">" + replaceKey + "</span>: <span id=\"replace_val\">" + replaceVal + "</span>",
+    html: "<span class=\"replace_key\">" + replaceKey + "</span>: <span id=" + span_id + " class=\"edit\">" + replaceVal + "</span>",
    }).appendTo(el);
 }
 
 var list_elements_format = function(listKey, listData, divIdLabel, el){
   var listHtml = "<ul>List of " + listKey
   for( i in listData){
-    listHtml += "\n <li>" + listData[i] + "</li>\n"
+    listHtml += "\n <li><span class=\"edit\">" + listData[i] + "</span></li>\n"
   }
-  listHtml += "</ul>"
+  listHtml += "<li><span class=\"list_add_new\">Add New</li></ul>"
   jQuery("<div />", {
     "id": divIdLabel,
     html: listHtml,
@@ -150,7 +181,7 @@ var list_elements_format = function(listKey, listData, divIdLabel, el){
 }
 
 var key_list_elements_format = function(keyList, divIdLabel, el){
-  alert('key list format');
+  console.log('key list format needs to be done');
   /*for( mainKey in keyList ){
       var divIdKeyLabel = divIdLabel + "_" + mainKey
       var listData = keyList[mainKey]
@@ -171,6 +202,12 @@ var key_list_elements_format = function(keyList, divIdLabel, el){
 }
 
 //-- creation
+//-- TODO: Create an object to hold the data and functions
+function map_dom_to_node_data(dom_id) {
+  var map = { 'node_id_edit_label': 'label' };
+  return map[dom_id]
+}
+
 function dynamic_edit_form(nodeData){
 
   //Define the functions that will display based on node data keys
@@ -184,7 +221,7 @@ function dynamic_edit_form(nodeData){
     }
 
   var edit_label_elements = function(label){
-    //Note that the DOM eleemnt for id already exists, we're just inserting data into it.
+    //Note that the DOM eleemnt for label already exists, we're just inserting data into it.
     jQuery('#node_id_edit_label').text(node.name);
   }
   

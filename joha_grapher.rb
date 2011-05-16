@@ -163,3 +163,30 @@ get '/create_node' do
   #top_node_id = node.id
   #ret_json = @jm.tree_graph(top_node_id)
 end
+
+#TODO: Need to figure this out better (is it add, update, all at once, one at a time, etc)
+post '/node_data_update' do
+  token = session[:token]
+  joha_class_name = session[:joha_class_name]
+  @jm = @@session[token][joha_class_name] #|| create it
+  new_data = params[:value]
+  orig_data = params[:orig_value]
+  node_id = params[:node_id]
+  node_field = params[:node_field]
+  key_data = params[:key_for_value]
+  if key_data
+    puts "Do kvlist manipulation here"
+  end
+  
+  #TODO move to the model
+  #update = subtract then add
+  field_subtract_meth = "#{node_field}_subtract".to_sym
+  field_add_meth = "#{node_field}_add".to_sym
+  node = @jm.select_node(node_id)
+  node.__send__(field_subtract_meth, orig_data)
+  node.__send__(field_add_meth, new_data)
+  node.__save
+  puts "Node Saved #{node.id}: #{node_field}: #{new_data}"
+  puts "#{node._user_data}"
+  new_data
+end
