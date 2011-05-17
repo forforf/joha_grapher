@@ -10,6 +10,7 @@ $(document).ready(function() {
   //Set up editing in place (JQuery plugin Jeditable)
   //-- wrap it in .live so that future elements can use it
   jQuery('.edit').live('click', function(event) {
+    
     event.preventDefault();
     var nodeField = map_dom_to_node_data(this.id); // 'this' is the element being edited.
 
@@ -24,7 +25,10 @@ $(document).ready(function() {
       style: 'display: inline'
     });
    
-   });
+    //jId = '#' + this.id ;
+    //jQuery(jId).removeClass('edit_orig').addClass('edit_updated');
+  });
+   
   
 });
 
@@ -87,6 +91,8 @@ function show_create_node_form(){
 function show_edit_node_form(node){
   jQuery('#create-node-form').hide();
   dynamic_edit_form(node.data);
+  test_size = jQuery('.edit_updated').length;
+  alert(test_size);  
   jQuery('#edit-node-form').show();
 }
 
@@ -111,6 +117,12 @@ function toggle(divId) {
 //-- handle updating data
 function update_form_data(el, value, settings){
   //is Jeditable overkill with this approach?
+  //jId = '#' + el.id ;
+  //alert(jId);
+  jQuery(el).removeClass('edit_orig').addClass('edit_updated');
+  var test_size = 0
+  test_size = jQuery('.edit_updated').length;
+  alert(test_size);
   return value;
 }
 
@@ -209,6 +221,8 @@ function map_dom_to_node_data(dom_id) {
 }
 
 function dynamic_edit_form(nodeData){
+  //reset style to unedited
+  jQuery('.edit').removeClass('edit_updated').addClass('edit_orig');
 
   //Define the functions that will display based on node data keys
   
@@ -309,16 +323,16 @@ function dynamic_edit_form(nodeData){
   }
   
   for (key in nodeCopy) { 
-  //if our data defintion exists for that key, use the appropriate function for displaying it
-  if (JOHA_DATA_DEF[key]) {
-    var edit_ops_var = {}
-    edit_ops_var[key] = nodeCopy[key]
-    EDIT_OPS_MAP[(JOHA_DATA_DEF[key])](edit_ops_var);
-    delete nodeCopy[key];
+    //if our data defintion exists for that key, use the appropriate function for displaying it
+    if (JOHA_DATA_DEF[key]) {
+      var edit_ops_var = {}
+      edit_ops_var[key] = nodeCopy[key]
+      EDIT_OPS_MAP[(JOHA_DATA_DEF[key])](edit_ops_var);
+      delete nodeCopy[key];
+    }
   }
-}
   
-  alert(get_keys(nodeCopy));
+  //alert(get_keys(nodeCopy));
 }
 
 //functions dealing with attached files

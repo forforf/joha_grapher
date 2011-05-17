@@ -343,6 +343,13 @@ a.borg_link_text {
 }
 
 /* Dynamically Appearing Elements */
-/* .element-list */
+/* edit classes */
+.edit_orig {
+    color: #686c70;
+    font-weight: normal;
+}
 
-
+.edit_updated {
+     color: red;
+     font-weight: bold;
+}
