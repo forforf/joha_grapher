@@ -10,6 +10,10 @@
 $(document).ready(function() {
   //Constants
   JOHA_DATA_DEF = syncJax('/data_definition');
+  
+  //Temporary for Testing
+  JOHA_DATA_DEF['user_data'] = "key_list_ops";
+  
 
   initializeGraph();
   set_up_onClick();
@@ -39,10 +43,11 @@ function set_up_onClick() {
   jQuery('.edit').live('click', function(event) {
     
     event.preventDefault();
-    var nodeField = map_dom_to_node_data(this.id); // 'this' is the element being edited.
+    //var nodeField = map_dom_to_node_data(this.id); // 'this' is the element being edited.
 
     //jQuery('.edit').editable('node_data_update', {   /call URL
     jQuery('.edit').editable( function(value, settings){return update_form_data(this, value, settings)}, {
+    
       //submitdata: function(oldValue, settings) {
       //  //var nodeField = map_dom_to_node_data(this.id); // 'this' is the element being edited.
       //  var nodeId = jQuery('#current_node_id').text();
@@ -60,17 +65,21 @@ function set_up_onClick() {
     var all_edits = {};
 
     var edit_updates = jQuery('.edit_updated');
-    all_edits['updates'] = [];
+    all_edits['updates'] = filterJohaUpdateData();
     
-    edit_updates.each(function(i) {
-      updated_el = edit_updates[i];
-      var updated_id = updated_el.id;
-      var updated_node_key = updated_id.split("-")[2];
-      var updated_value = jQuery(updated_el).text();  
-      var update_obj = {};
-      update_obj[updated_node_key] = updated_value;
-      all_edits['updates'].push(update_obj);
-    });
+    //edit_updates.map( function() {
+       
+    
+    //edit_updates.each(function(i) {
+    //  updated_el = edit_updates[i];
+    //  var updated_id = updated_el.id;
+    //  console.log(updated_id);
+      //var updated_node_key = updated_id.split("-")[2];
+      //var updated_value = jQuery(updated_el).text();  
+      //var update_obj = {};
+      //update_obj[updated_node_key] = updated_value;
+      //all_edits['updates'].push(update_obj);
+    //});
     console.log(all_edits);
     //revert data to default (by acting like the node is clicked
   });
@@ -134,6 +143,29 @@ function obj_key_position(obj, key){
     };
 })(jQuery);
 
+function filterJohaUpdateData() {
+  var test_list =  jQuery('.edit_updated').map(function() {
+    var fieldData = {};
+    console.log(this.id);
+    
+    //filter so we only get johaData keys
+    var allData = jQuery(this).data();
+    var allKeys = get_keys(allData);
+    var johaKeys = allKeys.filter(function(i){
+      if (i.split("__")[0] == "johaData"){
+        return i
+      }
+    });
+    for (i in johaKeys) {
+      thisKey = johaKeys[i];
+      fieldData[thisKey] = allData[thisKey];
+    };
+    
+    return fieldData;
+  }).get();
+  return test_list;
+}  
+
 function initializeGraph(){
   blankGraph = rgraphInit(); //insert canvas into here if you can figure it out
    
@@ -179,15 +211,46 @@ function update_form_data(el, value, settings){
   //is Jeditable overkill with this approach?
   //jId = '#' + el.id ;
   //alert(jId);
+  jQuery(el).data("johaData__UpdatedValue", value);
   jQuery(el).removeClass('edit_orig').addClass('edit_updated');
-  var test_size = 0
-  test_size = jQuery('.edit_updated').length;
-  console.log("Num of Edits so far: " + test_size);
+ 
+ 
+  //just testing here
+  
+  //test_list = filterJohaUpdateData();
+/*  
+  var test_list = []
+  test_list =  jQuery('.edit_updated').map(function() {
+    var fieldData = {};
+    console.log(this.id);
+    
+    //filter so we only get johaData keys
+    var allData = jQuery(this).data();
+    var allKeys = get_keys(allData);
+    var johaKeys = allKeys.filter(function(i){
+      if (i.split("__")[0] == "johaData"){
+        return i
+      }
+    });
+    for (i in johaKeys) {
+      thisKey = johaKeys[i];
+      fieldData[thisKey] = allData[thisKey];
+    };
+    
+    fieldData["johaData__UpdatedValue"] = value;
+    return fieldData;
+  }).get();
+
+  console.log(test_list);
+  console.log("Num of Edits so far: " + test_list.length);
+*/  
+  //end testing
   return value;
 }
 
 //-- common look and feel
 //-- -- form elements
+/*
 var edit_value = function(value, idName, classes, parentEl){
   jQuery("<span />", {
     "id": idName,
@@ -195,6 +258,7 @@ var edit_value = function(value, idName, classes, parentEl){
     text: value
    }).appendTo(parentEl);
 }
+
 
 var edit_delete_control = function(idOfValue,  parentEl){
   jQuery("<img />", {
@@ -222,6 +286,8 @@ var edit_key_box = function(value, idName, classes, parentEl){
     text: value
     }).appendTo(parentEl);
 }
+*/
+
 //-- -- data structures 
 var file_elements_format = function(filenames, divIdBase, el){
   if (filenames.length > 0 ){
@@ -328,10 +394,11 @@ var key_list_elements_format = function(keyList, divIdLabel, el){
   }*/
 }
 
+
 //-- creation
-//-- TODO: Create an object to hold the data and functions
+/*//-- TODO: Create an object to hold the data and functions
 function map_dom_to_node_data(dom_id) {
-  id_data = dom_id.split("-");
+  id_data = dom_id.split("_");
   if (id_data[0] == "joha") {
     field_name = id_data[2];
     //key_name = id_data[3];  //not needed
@@ -343,6 +410,7 @@ function map_dom_to_node_data(dom_id) {
   //var map = { 'node_id_edit_label': 'label' };
   return field_name
 }
+*/
 
 function dynamic_edit_form(nodeData){
   //reset style to unedited

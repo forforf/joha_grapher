@@ -1,3 +1,5 @@
+/*  Compatible with JEditable. Editable elements have a class of edit */
+
 /*
 //-- to be able to query on .data attribute.
 //-- example: assume data was set as so $('a#someLink').data('ABC', '123');
@@ -34,7 +36,6 @@ JohaElems.prototype = {
     var fc = jQuery("<div />", {
       id: baseId + "_" + fieldName + "_container", //joha_node_dfield0_container",
       class: "field_container",
-      text: "-" +  fieldName + "field container -",
     });
     return fc;
   },
@@ -100,9 +101,13 @@ JohaElems.prototype = {
   valueData: function(valData, valIndex, keyIndex, fieldName, baseId) {
     var vd = jQuery("<div />", {
       id: baseId + "_" + fieldName + "_value_data_" + valIndex, //"joha_node_dfield1_dkey0_value_data_diter",
-      class: "joha_node_field value_field",
+      class: "joha_node_field value_field edit",
+      data: {"johaData__FieldName": fieldName,
+             "johaData__OrigValue": valData,
+            },
       text: valData,
-    })
+    });
+    //vd.data("johaFieldName", fieldName);
     return vd;
   },
   
@@ -167,6 +172,7 @@ function BuildReplaceDom(fieldData, baseId){
   var fieldContainer = johaBuilder.fieldContainer(this.fieldName, baseId);  
   var valueContainerParent = johaBuilder.valueContainerParent("","", this.fieldName, baseId);
   var valueData = johaBuilder.valueData( fieldData[this.fieldName] , "", "", this.fieldName, baseId);
+  valueData.data("johaData__Type", "replace_ops");
   var deleteControls = johaBuilder.deleteControls("","", this.fieldName, baseId, valueContainerParent, valueData.text());
   var fieldLabel = johaBuilder.fieldLabel(this.fieldName, baseId, valueContainerParent.attr('id'));
     
@@ -204,9 +210,11 @@ function BuildListDom(fieldData, baseId) {
   var valueDatas = []
   var deleteControls = []
   for (index in myData) {
-    valueContainerParents[index] = johaBuilder.valueContainerParent("", index, this.fieldName, baseId);
-    valueDatas[index] = johaBuilder.valueData(myData[index], "", index, this.fieldName, baseId);
-    deleteControls[index] = johaBuilder.deleteControls("", index, this.fieldName, baseId, valueContainerParents[index], valueDatas[index].text() );
+    valueContainerParents[index] = johaBuilder.valueContainerParent(index, "", this.fieldName, baseId);
+    valueDatas[index] = johaBuilder.valueData(myData[index], index, "", this.fieldName, baseId);
+    valueDatas[index].data("johaData__Type", "list_ops");
+    valueDatas[index].data("johaData__ListIndex", index);
+    deleteControls[index] = johaBuilder.deleteControls(index, "", this.fieldName, baseId, valueContainerParents[index], valueDatas[index].text() );
   }
   var fieldLabel = johaBuilder.fieldLabel(this.fieldName, baseId, listContainer.attr('id'));  
   
@@ -266,9 +274,14 @@ function BuildKvlistDom(fieldData, baseId){
 
     for (listIndex in keyList) {
      
-      thisKeyContainer.valueContainerParents[listIndex] = johaBuilder.valueContainerParent(keyIndex, listIndex, this.fieldName, baseId);
+      thisKeyContainer.valueContainerParents[listIndex] = johaBuilder.valueContainerParent(listIndex, keyIndex, this.fieldName, baseId);
       
       thisKeyContainer.valueDatas[listIndex] = johaBuilder.valueData(keyList[listIndex], listIndex, keyIndex, this.fieldName, baseId);
+      
+      //NEEDS TESTING!!!!
+      thisKeyContainer.valueDatas[listIndex].data("johaData__Type", "key_list_ops");
+      thisKeyContainer.valueDatas[listIndex].data("johaData__ListIndex", listIndex);
+      thisKeyContainer.valueDatas[listIndex].data("johaData__Key", myKey);
       //UGLY!!!
       thisKeyContainer.deleteControls[listIndex] = johaBuilder.deleteControls(listIndex, keyIndex, this.fieldName, baseId, thisKeyContainer.valueContainerParents[listIndex], thisKeyContainer.valueDatas[listIndex].text() );
     }
