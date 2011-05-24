@@ -1,0 +1,158 @@
+
+.field_container {
+  background: #fffdba;
+  border: 2px solid;
+  border-color: #0000ff;
+  clear: both;
+ /* clear: left;*/
+  font-size: 5pt;
+  height: auto;
+  margin-bottom: 5px;
+  overflow: auto;
+  padding: 0px;
+}
+
+.field_label {
+  background-color: #ffdd9a;
+  clear: left;
+  vertical-align: top;
+  font-weight: bold;
+  font-size: 10pt;
+  float: left;
+  margin-top: 4px;
+  margin-right: 8px;
+  width: auto;
+}
+  
+.key_field {
+  font-size: 10pt;
+  border: 1px solid;
+  margin: 2px;
+  margin-right: 4px;
+  padding: 2px;
+  float: left;
+  height: 1.25em;
+}
+
+.list_container {
+  background-color: #ddbb7a;
+  float: left;
+  height: auto;
+}
+
+.kvlist_item {
+  background-color: ##bb995a;
+  height: auto;
+}
+
+.kvlist_container {
+  display: inline-block;
+  float: left;
+}
+
+.value_outer {
+  border: 1px solid;
+  float: left;
+  height: auto;
+  margin-right: 5px;
+  padding: 0px;
+  /*overflow: auto;*/
+}
+
+.value_field {
+  border: 1px solid;
+  float: left;
+  font-size: 10pt;
+  margin: 2px;
+  padding: 2px;
+  height: 1.25em;
+}
+
+.delete_controls {
+  float: left;
+  font-size: 6pt;
+  border: 1px solid;
+  margin: 2px;
+  padding: 2px;
+}
+
+.delete_controls:hover {
+  background-color: orange;
+}
+
+/*
+
+.log_in{
+  padding: 8px 8px 8px 360px;
+}
+.log_in_form{
+  text-align: left;
+  width: 50%
+}
+.user_input
+{
+  margin: 8px 8px 8px 8px;
+}
+.accordion_headings{
+	padding:5px;
+	background:#666677;
+	color:#FFFFFF;
+	border:1px solid #FFF;
+	cursor:pointer;
+	font-weight:normal;
+  margin: 2px;
+}
+
+.accordion_headings:hover{
+	background:#888899;
+}
+
+.accordion_child{
+	padding:15px;
+	background:#EEE;
+}
+
+
+#header 
+{
+	background: url("/images/share.png")
+				gray no-repeat 16px 16px;  
+	height: 74px;
+	color: White;
+	font-size: 24pt;
+	font-weight: 200;
+	padding: 16px 16px 16px 325px;
+  text-align: left;
+}
+#header-text-wrapper
+{
+  position: relative;
+  top: 18px;
+  vertical-align: middle;
+}
+
+#main-header 
+{
+	background: url("/images/share-small.png")
+				gray no-repeat 0px 0px;  
+	height: 24px;
+	color: White;
+	font-size: 12pt;
+	font-weight: 200;
+	padding: 8px 8px 8px 150px;
+  text-align: left;
+}
+#main-header-wrapper
+{
+  position: relative;
+  top: 4px;
+  vertical-align: middle;
+}
+
+#content 
+{
+	background: white;
+  color: Gray;
+	padding: 1em;
+}
+*/

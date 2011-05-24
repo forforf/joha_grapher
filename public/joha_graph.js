@@ -1,12 +1,39 @@
-
-
+/* Header data */
+/* Note on Element #id naming convention for dynamically created joha elements
+      format: #joha-[dom namespace identifier]-[node data field name]-[id for data key(if exist)]-[data iteration id (if exists)
+      example: #joha-edit-label--
+      example: #joha-edit-links-0-0  (first key and first element within that key)
+      example: #joha-edit-links-1-3  (second key and 3 element within that key)
+      example: #joha-edit-parents--2  (third element in parents node field)
+*/
 // Something about initialization or getting ready, something something
 $(document).ready(function() {
   //Constants
   JOHA_DATA_DEF = syncJax('/data_definition');
 
   initializeGraph();
+  set_up_onClick();
+
+   
   
+});
+
+//Initialization Functions  TODO: Change to function form (lowercase underscore)
+//-- Get neccessary server side initialization data
+function syncJax(srcUrl) {
+  retVal = "";
+  
+  jQuery.ajax({
+    url:srcUrl,
+    success: function(retData){retVal = retData;}, async:false
+  });
+  
+  console.log(retVal);
+  return retVal
+}
+//-- Set up listeners (onclick, etc)
+
+function set_up_onClick() {
   //Set up editing in place (JQuery plugin Jeditable)
   //-- wrap it in .live so that future elements can use it
   jQuery('.edit').live('click', function(event) {
@@ -28,23 +55,30 @@ $(document).ready(function() {
     //jId = '#' + this.id ;
     //jQuery(jId).removeClass('edit_orig').addClass('edit_updated');
   });
-   
   
-});
+  jQuery('#save_node_data').live('click', function(event) {
+    var all_edits = {};
 
-//Initialization Functions  TODO: Change to function form (lowercase underscore)
-function syncJax(srcUrl) {
-  retVal = "";
-  
-  jQuery.ajax({
-    url:srcUrl,
-    success: function(retData){retVal = retData;}, async:false
+    var edit_updates = jQuery('.edit_updated');
+    all_edits['updates'] = [];
+    
+    edit_updates.each(function(i) {
+      updated_el = edit_updates[i];
+      var updated_id = updated_el.id;
+      var updated_node_key = updated_id.split("-")[2];
+      var updated_value = jQuery(updated_el).text();  
+      var update_obj = {};
+      update_obj[updated_node_key] = updated_value;
+      all_edits['updates'].push(update_obj);
+    });
+    console.log(all_edits);
+    //revert data to default (by acting like the node is clicked
   });
-  
-  return retVal
 }
 
 //Generic Helper functions
+  //http://stackoverflow.com/questions/208016/how-to-list-the-properties-of-a-javascript-object
+  //for better x-browser support of keys()
 function get_keys(obj){
    var keys = [];
    for(var key in obj){
@@ -72,6 +106,34 @@ function array_contains_all(a, subset){
   return retVal
 }
 
+function obj_key_position(obj, key){
+  var i = 0;
+  for (k in obj) {
+    if (k == key) {
+      return i;
+    }
+    i += 1;
+  }
+  return -1;
+}
+
+//-- to be able to query on .data attribute.
+//-- example: assume data was set as so $('a#someLink').data('ABC', '123');
+//-- usage: $('a[ABC=123]')
+//-- returns the element.
+// Code by James Padolsey, site: http://james.padolsey.com/javascript/a-better-data-selector-for-jquery/
+(function($){
+    var _dataFn = $.fn.data;
+    $.fn.data = function(key, val){
+        if (typeof val !== 'undefined'){ 
+            $.expr.attrHandle[key] = function(elem){
+                return $(elem).attr(key) || $(elem).data(key);
+            };
+        }
+        return _dataFn.apply(this, arguments);
+    };
+})(jQuery);
+
 function initializeGraph(){
   blankGraph = rgraphInit(); //insert canvas into here if you can figure it out
    
@@ -90,9 +152,7 @@ function show_create_node_form(){
 
 function show_edit_node_form(node){
   jQuery('#create-node-form').hide();
-  dynamic_edit_form(node.data);
-  test_size = jQuery('.edit_updated').length;
-  alert(test_size);  
+  dynamic_edit_form(node.data); 
   jQuery('#edit-node-form').show();
 }
 
@@ -122,17 +182,53 @@ function update_form_data(el, value, settings){
   jQuery(el).removeClass('edit_orig').addClass('edit_updated');
   var test_size = 0
   test_size = jQuery('.edit_updated').length;
-  alert(test_size);
+  console.log("Num of Edits so far: " + test_size);
   return value;
 }
 
-//-- common look and feel 
-var file_elements_format = function(filenames, divIdLabel, el){
+//-- common look and feel
+//-- -- form elements
+var edit_value = function(value, idName, classes, parentEl){
+  jQuery("<span />", {
+    "id": idName,
+    "class": classes,
+    text: value
+   }).appendTo(parentEl);
+}
+
+var edit_delete_control = function(idOfValue,  parentEl){
+  jQuery("<img />", {
+    "src": "./images/delete_normal.png"
+  }).appendTo(parentEl);
+}
+  
+var edit_value_controls = function(idOfValue, parentEl){
+  jQuery("<div />", {
+    "class": "edit_control_box",
+  });
+}
+
+var edit_value_box = function(value, idName, classes, parentEl){
+  jQuery("<span />", {
+    "id": idName,
+    "class": classes,
+  });
+}
+
+var edit_key_box = function(value, idName, classes, parentEl){
+  jQuery("<span />", {
+    "id":idName,
+    "class": classes,
+    text: value
+    }).appendTo(parentEl);
+}
+//-- -- data structures 
+var file_elements_format = function(filenames, divIdBase, el){
   if (filenames.length > 0 ){
     //create the DOM elements
     for (i in filenames){
       jQuery("<div />", {
-        "id":divIdLabel + i,
+        "id": divIdBase + "--" + i,
         text: filenames[i],
         click: function(){get_current_node_attachment(filenames[i])}
       }).appendTo(el);
@@ -142,52 +238,71 @@ var file_elements_format = function(filenames, divIdLabel, el){
   }
 }
 
-var link_elements_format = function(links, divIdLabel, el){
-  var linkHtml = ""
+// Note that the mapping of the keys to an index value could be quite brittle
+// It requires the consumer of the #id to have exactly the same data
+// A better approach would be to use a map to convert the iterator back into the proper
+// key (where to put this?)
+var link_elements_format = function(links, divIdBase, el){
+  var linkHtml = "";
+  var urlKeys = get_keys(links);
+  if (urlKeys) {
+    /* ok */
+  } else {
+    alert("Cant find URL Keys");
+  }     
   for (url in links){
-    var indivLabels = links[url]
-    if (indivLabels instanceof Array){
-      /* ok */
-      } else {
-      indivLabels = [indivLabels] //make array
-    }
-    for (i in indivLabels){ 
-     linkHtml += "<a href=\"" + url + "\">" + indivLabels[i] + "</a></br>"
-     //make bigger html
+    var indivLabels = links[url];
+    var urlIndex = obj_key_position(links, url);
+    if (urlIndex >= 0) {
+      if (indivLabels instanceof Array){
+        /* ok */
+        } else {
+        indivLabels = [indivLabels]; //make array
+      }
+      for (i in indivLabels){ 
+       console.log(divIdBase);
+       var divIdLabel = divIdBase + "-" + urlIndex + "-" + i;
+       linkHtml += "<a id=\"" + divIdLabel + "\" href=\"" + url + "\">" + indivLabels[i] + "</a></br>"
+       //make bigger html
+      }
+    } else {
+      alert("Cant find url in array of links keys");
     }
   }
   
   //Build Dom Element
   jQuery("<div />", {
-    "id": divIdLabel,
+    "id": divIdBase,
     html: linkHtml
   }).appendTo(el);
 }
 
 //needs testing
-var static_elements_format = function(staticKey, staticVal, divIdLabel, el){
+//#id is not conformant to others (but does it matter?) TODO: Fix to be conformant
+var static_elements_format = function(staticKey, staticVal, divIdBase, el){
   jQuery("<div />", {
-    "id":divIdLabel,
+    "id":divIdBase,
     html: "<h1> " + staticKey + " " + staticVal + "  </h1>",
    }).appendTo(el);
 }
 
-var replace_elements_format = function(replaceKey, replaceVal, divIdLabel, el){
-  var span_id = divIdLabel + "_span";
+var replace_elements_format = function(replaceKey, replaceVal, divIdBase, el){
+  var joha_id = divIdBase + "-" + replaceKey + "--";
   jQuery("<div />", {
-    "id": divIdLabel,
-    html: "<span class=\"replace_key\">" + replaceKey + "</span>: <span id=" + span_id + " class=\"edit\">" + replaceVal + "</span>",
+    "id": divIdBase,
+    html: "<span class=\"replace_key\">" + replaceKey + "</span>: <span id=" + joha_id + " class=\"edit\">" + replaceVal + "</span>",
    }).appendTo(el);
 }
 
-var list_elements_format = function(listKey, listData, divIdLabel, el){
+var list_elements_format = function(listKey, listData, divIdBase, el){
   var listHtml = "<ul>List of " + listKey
   for( i in listData){
-    listHtml += "\n <li><span class=\"edit\">" + listData[i] + "</span></li>\n"
+    var joha_id = divIdBase + "-" + listKey + "--" + i;
+    listHtml += "\n <li><span id=\"" + joha_id + "\" class=\"edit\">" + listData[i] + "</span></li>\n"
   }
   listHtml += "<li><span class=\"list_add_new\">Add New</li></ul>"
   jQuery("<div />", {
-    "id": divIdLabel,
+    "id": divIdBase,
     html: listHtml,
    }).appendTo(el);
 }
@@ -216,8 +331,17 @@ var key_list_elements_format = function(keyList, divIdLabel, el){
 //-- creation
 //-- TODO: Create an object to hold the data and functions
 function map_dom_to_node_data(dom_id) {
-  var map = { 'node_id_edit_label': 'label' };
-  return map[dom_id]
+  id_data = dom_id.split("-");
+  if (id_data[0] == "joha") {
+    field_name = id_data[2];
+    //key_name = id_data[3];  //not needed
+    //iter_name = id_data[4]; //not needed
+    
+  } else {
+    console.log("ID should start with Joha, instead it was: " + dom_id);
+  }
+  //var map = { 'node_id_edit_label': 'label' };
+  return field_name
 }
 
 function dynamic_edit_form(nodeData){
@@ -236,20 +360,20 @@ function dynamic_edit_form(nodeData){
 
   var edit_label_elements = function(label){
     //Note that the DOM eleemnt for label already exists, we're just inserting data into it.
-    jQuery('#node_id_edit_label').text(node.name);
+    jQuery('#joha-edit-label--').text(node.name);
   }
   
   //TODO: Create file object with filename and file data (if needed)
   var edit_file_elements = function(filenames){
     //simpler code, but best behavior to make sure selecting node multiple times creates multiple data?
     jQuery('#edit_file_elements').remove();
-    file_elements_format(filenames, "edit_file_elements_", jQuery('#dn_file_data') );
+    file_elements_format(filenames, "joha-edit-filenames", jQuery('#dn_file_data') );
   }
 
     var edit_link_elements = function(links){
     //simpler code, but best behavior to make sure selecting node multiple times creates multiple data?
-    jQuery('#edit_link_elements').remove();
-    link_elements_format(links, "edit_link_elements", jQuery('#dn_link_data') );
+    jQuery('#joha-edit-links').remove();
+    link_elements_format(links, "joha-edit-links", jQuery('#dn_link_data') );
   }
   
   //-- Other data keys can fall into some generic categories for display functions
@@ -257,32 +381,32 @@ function dynamic_edit_form(nodeData){
   var edit_static_elements = function(staticVar){
     alert("Static Var: " + staticVar.key + " handled statically");
   }
-
+/*
   var edit_replace_elements = function(replaceVar){
     replaceKey = get_keys(replaceVar)[0];
     replaceData = replaceVar[replaceKey];
-    var divIdLabel = "edit_" + replaceKey
-    replace_elements_format(replaceKey, replaceData, divIdLabel, jQuery('#dn_node_data'));
+    var divIdBase = "joha-edit" // + replaceKey
+    replace_elements_format(replaceKey, replaceData, divIdBase, jQuery('#dn_node_data'));
   }
 
   var edit_list_elements = function(listVar){
-    //alert(get_keys(listVar));
     listKey = get_keys(listVar)[0]
     listItems = listVar[listKey]
-    var divIdLabel = "list_" + listKey
-    list_elements_format(listKey, listItems, divIdLabel, jQuery('#dn_node_data'));
+    var divIdBase = "joha-edit" // + listKey
+    list_elements_format(listKey, listItems, divIdBase, jQuery('#dn_node_data'));
   }
 
   var edit_keylist_elements = function(keyListVar){
     var divIdLabel = "edit_keylist_"
     key_list_elements_format(keyListVar, divIdLabel, jQuery('#dn_node_data'));
   }
+*/
   
   //-- We may have node data that has no defined treatment
   //-- in this approach we still allow editing of that data, but because
   //-- we don't know the structure, we defer to the user to make sure it's
   //-- the data form is correct (i.e. braces for maps, brackets for arrays, quotes for embedded strings, etc)
-  var edit_no_data_def = edit_replace_elements;
+  var edit_no_data_def = console.log("No Data Def for some data field");
   
   //these keys are required to be present in the node data
   var REQUIRED_DATA = ["id", "label"]  //may be able to refactor label out in the future
@@ -295,11 +419,14 @@ function dynamic_edit_form(nodeData){
   
   //-- operations are defined as part of data defn, this binds data structure (data defn)
   //-- to specific js operations for displaying that structure
+  
+  /*
   var EDIT_OPS_MAP = {"static_ops": edit_static_elements,
                    "replace_ops": edit_replace_elements,
                    "list_ops": edit_list_elements,
                    "key_list_ops": edit_keylist_elements}
-                   
+   */
+   
   //main algorithm
   //-- remove any existing data in the dynamic divs
   jQuery('#dn_node_data').empty();
@@ -308,6 +435,8 @@ function dynamic_edit_form(nodeData){
   //-- create a clone of the node data because we are going to be changing it
   //-- but only for display reasons
   var nodeCopy = jQuery.extend({}, nodeData);
+  console.log('Node Copy before Special Treatment v');
+  console.log(nodeCopy);
   
   var nodeKeys = get_keys(nodeCopy);
   
@@ -315,13 +444,22 @@ function dynamic_edit_form(nodeData){
   //alert("Not all Required Data Elements are present in Node ID: " + nodeCopy.id + "Keys:" + nodeKeys) };
   
   for (key in SPECIAL_TREATMENT) {
-    // - remove - alert(key);
     if (nodeCopy[key]){
       SPECIAL_TREATMENT[key](nodeCopy[key]);
-      delete nodeCopy[key];  // we've handled it so let's not worry about it anymore
+      //delete nodeCopy[key];  // we've handled it so let's not worry about it anymore
     }
+    delete nodeCopy[key];  //moved here to avoid the issue where node[key] = null; messing up stuff later.
   }
+  console.log('After special treatment v');
+  console.log(nodeCopy);
   
+  console.log('DynData v');
+ 
+  nodeDataDom = domNodeFactory(nodeCopy, JOHA_DATA_DEF);
+  console.log(nodeDataDom);
+  jQuery('#dn_node_data').append(nodeDataDom.domObj);
+
+/* 
   for (key in nodeCopy) { 
     //if our data defintion exists for that key, use the appropriate function for displaying it
     if (JOHA_DATA_DEF[key]) {
@@ -331,8 +469,8 @@ function dynamic_edit_form(nodeData){
       delete nodeCopy[key];
     }
   }
+*/
   
-  //alert(get_keys(nodeCopy));
 }
 
 //functions dealing with attached files
@@ -379,6 +517,7 @@ function routeClickedNodeDataToElements(nodeStale) {
   // - remove - jQuery('#node_id_edit_label').text(node.name);
   //functions to distribute data to 
   show_edit_node_form(node);
+  console.log(node);
   //TODO: Make this dynamic based on dataset
   add_descendant_data(jQuery('#desc-nodes'), 'label');
   add_descendant_data(jQuery('#desc-files'), 'attached_files');

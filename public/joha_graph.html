@@ -7,6 +7,7 @@
 <!-- CSS Files -->
 <link type="text/css" href="./default.css" rel="stylesheet" />
 <link type="text/css" href="./joha_graph.css" rel="stylesheet" />
+<link type="text/css" href="./dynform.css" rel="stylesheet" />
 
 <!--[if IE]><script language="javascript" type="text/javascript" src="../javascripts/jit/Extras/excanvas.js"></script><![endif]-->
 
@@ -15,12 +16,13 @@
 <!-- <script language="javascript" type="text/javascript" src="./prototype.js"></script> -->
 <script language="javascript" type="application/javascript" src="jquery-1.6.js"></script>
 <script language="javascript" type="application/javascript" src="jquery.jeditable.js"></script>
-
+<script language="javascript" type="application/javascript" src="dynform.js"></script>
 
 
 <!-- Main script file -->
 <script language="javascript" type="application/javascript" src="joha_graph.js"></script>
 <script language="javascript" type="application/javascript" src="accordian-src.js"></script>
+
 
 </head>
 
@@ -118,63 +120,22 @@
 
       <div id="edit-node-form" class="node-forms" style="display:none;">
         <div id="node_editor">
-           <fieldset>
-              <legend>
-              Edit Node: <span id="node_id_edit_label" class="edit"></span>
-              </legend>
-                <div id="edit-node-data">
-                  <div id="dynamic_node_data_all">
-                    <div id="dn_node_data"></div>
-                    <div id="dn_link_data"></div>
-                    <div id="dn_file_data"></div>
-                <!-- to be replaced by dynamically inserted data based on data structure 
-              Parents:
-              <textarea id="related_tags_edit" name="related_tags"></textarea>
-              <button id="update_node_button" onclick="javascript:update_node()">Update</button>
-              <button id="delete_node_button" onclick="javascript:delete_node()">Delete Node</button>
-              <div id="attachment-form">
-                <span id='attachment_label'>Attachments</span>
-                <div id="attachment_list" class="attachment-list">No Node Selected
-                </div>
-                <div id="add_attach" class="element-list">
-                  <a class="toggler" href="javascript:show('add_attach_form');">Add new attachment</a>
-                </div>
-             
-                <form id="add_attach_form" action="/bufs_info_doc/att_test"  method="post" enctype="multipart/form-data" style="display:none">
-                  <!-- Parameters: node_id 
-                  <input id="authtok_attach_form" type="hidden" value=" " name="authenticity_token">
-                  <input id="node_id_input_edit" name="node_cat" type="hidden" />
-
-                  <div id="att_button_area">
-                    <b>Add Attachments  </b><a class="toggler" href="javascript:hide('add_attach_form');">hide this again</a> <br />
-                    <input id="add_attach_edit" name="add_attachment" type="file" />
-                    <input name="action" value="Upload New Attachment" type="button" onclick="javascript:adda_attachment()" />
-                  </div>
-
-                  <iframe id="files_uploaded_iframe" name="files_uploaded_iframe" src="" style="display:none">
-                  </iframe>
-
-                </form>
+          <fieldset>
+            <legend>
+              Edit Node: <span id="joha-edit-label--" class="edit"></span>
+            </legend>
+            <div id="edit-node-data">
+              <div id="dynamic_node_data_all">
+                <div id="dn_node_data"></div>
+                <div id="dn_link_data"></div>
+                <div id="dn_file_data"></div>
               </div>
-              <div id="link-form">
-                <span id='link_label'>Links</span>
-                <form id="add_link_form">
-                  <div id="links_list" class="links-list">No Node Selected
-                  </div>
-                <div id="add_link" class="element-list">
-                  <a class="toggler" href="javascript:show('link_button_area');">Add new link</a>
-                </div>                  
-                  <div id="link_button_area" style="display:none">
-                    <b>Add Links </b><a class="toggler" href="javascript:hide('link_button_area');">hide this again</a> <br/>
-                    Link Source<input id="add_link_edit" name="add_link" value="http://" /><br />
-                    Link Label <input id="add_link_name_edit" name="add_link_name" /> <br/>
-                    <input name="action" value="Add New Link" type="button" onclick="javascript:adda_link()" />
-                  </div>
-                </form>  
-              </div> -->
-              </div>
-           </fieldset> 
+            </div>
+          </fieldset>
+        <div id="save_node_data">
+          Save
         </div>
+      </div>
 
 
       <div id="destroy-node-form" style="display:none;">
