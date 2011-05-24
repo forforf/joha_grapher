@@ -71,9 +71,10 @@
 .delete_controls {
   float: left;
   font-size: 6pt;
-  border: 1px solid;
-  margin: 2px;
-  padding: 2px;
+  height: 12px;
+  width: 12px;
+  margin: 0px;
+  padding: 0px;
 }
 
 .delete_controls:hover {

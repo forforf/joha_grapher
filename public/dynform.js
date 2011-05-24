@@ -1,47 +1,63 @@
 /*  Compatible with JEditable. Editable elements have a class of edit */
+// Requires JQuery and joha_helpers.js
 
-/*
-//-- to be able to query on .data attribute.
-//-- example: assume data was set as so $('a#someLink').data('ABC', '123');
-//-- usage: $('a[ABC=123]')
-//-- returns the element.
-// Code by James Padolsey, site: http://james.padolsey.com/javascript/a-better-data-selector-for-jquery/
-
-(function($){
-    var _dataFn = $.fn.data;
-    $.fn.data = function(key, val){
-        if (typeof val !== 'undefined'){ 
-            $.expr.attrHandle[key] = function(elem){
-                return $(elem).attr(key) || $(elem).data(key);
-            };
-        }
-        return _dataFn.apply(this, arguments);
-    };
-})(jQuery);
+/*Class to hold Element Constructors, used as a mixin
+  Data Organization:
+    node: Holds all data of interest. Has a unique id field.
+    field: The names of the data held by the node.  Example, "id" holds the node id value, "label" holds the node name, "links" holds the node's links
+    
+  Element Types:  JohaElems.<element type>(<args>) to call
+    fieldContainer:       Container for field related data
+    fieldLabel:           Holds the field name.
+    keyContainer:         For field data that has keys, holds the key name TODO: If it holds data, don't call it a container
+    listContainer:        For field data that is an array, holds the array items
+    kvListIemt:           For field data that has keys, it is an item of the data belonging to a particular key
+    kvListContainer:      Similar to listContainer, but holds a set of kvListItems
+    valueContainerParent  Holds the fundamental value data and associated controls
+    staticData:           Holds static (unchangable) data
+    valueData:            Holds the fundamental value (editable with JEditable)
+    deleteControls:       Holds the control for deleting data
+  
+  Builder Types:
+    BuildNodeEditDom:         Main container, it holds on the editing doms.
+    BuildNodeFieldContainer:  Not called?
+    BuildReplaceDom:          Builds an editing container for simple key-value data (the value is editable by replacing it with the new data)
+    BuildListDom:             Builds an editing container for key-array data (each element of the array is editable)
+    BuildKvlistDom:           Builds an editing container for key-{subkey:list, subkey:list} type data. Subkeys and lists are each editable.
+   
+   Dom Constructors:
+     domFieldFactory:   Inspects specified field data to determine its data structure and invokes the appropriate builder
+     domNodeFactory:    Main entry point. Invokes domFieldFactory for each field in turn and then assembles them into the main container (BuildNodeEditDom)      
+     
+   Custom Data Stored in Element holding the Value:
+    johaData__Type:         Type of data structure, can be static_ops, replace_ops, list_ops, or key_list_ops.
+    johaData__FieldName:    The field name associated with the value
+    johaData__OrigValue:    The value assined to the element at the time of element creation
+    johaData__UpdatedValue: Used to track when the data has changed (set by user using JEditable typically )
+    johaData__ListIndex:    Identifies which list item the value element is.
+    johaData__Key:          Identifies which key is associated with value element for key: {subkey: list ...} type of data
+*/  
+/* Note on Element #id naming convention for dynamically created joha elements (to ensure uniqueness)
+      format: #joha-[dom namespace identifier]-[node data field name]-[id for data key(if exist)]-[data iteration id (if exists)
+      example: #joha-edit-label--
+      example: #joha-edit-links-0-0  (first key and first element within that key)
+      example: #joha-edit-links-1-3  (second key and 3 element within that key)
+      example: #joha-edit-parents--2  (third element in parents node field)
+   
 */
-
-function get_keys(obj){
-   var keys = [];
-   for(var key in obj){
-      keys.push(key);
-   }
-   return keys;
-}
-
-//Class to hold Element Constructors, used as a mixin
 
 var JohaElems = function() {}; //abstract-like class
 JohaElems.prototype = {
   fieldContainer: function(fieldName, baseId) {
     var fc = jQuery("<div />", {
-      id: baseId + "_" + fieldName + "_container", //joha_node_dfield0_container",
+      id: baseId + "_" + fieldName + "_container",
       class: "field_container",
     });
     return fc;
   },
   
   fieldLabel: function(fieldName, baseId, labelId) {
-    var myId = baseId + "_" + fieldName + "_label"; //joha_node_dfield0_label";
+    var myId = baseId + "_" + fieldName + "_label";
     var myClass = "field_label";
     var fl = jQuery("<label for=\"" + labelId + "\" id=\"" + myId + "\" class=\"" + myClass + "\">" + fieldName + ":</label>");
     return fl;
@@ -49,7 +65,7 @@ JohaElems.prototype = {
   
   keyContainer: function(keyName, keyIndex, fieldName, baseId) {
     var kc = jQuery("<div />", {
-      id: baseId + "_" + fieldName + "_" + keyIndex + "_container", //joha_node_dfield1_dkey0_container_diter",
+      id: baseId + "_" + fieldName + "_" + keyIndex + "_container",
       class: "key_field",
       text: keyName,
     })
@@ -58,7 +74,7 @@ JohaElems.prototype = {
   
   listContainer: function(fieldName, baseId) {
     var lc = jQuery("<div />", {
-      id: baseId + "_" + fieldName + "_list_container", //joha_node_dfield1_dkey0_container_diter",
+      id: baseId + "_" + fieldName + "_list_container",
       class: "list_container",
     })
     return lc;
@@ -73,7 +89,7 @@ JohaElems.prototype = {
   
   kvListContainer: function(fieldName, baseId) {
     var kvlc = jQuery("<div />", {
-      id: baseId + "_" + fieldName + "_kvlist_container", //joha_node_dfield1_dkey0_container_diter",
+      id: baseId + "_" + fieldName + "_kvlist_container",
       class: "kvlist_container",
     })
     return kvlc;
@@ -81,7 +97,7 @@ JohaElems.prototype = {
   
   valueContainerParent: function(valIndex, keyIndex, fieldName, baseId) {
     var vcp = jQuery("<div />", {
-      id: baseId + "_" + fieldName + "_" + keyIndex + "_value_container_" + valIndex, //"joha_node_dfield1_dkey0_value_container_diter",
+      id: baseId + "_" + fieldName + "_" + keyIndex + "_value_container_" + valIndex,
       class: "value_outer",
     })
     return vcp;
@@ -100,7 +116,7 @@ JohaElems.prototype = {
   
   valueData: function(valData, valIndex, keyIndex, fieldName, baseId) {
     var vd = jQuery("<div />", {
-      id: baseId + "_" + fieldName + "_value_data_" + valIndex, //"joha_node_dfield1_dkey0_value_data_diter",
+      id: baseId + "_" + fieldName + "_value_data_" + valIndex,
       class: "joha_node_field value_field edit",
       data: {"johaData__FieldName": fieldName,
              "johaData__OrigValue": valData,
@@ -112,13 +128,12 @@ JohaElems.prototype = {
   },
   
   deleteControls: function(valIndex, keyIndex, fieldName, baseId, delContainer, delValue) {
-    var dc = jQuery("<div />", {
-      id: baseId + "_" + fieldName +"_" + keyIndex + "_delete_controls_" + valIndex, //joha_node_dfield1_dkey0_value_controls_diter",
-      class: "delete_controls",
-      text: "-",
-    })
-    dc.data('deleteContainerId', delContainer.attr('id'));
-    dc.data('deleteValue', delValue);
+    var elId = baseId + "_" + fieldName +"_" + keyIndex + "_delete_controls_" + valIndex;
+    var elClass = "delete_controls";
+    var elHtml = "<img id=\"" + elId + "\" class=\"" + elClass + "\" src=\"./images/delete_normal.png\" alt=\"-\" />"
+    var dc = jQuery(elHtml);
+    dc.data('johaData__deleteContainerId', delContainer.attr('id'));
+    dc.data('johaData__deleteValue', delValue);
     return dc;
   }
 };
@@ -218,15 +233,11 @@ function BuildListDom(fieldData, baseId) {
   }
   var fieldLabel = johaBuilder.fieldLabel(this.fieldName, baseId, listContainer.attr('id'));  
   
-  
-    //combine elements into Dom (TODO: This can be DRYed up)
   fieldContainer = fieldContainer.append(fieldLabel);
-  
   
   for (index in myData) {
     valueContainerParents[index] = valueContainerParents[index].append(valueDatas[index]);
     valueContainerParents[index] = valueContainerParents[index].append(deleteControls[index]);
-  //  fieldContainer = fieldContainer.append(keyContainer);
     listContainer = listContainer.append(valueContainerParents[index]);   
   }
   
@@ -330,7 +341,7 @@ function domFieldFactory(dataType, fieldData, johaId){
   var domObj = null;
   
   if (dataType == "static_ops") {
-    /* figure this out */
+    /* figure out how to display static data */
   } else if (dataType == "replace_ops") {
     domObj = new BuildReplaceDom( fieldData, johaId);
   } else if (dataType == "list_ops") {
@@ -350,44 +361,18 @@ function domNodeFactory(nodeData, dataDef){
   
   var domStack = [];
   var nodeDomObj = null;
-/*
-var SPECIAL_TREATMENT = {"id": edit_id_elements,
-                         "label": edit_label_elements,
-                         "links": edit_link_elements,
-                         "attached_files": edit_file_elements}
 
-var EDIT_OPS_MAP = {"static_ops": edit_static_elements,
-                    "replace_ops": edit_replace_elements,
-                    "list_ops": edit_list_elements,
-                    "key_list_ops": edit_keylist_elements}
-*/
-
-  //make a copy
+  //make a copy so we don't munge user data
   var nodeCopy = jQuery.extend({}, nodeData);
 
   var nodeKeys = get_keys(nodeCopy);
-  console.log('NOde Keys: ' + nodeKeys);
-  
-  //if (array_contains_all(nodeKeys, REQUIRED_DATA)) { /* ok */ } else {
-  //alert("Not all Required Data Elements are present in Node ID: " + nodeCopy.id + "Keys:" + nodeKeys) };
- 
-/* 
-  for (key in SPECIAL_TREATMENT) {
-    if (nodeCopy[key]){
-      SPECIAL_TREATMENT[key](nodeCopy[key]);
-      delete nodeCopy[key];  // we've handled it so let's not worry about it anymore
-    }
-  }
-*/
+
   
   for (key in nodeCopy) { 
     //if our data defintion exists for that key, use the appropriate function for displaying it
     if (dataDef[key]) {
       var fieldData = {}
       fieldData[key] = nodeCopy[key];
-      //var edit_ops_var = {}
-      //edit_ops_var[key] = nodeCopy[key]
-      //EDIT_OPS_MAP[(JOHA_DATA_DEF[key])](edit_ops_var);
       domStack.push( domFieldFactory(dataDef[key], fieldData, JOHA_ID) );
       delete nodeCopy[key];
     }
@@ -398,56 +383,3 @@ var EDIT_OPS_MAP = {"static_ops": edit_static_elements,
   return nodeDomObj;
 }
 
-/*
-var TEST_DATA = {id: "ba",
-                 label: "Label_ba",
-                 attached_files: ["simple_text_file1.txt"],
-                 attachment_doc_id: "joha_test_user:CouchrestEnv::GlueEnv:ba_attachments",
-                 children: [],
-                 links: {'http://www.google.com': "google",
-                         'http://www.yahoo.com': "yahoo2" },
-                 notes: [],
-                 parents: ["b", "ab"],
-                 update_log: ["import from bufs format"],
-                 description: "from: joha_test_user",
-                }
-
-             
-var TEST_DATA_DEF= {id: "static_ops",
-                   label: "replace_ops",
-                   description: "replace_ops",
-                   links: "key_list_ops",
-                   parents:"list_ops",
-                   notes: "list_ops",
-                   history: "list_ops",
-                   //no operations are performed on user data
-                   user_data: "static_ops",
-                   }            
-*/
-/*             
-$(document).ready(function() {
-
-// HERE IT IS, ALL THE ABOVE CAN BE MOVED TO LIBRARY HOPEFULLY??  
-  var nodeDom = domNodeFactory(TEST_DATA, TEST_DATA_DEF);
-  jQuery('body').append(nodeDom.domObj);
-
-  //Get Data
-    jQuery("<div />", {
-    "id":"b1-b1",
-    css: { clear: "left" },
-     html: "Results: <br/>" + elItero(jQuery('.joha_data')) //data('node_info').key,
-  }).appendTo(jQuery('body'));
-  
-});
-*/
-//format to html functions
-
-/*
-function elItero(els) {
-  retHtml = ""
-  els.each(function(i){
-    retHtml += $(this).html() + ": " + $(this).data('node_info').key + "<br />";
-  });
-  return retHtml;
-}
-*/
