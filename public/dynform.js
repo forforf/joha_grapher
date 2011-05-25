@@ -56,22 +56,15 @@ JohaElems.prototype = {
     return fc;
   },
   
-  fieldLabel: function(fieldName, baseId, labelId) {
+  fieldLabel: function(fieldName, dataType, baseId, labelId) {
     var myId = baseId + "_" + fieldName + "_label";
-    var myClass = "field_label";
+    var myClass = "field_label " + dataType;
     var fl = jQuery("<label for=\"" + labelId + "\" id=\"" + myId + "\" class=\"" + myClass + "\">" + fieldName + ":</label>");
+    fl.data('johaData__Type', dataType);
+    fl.data('johaData__FieldName', fieldName);
     return fl;
   },
-  
-  keyContainer: function(keyName, keyIndex, fieldName, baseId) {
-    var kc = jQuery("<div />", {
-      id: baseId + "_" + fieldName + "_" + keyIndex + "_container",
-      class: "key_field",
-      text: keyName,
-    })
-    return kc;
-  },
-  
+   
   listContainer: function(fieldName, baseId) {
     var lc = jQuery("<div />", {
       id: baseId + "_" + fieldName + "_list_container",
@@ -103,7 +96,15 @@ JohaElems.prototype = {
     return vcp;
   },
   
-  
+  keyContainer: function(keyName, keyIndex, fieldName, baseId) {
+    var kc = jQuery("<div />", {
+      id: baseId + "_" + fieldName + "_" + keyIndex + "_container",
+      class: "edit key_field",
+      text: keyName,
+    })
+    return kc;
+  },
+ 
   //Needs tested
   staticData: function(fieldName, baseId) {
     var vd = jQuery("<div />", {
@@ -117,7 +118,7 @@ JohaElems.prototype = {
   valueData: function(valData, valIndex, keyIndex, fieldName, baseId) {
     var vd = jQuery("<div />", {
       id: baseId + "_" + fieldName + "_value_data_" + valIndex,
-      class: "joha_node_field value_field edit",
+      class: "edit joha_node_field value_field",
       data: {"johaData__FieldName": fieldName,
              "johaData__OrigValue": valData,
             },
@@ -127,18 +128,58 @@ JohaElems.prototype = {
     return vd;
   },
   
-  deleteControls: function(valIndex, keyIndex, fieldName, baseId, delContainer, delValue) {
+  deleteControls: function(valIndex, keyIndex, keyName, fieldName, baseId, delContainer, delValue) {
     var elId = baseId + "_" + fieldName +"_" + keyIndex + "_delete_controls_" + valIndex;
     var elClass = "delete_controls";
     var elHtml = "<img id=\"" + elId + "\" class=\"" + elClass + "\" src=\"./images/delete_normal.png\" alt=\"-\" />"
     var dc = jQuery(elHtml);
     dc.data('johaData__deleteContainerId', delContainer.attr('id'));
+    dc.data('johaData__fieldName', fieldName);
+    dc.data('johaData__keyName', keyName);
     dc.data('johaData__deleteValue', delValue);
     return dc;
-  }
+  },
+  
+  //addNewContainer: function() {
+  //  var anc = jQuery("<div>/>");
+  //  return anc;
+  //},
+  
+  addNewValue: function(fieldName, keyName) {
+    var anv = jQuery("<div />", {
+      class: "edit add_new add_new_value",
+      data: {"johaData__AddNewField": fieldName,
+             "johaData__AddNewKey": keyName
+            },
+      text: "Add New",
+    });
+    return anv;
+  },
+  
+  addNewKey: function(fieldName) {
+    var anv = jQuery("<div />", {
+      class: "edit add_new add_new_key",
+      data: {"johaData__AddNewField": fieldName,
+            },
+      text: "Add New Key",
+    });
+    return anv;
+  },  
 };
 
-
+var JohaValueContainerDom = function(valData, valIndex, keyIndex, keyName, fieldName, baseId, bindData) {
+  var johaBuilder = new JohaElems();
+  var valueContainerParent = johaBuilder.valueContainerParent(valIndex, keyIndex, fieldName, baseId);
+  var valueData = johaBuilder.valueData( valData , valIndex, keyIndex, fieldName, baseId);
+  valueData.data(bindData);
+  var deleteControls = johaBuilder.deleteControls(valIndex, keyIndex, keyName, fieldName, baseId, valueContainerParent, valueData.text());
+  this.topId = valueContainerParent.attr('id')
+  this.valueElem = valueData;
+  
+  valueContainerParent = valueContainerParent.append(valueData);
+  valueContainerParent = valueContainerParent.append(deleteControls);
+  this.domObj = valueContainerParent;
+}
 
 /* Augment function. from: http://chamnapchhorn.blogspot.com/2009/05/javascript-mixins.html */
 /* Used for mixing together two classes ... not used yet */
@@ -184,21 +225,24 @@ function BuildReplaceDom(fieldData, baseId){
   
   var johaBuilder = new JohaElems();
   
-  var fieldContainer = johaBuilder.fieldContainer(this.fieldName, baseId);  
-  var valueContainerParent = johaBuilder.valueContainerParent("","", this.fieldName, baseId);
-  var valueData = johaBuilder.valueData( fieldData[this.fieldName] , "", "", this.fieldName, baseId);
-  valueData.data("johaData__Type", "replace_ops");
-  var deleteControls = johaBuilder.deleteControls("","", this.fieldName, baseId, valueContainerParent, valueData.text());
-  var fieldLabel = johaBuilder.fieldLabel(this.fieldName, baseId, valueContainerParent.attr('id'));
+  var fieldContainer = johaBuilder.fieldContainer(this.fieldName, baseId);
+  var bindData = {'johaData__Type': 'replace_ops'};
+  var valContainerDom = new JohaValueContainerDom(fieldData[this.fieldName], "", "", "", this.fieldName, baseId, bindData);
+  // - remove - var valueContainerParent = johaBuilder.valueContainerParent("","", this.fieldName, baseId);
+  // - remove - var valueData = johaBuilder.valueData( fieldData[this.fieldName] , "", "", this.fieldName, baseId);
+  // - remove - valueData.data("johaData__Type", "replace_ops");
+  // - remove - var deleteControls = johaBuilder.deleteControls("","", "", this.fieldName, baseId, valueContainerParent, valueData.text());
+  jlog("BuildReplaceDom - valueContainerDom#id", valContainerDom.topId);
+  var fieldLabel = johaBuilder.fieldLabel(this.fieldName, 'replace_ops', baseId, valContainerDom.topId);
     
   //combine elements into Dom (TODO: This can be DRYed up)
   //-- Add Node Field Obj
   fieldContainer = fieldContainer.append(fieldLabel);
   // -- Add Node Data Obj
-  valueContainerParent = valueContainerParent.append(valueData);
-  valueContainerParent = valueContainerParent.append(deleteControls);
+  // - remove - valueContainerParent = valueContainerParent.append(valueData);
+  // - remove - valueContainerParent = valueContainerParent.append(deleteControls);
   // -- Complete Node Container
-  fieldContainer = fieldContainer.append(valueContainerParent);
+  fieldContainer = fieldContainer.append(valContainerDom.domObj);
   
   var currentDomObj = this.parentDom.append(fieldContainer);
 
@@ -221,25 +265,35 @@ function BuildListDom(fieldData, baseId) {
   
   var myData = fieldData[this.fieldName]; //["a", "b", "c", "d"];
   
-  var valueContainerParents = []
-  var valueDatas = []
+  var valContainerDoms = []
+  //var valueDatas = []
   var deleteControls = []
-  for (index in myData) {
-    valueContainerParents[index] = johaBuilder.valueContainerParent(index, "", this.fieldName, baseId);
-    valueDatas[index] = johaBuilder.valueData(myData[index], index, "", this.fieldName, baseId);
-    valueDatas[index].data("johaData__Type", "list_ops");
-    valueDatas[index].data("johaData__ListIndex", index);
-    deleteControls[index] = johaBuilder.deleteControls(index, "", this.fieldName, baseId, valueContainerParents[index], valueDatas[index].text() );
+  
+ 
+  for (index in myData) { 
+    var bindData = { 'johaData__Type': 'list_ops',
+                     'johaData__ListIndex': index,
+                   };
+    valContainerDoms[index] = new JohaValueContainerDom(myData[index], index, "", "", this.fieldName, baseId, bindData);
+    //valueContainerParents[index] = johaBuilder.valueContainerParent(index, "", this.fieldName, baseId);
+    //valueDatas[index] = johaBuilder.valueData(myData[index], index, "", this.fieldName, baseId);
+    //valueDatas[index].data("johaData__Type", "list_ops");
+    //valueDatas[index].data("johaData__ListIndex", index);
+    //deleteControls[index] = johaBuilder.deleteControls(index, "", "", this.fieldName, baseId, valueContainerParents[index], valueDatas[index].text() );
   }
-  var fieldLabel = johaBuilder.fieldLabel(this.fieldName, baseId, listContainer.attr('id'));  
+  var fieldLabel = johaBuilder.fieldLabel(this.fieldName, 'list_ops', baseId, listContainer.attr('id'));  
   
   fieldContainer = fieldContainer.append(fieldLabel);
   
   for (index in myData) {
-    valueContainerParents[index] = valueContainerParents[index].append(valueDatas[index]);
-    valueContainerParents[index] = valueContainerParents[index].append(deleteControls[index]);
-    listContainer = listContainer.append(valueContainerParents[index]);   
+    //valueContainerParents[index] = valueContainerParents[index].append(valueDatas[index]);
+    //valueContainerParents[index] = valueContainerParents[index].append(deleteControls[index]);
+    listContainer = listContainer.append(valContainerDoms[index].domObj);   
   }
+
+  //Append the Add New 
+  var addNewValue = johaBuilder.addNewValue(this.fieldName, "");
+  listContainer = listContainer.append(addNewValue);
   
   fieldContainer.append(listContainer);
   
@@ -272,7 +326,7 @@ function BuildKvlistDom(fieldData, baseId){
  
     var currentKeyContainer = johaBuilder.keyContainer(myKey, keyIndex, this.fieldName, baseId);
     thisKeyContainer['keyContainer'] = currentKeyContainer;
-    thisKeyContainer['valueContainerParents'] = []
+    thisKeyContainer['valContainerDoms'] = []
     thisKeyContainer['valueDatas'] = []
     thisKeyContainer['deleteControls'] = []
     
@@ -284,17 +338,21 @@ function BuildKvlistDom(fieldData, baseId){
     }  
 
     for (listIndex in keyList) {
-     
-      thisKeyContainer.valueContainerParents[listIndex] = johaBuilder.valueContainerParent(listIndex, keyIndex, this.fieldName, baseId);
-      
-      thisKeyContainer.valueDatas[listIndex] = johaBuilder.valueData(keyList[listIndex], listIndex, keyIndex, this.fieldName, baseId);
+      var bindData = {'johaData__Type': 'key_list_ops',
+                      'johaData__ListIndex': listIndex,
+                      'johaData__Key': myKey,
+                     }
+      //valContainerDoms[index] = new JohaValueContainerDom(myData[index], index, "", "", this.fieldName, baseId, "list_ops");
+      thisKeyContainer.valContainerDoms[listIndex] = new JohaValueContainerDom(keyList[listIndex], listIndex, keyIndex, this.fieldName, baseId, bindData);
+      //johaBuilder.valueContainerParent(listIndex, keyIndex, this.fieldName, baseId);
+      //thisKeyContainer.valueDatas[listIndex] = johaBuilder.valueData(keyList[listIndex], listIndex, keyIndex, this.fieldName, baseId);
       
       //NEEDS TESTING!!!!
-      thisKeyContainer.valueDatas[listIndex].data("johaData__Type", "key_list_ops");
-      thisKeyContainer.valueDatas[listIndex].data("johaData__ListIndex", listIndex);
-      thisKeyContainer.valueDatas[listIndex].data("johaData__Key", myKey);
+      //thisKeyContainer.valueDatas[listIndex].data("johaData__Type", "key_list_ops");
+      //thisKeyContainer.valueDatas[listIndex].data("johaData__ListIndex", listIndex);
+      //thisKeyContainer.valueDatas[listIndex].data("johaData__Key", myKey);
       //UGLY!!!
-      thisKeyContainer.deleteControls[listIndex] = johaBuilder.deleteControls(listIndex, keyIndex, this.fieldName, baseId, thisKeyContainer.valueContainerParents[listIndex], thisKeyContainer.valueDatas[listIndex].text() );
+      //thisKeyContainer.deleteControls[listIndex] = johaBuilder.deleteControls(listIndex, keyIndex, myKey, this.fieldName, baseId, thisKeyContainer.valueContainerParents[listIndex], thisKeyContainer.valueDatas[listIndex].text() );
     }
     keyContainers[myKey] = thisKeyContainer;
 
@@ -305,7 +363,7 @@ function BuildKvlistDom(fieldData, baseId){
     //combine elements into Dom (TODO: This can be DRYed up)
 
   var kvListContainer = johaBuilder.kvListContainer(this.fieldName, baseId);  
-  var fieldLabel = johaBuilder.fieldLabel(this.fieldName, baseId, kvListContainer.attr('id'));  
+  var fieldLabel = johaBuilder.fieldLabel(this.fieldName, 'key_list_ops', baseId, kvListContainer.attr('id'));  
   fieldContainer = fieldContainer.append(fieldLabel);
   
   for (myKey in keyContainers){
@@ -314,11 +372,11 @@ function BuildKvlistDom(fieldData, baseId){
     var thisKeyContainer = keyContainers[myKey];
     
     //Ugh the number of iterations is buried in the data ... there should be a better way.
-    for (index=0;index<thisKeyContainer.valueContainerParents.length;index++){
-
-      thisKeyContainer.valueContainerParents[index] = thisKeyContainer.valueContainerParents[index].append(thisKeyContainer.valueDatas[index]);
-      thisKeyContainer.valueContainerParents[index] = thisKeyContainer.valueContainerParents[index].append(thisKeyContainer.deleteControls[index]);
-      listContainer = listContainer.append(thisKeyContainer.valueContainerParents[index]); 
+    for (index=0;index<thisKeyContainer.valueContainerDoms.length;index++){
+      //valContainerDoms[index] = new JohaValueContainerDom(myData[index], index, "", "", this.fieldName, baseId, "list_ops");
+      //thisKeyContainer.valueContainerParents[index] = thisKeyContainer.valueContainerParents[index].append(thisKeyContainer.valueDatas[index]);
+      //thisKeyContainer.valueContainerParents[index] = thisKeyContainer.valueContainerParents[index].append(thisKeyContainer.deleteControls[index]);
+      listContainer = listContainer.append(thisKeyContainer.valContainerDoms[index].domObj); 
     }
     
     //append key data to field   
@@ -328,6 +386,9 @@ function BuildKvlistDom(fieldData, baseId){
     kvListContainer = kvListContainer.append(kvListItem);
   }
 
+  var addNewKey = johaBuilder.addNewKey(this.fieldName);
+  kvListContainer = kvListContainer.append(addNewKey);
+  
   fieldContainer.append(kvListContainer);
   
   var currentDomObj = this.parentDom.append(fieldContainer);
@@ -356,7 +417,9 @@ function domFieldFactory(dataType, fieldData, johaId){
   }
 }
 
-function domNodeFactory(nodeData, dataDef){
+function domNodeFactory(nodeData, dataDef, reqDataToShow){
+
+  //TODO, refactor to be passed in
   JOHA_ID = "joha_node";
   
   var domStack = [];
@@ -370,14 +433,24 @@ function domNodeFactory(nodeData, dataDef){
   
   for (key in nodeCopy) { 
     //if our data defintion exists for that key, use the appropriate function for displaying it
-    if (dataDef[key]) {
-      var fieldData = {}
+    if (dataDef[key] ) {
+      var fieldData = {};
       fieldData[key] = nodeCopy[key];
       domStack.push( domFieldFactory(dataDef[key], fieldData, JOHA_ID) );
       delete nodeCopy[key];
+      array_remove_item(reqDataToShow, key);
     }
   }
   
+  //TODO: This screws up the display ordering (required shows will show last regardless) Refactor to preserve
+  // display order
+  for (i in reqDataToShow) {
+    var key = reqDataToShow[i];
+    var dataType = dataDef[key];
+    var fieldData = {};
+    fieldData[key] = "";
+    domStack.push( domFieldFactory(dataDef[key], fieldData, JOHA_ID) );
+  }
   
   nodeDomObj = new BuildNodeEditDom(JOHA_ID, nodeData.id, domStack);
   return nodeDomObj;

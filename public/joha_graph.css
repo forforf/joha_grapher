@@ -350,6 +350,16 @@ a.borg_link_text {
 }
 
 .edit_updated {
-     color: red;
+     color: blue;
      font-weight: bold;
+}
+
+.edit_new {
+     color: green;
+     font-weight: bold;
+}
+
+.delete_show{
+    color: red;
+    text-decoration: line-through;
 }

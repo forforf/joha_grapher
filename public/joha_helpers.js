@@ -21,6 +21,16 @@ function array_contains(a, obj) {
   return false;
 }
 
+function array_remove_item(a, obj){
+  var i = a.length;
+  //ToDo: Provide return value? if so what?
+  while (i--) {
+    if (a[i] === obj) {
+      a.splice(i,1);
+    }
+  }
+}
+
 function array_contains_all(a, subset){
   var retVal = true;
   for (var i in subset){
@@ -39,6 +49,12 @@ function obj_key_position(obj, key){
     i += 1;
   }
   return -1;
+}
+
+function jlog(label, data){
+  console.log("vv " + label + " vv");
+  console.log(data);
+  console.log('^^ ' + label + ' ^^');
 }
 
 //-- to be able to query on .data attribute.

@@ -10,7 +10,7 @@ $(document).ready(function() {
   
 
   initializeGraph();
-  set_up_onClick();
+  set_up_onClicks();
 
 });
 
@@ -29,7 +29,7 @@ function syncJax(srcUrl) {
 }
 
 //-- Set up listeners (onclick, etc)
-function set_up_onClick() {
+function set_up_onClicks() {
   //Set up editing in place (JQuery plugin Jeditable)
   //-- wrap it in .live so that future elements can use it
   jQuery('.edit').live('click', function(event) {
@@ -49,11 +49,34 @@ function set_up_onClick() {
 
     var edit_updates = jQuery('.edit_updated');
     all_edits['updates'] = filterJohaUpdateData();
-
-    console.log(all_edits);
+    jlog("Save Clicked", all_edits);
     //revert data to default (by acting like the node is clicked)
-    console.log("TODO: Revert updated data to unchanged after node is saved");
+    jlog("Save Clicked", "TODO: Revert updated data to unchanged after node is saved");
   });
+ 
+ 
+  //listen for clicks on delete buttons
+  jQuery('.delete_controls').live('click', function(event) {
+    event.preventDefault();
+    
+    delData = jQuery(this).data();
+
+    jlog('delete clicked', delData );
+    toggleDelete(delData.johaData__deleteContainerId);
+  });
+/*  
+  //listen for clicks to create new data values
+  jQuery('.add_new_value').live('click', function(event) {
+    addNewValData = jQuery(this).data();
+    jlog('Add New Value Clicked', addNewValData);
+  });
+  
+  //listen for clicks to create new data keys
+  jQuery('.add_new_key').live('click', function(event) {
+    addNewKeyData = jQuery(this).data();
+    jlog('Add New Key Clicked', addNewKeyData);
+  });
+*/
 }
 
 function initializeGraph(){
@@ -83,8 +106,18 @@ function toggle(divId) {
 	var ele = jQuery(jqId)[0];
 	if(ele.style.display != "none") {
     		ele.style.display = "none";
-  	}
-  else { ele.style.display = "block";
+  } else {
+    ele.style.display = "block";
+  }
+}
+
+function toggleDelete(elId) {
+  jqId = '#' + elId
+	var ele = jQuery(jqId);
+	if( ele.is('.delete_show') ) {
+    ele.removeClass('delete_show');
+  } else {
+    ele.addClass('delete_show')
   }
 }
 
@@ -98,14 +131,71 @@ function toggle(divId) {
 
 //-- handle updating data
 function update_form_data(el, value, settings){
+  //Todo: Fix dynform so that the baseID isn't hidden
+  var baseId = 'joha_node';
   //is Jeditable overkill with this approach?
-  //jId = '#' + el.id ;
-  //alert(jId);
-  jQuery(el).data("johaData__UpdatedValue", value);
-  jQuery(el).removeClass('edit_orig').addClass('edit_updated');
+    
+  thisEl = jQuery(el);
+  if ( thisEl.is('.add_new')) {
+    
+    var elemToUpdate = thisEl.parent();
+
+    //TODO: This is very brittle as it relies on the dom structure staying constant
+    var prevElem = jQuery(el).prev('.value_outer').children('.value_field');
+    jlog('El Previous Sibling', prevElem);
+    var elemData = {};
+    if (prevElem.length != 0) {
+      elemData = prevElem.data();
+    } else {
+      elemData['johaData__ListIndex'] = -1;  //will be incremented to 0
+      //TODO: More ugliness to fix
+      thisLabel = thisEl.closest('.field_container').children('.field_label').first()
+      elemData['johaData__Type'] = thisLabel.data('johaData__Type');
+      elemData['johaData__FieldName'] = thisLabel.data('johaData__FieldName');
+      
+      //Need to fix so that works with Keys :(
+      elemData['johaData__Key'] = "";
+      elemData['johaData__KeyIndex'] = "";
+    
+    }
+    //jlog('El Previous Sibling Value', lastValueElem.text() );
+    
+    var newElem = {}
+    newElem.value = value;
+    newElem.keyName = elemData['johaData__Key'];
+    newElem.keyIndex = elemData['johaData__KeyIndex'];
+    newElem.index = parseInt(elemData['johaData__ListIndex']) + 1;
+    newElem.dataType = elemData['johaData__Type'];
+    newElem.fieldName = elemData['johaData__FieldName'];
+    
+
+    jlog('New Elem Data', newElem  );
+    //create new element
+    var bindData = { 'johaData__Type': newElem.dataType,
+                     'johaData__ListIndex': newElem.index,
+                   };
+                   
+    var addNewVal = new JohaValueContainerDom(value, newElem.index, newElem.keyIndex, newElem.keyName, newElem.fieldName, baseId, bindData);
+    addNewVal.valueElem.data('johaData__NewValue', value);
+    addNewVal.valueElem.addClass('edit_new');
+    var addNewValDom = addNewVal.domObj
+
+    
+    
+    thisEl.before(addNewValDom);
+    
+  } else { //data value edit
+    thisEl.data("johaData__UpdatedValue", value);
+    thisEl.removeClass('edit_orig').addClass('edit_updated');
+  }
  
  
   return value;
+}
+
+function add_new_format(parentContainer, value) {
+  //make value container
+  //insert in before ?
 }
 
 
@@ -222,7 +312,8 @@ function dynamic_edit_form(nodeData){
   var edit_no_data_def = console.log("No Data Def for some data field");
   
   //these keys are required to be present in the node data
-  var REQUIRED_DATA = ["id", "label"]  //may be able to refactor label out in the future
+  var REQUIRED_DATA = ["id", "label"];  //may be able to refactor label out in the future
+  var SHOW_EVEN_IF_NULL = ["user_data"];  // show this field in the form even if it doesn't exist in the data
   
   //these keys will get special treatment for displaying their structue
   var SPECIAL_TREATMENT = {"id": edit_id_elements,
@@ -258,8 +349,9 @@ function dynamic_edit_form(nodeData){
   console.log(nodeCopy);
   
   console.log('DynData v');
- 
-  nodeDataDom = domNodeFactory(nodeCopy, JOHA_DATA_DEF);
+  
+  //in dynform.js library
+  nodeDataDom = domNodeFactory(nodeCopy, JOHA_DATA_DEF, SHOW_EVEN_IF_NULL);
   console.log(nodeDataDom);
   jQuery('#dn_node_data').append(nodeDataDom.domObj);
   
