@@ -33,14 +33,24 @@ function set_up_onClicks() {
   //Set up editing in place (JQuery plugin Jeditable)
   //-- wrap it in .live so that future elements can use it
   jQuery('.edit').live('click', function(event) {
-    
+    var keyEl = false
     event.preventDefault();
     // (this) is the element be edited
+    
+    jlog("click event", event);
+    if (jQuery(event.currentTarget).is('.add_new_key') ) {
+      keyEl = true;
+    }
 
     //call the update_form_data function when an item is edited in place
-    jQuery('.edit').editable( function(value, settings){return update_form_data(this, value, settings)}, {
+
+    jQuery('.edit').editable( function(value, settings){
+      var isKeyValue = jQuery(this).is('.add_new_key');
+      return update_value_data(this, value, settings, isKeyValue);
+      }, {
       style: 'display: inline'
     });
+    
   });
   
   //Collect updated data when user selects to save the node data
@@ -52,6 +62,13 @@ function set_up_onClicks() {
     jlog("Save Clicked", all_edits);
     //revert data to default (by acting like the node is clicked)
     jlog("Save Clicked", "TODO: Revert updated data to unchanged after node is saved");
+    //this works, but it's only styling
+    //edit_updates.removeClass('edit_updated').addClass('edit');
+    
+    var edit_adds = jQuery('.edit_new');
+    all_edits['adds'] = filterJohaUpdateData();
+    jlog('edit adds dom', edit_adds);
+    jlog('filtered edits', all_edits);
   });
  
  
@@ -129,15 +146,11 @@ function toggleDelete(elId) {
 //  return jQuery('#current_node_id').text();
 //}
 
-//-- handle updating data
-function update_form_data(el, value, settings){
-  //Todo: Fix dynform so that the baseID isn't hidden
-  var baseId = 'joha_node';
-  //is Jeditable overkill with this approach?
-    
-  thisEl = jQuery(el);
-  if ( thisEl.is('.add_new')) {
-    
+function add_new_key_element(el, value) {
+
+    //Todo: Fix dynform so that the baseID isn't hidden
+    var baseId = 'joha_node';
+/*  
     var elemToUpdate = thisEl.parent();
 
     //TODO: This is very brittle as it relies on the dom structure staying constant
@@ -150,6 +163,78 @@ function update_form_data(el, value, settings){
       elemData['johaData__ListIndex'] = -1;  //will be incremented to 0
       //TODO: More ugliness to fix
       thisLabel = thisEl.closest('.field_container').children('.field_label').first()
+      elemData['johaData__Type'] = thisLabel.data('johaData__Type');
+      elemData['johaData__FieldName'] = thisLabel.data('johaData__FieldName');
+      
+      //Need to fix so that works with Keys :(
+      elemData['johaData__Key'] = "";
+      elemData['johaData__KeyIndex'] = "";
+    
+    }
+    //jlog('El Previous Sibling Value', lastValueElem.text() );
+ */   
+    var keyIndex = jQuery('.key_field').length;
+    var thisLabel = thisEl.closest('.field_container').children('.field_label').first()
+    var fieldName = thisLabel.data('johaData__FieldName');
+    var newElem = {};
+    //newElem.value = value;
+    newElem.keyName = value; //elemData['johaData__Key'];
+    newElem.keyIndex = keyIndex ;//elemData['johaData__KeyIndex'];
+    //newElem.index = parseInt(elemData['johaData__ListIndex']) + 1;
+    
+    //TODO Derive this rather than hardcoding it
+    newElem.dataType = "key_list_ops"; //elemData['johaData__Type'];
+    newElem.fieldName = fieldName; //elemData['johaData__FieldName'];
+    
+
+    jlog('New Key Elem Data', newElem  );
+    //create new element
+    //var bindData = { 'johaData__Type': newElem.dataType,
+    //                 'johaData__ListIndex': newElem.index,
+    //               };
+    var johaBuilder = new JohaElems();
+    var addKey = johaBuilder.keyContainer(value, keyIndex, fieldName, baseId);
+    addKey.addClass('edit_new');
+    //= new JohaValueContainerDom(value, newElem.index, newElem.keyIndex, newElem.keyName, newElem.fieldName, baseId, bindData);
+    //addNewVal.valueElem.data('johaData__NewValue', value);
+    //addNewVal.valueElem.addClass('edit_new');
+    //var addNewValDom = addNewVal.domObj
+    
+    var kvListItem = johaBuilder.kvListItem(fieldName, baseId);
+    
+    thisKvlist = jQuery(thisEl).closest('.kvlist_container');
+    thisKvlist.append(addKey);
+    thisKvlist.append(kvListItem);
+    
+    //var addNewKey = johaBuilder.addNewKey(fieldName);
+    
+    var listContainer = johaBuilder.listContainer(fieldName, baseId);
+    //jlog('Where is the DIV', jQuery().closest('.kvlist_container'));
+    kvListItem.append(listContainer);
+    
+    kvListItem.append(thisEl);
+
+    var addNewValue = johaBuilder.addNewValue(fieldName, "");
+    listContainer.append(addNewValue);
+}
+
+function add_new_element(el, value) {
+
+    //Todo: Fix dynform so that the baseID isn't hidden
+    var baseId = 'joha_node';
+  
+    var elemToUpdate = thisEl.parent();
+
+    //TODO: This is very brittle as it relies on the dom structure staying constant
+    var prevElem = jQuery(el).prev('.value_outer').children('.value_field');
+    jlog('El Previous Sibling', prevElem);
+    var elemData = {};
+    if (prevElem.length != 0) {
+      elemData = prevElem.data();
+    } else {
+      elemData['johaData__ListIndex'] = -1;  //will be incremented to 0
+      //TODO: More ugliness to fix
+      var thisLabel = thisEl.closest('.field_container').children('.field_label').first()
       elemData['johaData__Type'] = thisLabel.data('johaData__Type');
       elemData['johaData__FieldName'] = thisLabel.data('johaData__FieldName');
       
@@ -183,7 +268,20 @@ function update_form_data(el, value, settings){
     
     
     thisEl.before(addNewValDom);
+}
+
+//-- handle updating data
+function update_value_data(el, value, settings, isKey){
+
+  //is Jeditable overkill with this approach?
     
+  thisEl = jQuery(el);
+  if ( thisEl.is('.add_new')) {
+    if ( isKey ) {
+      add_new_key_element(el, value);
+    } else {
+      add_new_element(el, value);
+    }
   } else { //data value edit
     thisEl.data("johaData__UpdatedValue", value);
     thisEl.removeClass('edit_orig').addClass('edit_updated');
@@ -192,6 +290,7 @@ function update_form_data(el, value, settings){
  
   return value;
 }
+
 
 function add_new_format(parentContainer, value) {
   //make value container
