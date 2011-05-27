@@ -11,6 +11,42 @@ $(document).ready(function() {
 
   initializeGraph();
   set_up_onClicks();
+  
+  //New DynForm Tests
+  
+
+  var bldr = new JohaBldr;
+
+  /*
+  var myTest = {
+    ev: 'click',
+    action: function(event) {
+      jlog("Target", event.data.johaTgt);
+      event.data.johaTgt.css("color","red");
+    },
+  };
+  
+  var myEvAction = CompBldr.eventActions(myTest.ev, myTest.action);
+  */
+  //dc = jQuery("<p id=\"oof\">Del Ctl</p>");
+  dt = jQuery("<p id=\"footyfoo\">Del Me</p>");
+  jQuery('body').prepend(dt);
+  
+  
+  //this works (not anymore)
+  //var myCtlObj = ElemBldr.controlObj('#node_id_tracker', '#main-header-text', myEvAction);
+  //this works too
+  //var myCtl = bldr.deleteControl(dt, "footyfoo");
+  //jQuery('body').prepend(jQuery(myCtl));
+  //this works too
+  //johaPats.editInPlaceControl(dc);
+  johaPats.editInPlaceControl(dt);
+  
+  var myStatTxt = bldr.staticValueElement("Some static Text", "feefee");
+  jQuery('body').prepend(jQuery(myStatTxt));
+  
+
+  
 
 });
 

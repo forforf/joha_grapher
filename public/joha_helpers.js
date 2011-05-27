@@ -74,6 +74,20 @@ function jlog(label, data){
     };
 })(jQuery);
 
+
+//Detemines if an object is a jQuery object
+function isjQueryObject(obj) {
+  return obj instanceof jQuery;
+}
+
+function makejQueryObj(obj) {
+  if (isjQueryObject(obj)) {
+    return obj;
+  } else {
+    return jQuery(obj);
+  }
+}
+
 function filterJohaUpdateData() {
   var test_list =  jQuery('.edit_updated').map(function() {
     var fieldData = {};

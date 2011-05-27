@@ -2,52 +2,247 @@
 // Requires JQuery and joha_helpers.js
 
 /*Class to hold Element Constructors, used as a mixin
-  Data Organization:
+  Definitions:
     node: Holds all data of interest. Has a unique id field.
-    field: The names of the data held by the node.  Example, "id" holds the node id value, "label" holds the node name, "links" holds the node's links
-    
-  Element Types:  JohaElems.<element type>(<args>) to call
-    fieldContainer:       Container for field related data
-    fieldLabel:           Holds the field name.
-    keyContainer:         For field data that has keys, holds the key name TODO: If it holds data, don't call it a container
-    listContainer:        For field data that is an array, holds the array items
-    kvListIemt:           For field data that has keys, it is an item of the data belonging to a particular key
-    kvListContainer:      Similar to listContainer, but holds a set of kvListItems
-    valueContainerParent  Holds the fundamental value data and associated controls
-    staticData:           Holds static (unchangable) data
-    valueData:            Holds the fundamental value (editable with JEditable)
-    deleteControls:       Holds the control for deleting data
+    node key: The names of the data held by the node.  Example, "id" holds the node id value, "label" holds the node name, "links" holds the node's links
+
+  Name for this?:
   
-  Builder Types:
-    BuildNodeEditDom:         Main container, it holds on the editing doms.
-    BuildNodeFieldContainer:  Not called?
-    BuildReplaceDom:          Builds an editing container for simple key-value data (the value is editable by replacing it with the new data)
-    BuildListDom:             Builds an editing container for key-array data (each element of the array is editable)
-    BuildKvlistDom:           Builds an editing container for key-{subkey:list, subkey:list} type data. Subkeys and lists are each editable.
+    eventActions: eventType       (onClick, onChange, etc)
+                  eventActions    (function(s) that will trigger on the event type)
+                                
+  JohaPatterns - Repeatable patterns that are reused often
+    controlObj: controlEl
+                targetEl
+                eventActions
+                
+                
+                
+  JohaBuilder - Build specific Dom Elements
+    deleteControl: 
+    
    
+  Element Types:  JohaElems.<element type>(<args>) to call
+    Main Container
+      nodeContainer:         Main conatainer and is a container for the entire node, holds all node fields (aka keys) and(related data)
+    
+    Generic Constructors (correct term?)
+      dataContainerBase:     Common container for holding and abstracting all subordinate data
+      listContainerBase:     Common container for holding a list of individual items
+      itemContainerBase:     Common container for holding aggregate information about listed items
+      editContainerBase:     Common container constructor for holding user editable string content and controls.
+      labelBase:             Common container constructor for holding editable labels
+      controlsBase:          Common container constructor for holding editing controls
+      deleteControlsBase:    Controls deletion of associated elementens (applicable only for fields, lists and key-lists)
+      addControlBase:        Controls the addition of new data (applicable for fields, lists and key-lists)
+       
+      
+    Concrete Containers Common to All Fields (aka node keys)
+      nItemContainer        < itemContainerBase   Container for each field and all its associated doms and data
+      niControls            < controlsBase        Container for holding collection controls (just adding right now)
+      niAddControl          < addControlBase      Adds a new node key (field) (to be completed)
+      niKeyContainer        < editContainerBase   Holds the node key labels and controls
+      nikLabel              < labelBase           Holds the node key label (i.e key name or most often field name)
+      nikKeyControls        < controlsBase        Holds the controls for editing the node key label
+      nikDeleteControl      < deleteControlsBase  Deletes the node Key (and all associated Data)
+      niDataContainer       < dataContainerBase   Provides a common interface to the custom doms 
+      
+      
+     Specific Containers that go under the niDataContainer
+      static_ops - Static data that can't be changed by the user (Not currently used, but may be used for data like Node ID in the future)
+      
+      replace_ops - String data that is editable by the user, deletion requires deleting the associated node key.
+        replnidLabelContainer   < editContainerBase   Holds the string value and controls associated with the node key.
+        repnlidlValue           < labelBase           Holds the string value for that node key
+        replnidlValueControls   < controlsBase        Holds the controls for the replnidlValue element (may be empty)
+ 
+      list_ops - List data (array) of items associated with a given node key
+        listnidListContainer    < listContainerBase   Holds a list of items associated with a given node key
+        listnidListControls     < controlsBase        Holds controls for operating on the collection (just adding right now)
+        listnidAddControl       < addControlBase      Provides the ability to add new entries to the list.
+        listnidLabelContainer   < editContainerBase   Holds each item
+        listnidValue            < labelBase           Holds the string value for that list item
+        listnidlLabelControls   < controlsBase        Holds the controls for the listnidlValue element
+        listnidDeleteControl    < deleteControlsBase  Provides the ability to delete items from the list
+        
+        
+       key_list_ops - Associative array of lists
+         kylsnidListContainer      < listContainerBase   Holds the list of keys (with their lists)
+         kylsnidItemContainer      < itemContainerBase   Holds the key-value pairs
+         kylsnidAddKeyControl      < addControlBase      Provides the ability to add new keys to the list.
+         kylsnidKeyLabel           < labelBase           Holds the individual key label
+         kylsnidKeyContainer       < editContainerBase   Holds the individual Keys and associated controls
+         kylsnidKeyLabelControls   < controlsBase        Holds the controls for editing keys
+         kylsnidKeyDeleteControl   < deleteControlsBase  Provides the ability to delete items from the list
+         kylsnidListContainer      < listContainerBase    Holds the list of values associated with a give key (common itemContainer)
+         kylsnidAddValueControl    < addControlBase      Provides the ability to add new entries to the list.
+         kylsnidLabelContainer     < editContainerBase   Holds each item
+         kylsnidValue              < labelBase           Holds the string value for that list item
+         kylsnidlValueControls     < controlsBase    Holds the controls for the listnidlValue element
+         kylsnidLabelDeleteControl < deleteControlsBase  Provides the ability to delete items from the list
+         
+  Builders are required when there are inter-element dependencies, but those dependencies are contained
+
+  Abstract Builders
+    BuildEditableContainerDom:    Framework for the Dom of an editable container
+    BuildListContainerDom:        Framework for building a list container (requires BuildEdiatableContainerDom)
+    BuildKeyListContainerDom:     Framework for building a key-list container (require BuildListContainerDom)
+    
+  Common Builders
+    BuildNodeKeyContainerDom:     Builds the common structure of the Dom (requires specific data type DOM to complete)
+    
+  SpecificBuilders
+    BuildJohaStaticDataDom:           (static_ops) Not implemented?
+    BuildJohaValueDom:                (replace_ops) Just Arguments to BuildEditableContainerDom?
+    BuildJohaListDom:                 (list_ops) Just Arguments to BuildListContainerDom ?
+    BuildJohaKeyListDom               (key_list_ops) Just Arguments to BuildKeyListContainerDom?
+    BuildJohaLinksDom                  (key_list_ops) Leverage BuildKeyList or List or others?
+    BuildJohaFilesDom                  (key_list_ops or list_ops) Leverage above?
+    
+  
+   Factories (these automatically use the builders to manufacture the appropriate doms)
    Dom Constructors:
      domFieldFactory:   Inspects specified field data to determine its data structure and invokes the appropriate builder
      domNodeFactory:    Main entry point. Invokes domFieldFactory for each field in turn and then assembles them into the main container (BuildNodeEditDom)      
      
-   Custom Data Stored in Element holding the Value:
-    johaData__Type:         Type of data structure, can be static_ops, replace_ops, list_ops, or key_list_ops.
-    johaData__FieldName:    The field name associated with the value
-    johaData__OrigValue:    The value assined to the element at the time of element creation
-    johaData__UpdatedValue: Used to track when the data has changed (set by user using JEditable typically )
-    johaData__ListIndex:    Identifies which list item the value element is.
-    johaData__Key:          Identifies which key is associated with value element for key: {subkey: list ...} type of data
-*/  
-/* Note on Element #id naming convention for dynamically created joha elements (to ensure uniqueness)
-      format: #joha-[dom namespace identifier]-[node data field name]-[id for data key(if exist)]-[data iteration id (if exists)
-      example: #joha-edit-label--
-      example: #joha-edit-links-0-0  (first key and first element within that key)
-      example: #joha-edit-links-1-3  (second key and 3 element within that key)
-      example: #joha-edit-parents--2  (third element in parents node field)
+     
    
+   Data collection on Save
+   All necessary data is pushed down to the editable nodes. Field Names, Key Names. Updates have both original and new values.
+   Additionally the DomId and collection function for the element that will collect the data (the niDataContainer element) is provided to the elements as well
+   Finally when changes occur the changed elements will update their classes appropriately:
+    Elements with changed data will have a class assigned of .edit_updated
+    Elements with new data will have a class assigned of .edit_added
+    Elements with deleted data will have a class assigned of .edit_deleted
+   On Save 
+    Each changed element uses the function of the DomId provided to it, so that those elements will process and aggregate the data accordingly.
+    Then each niDataContainer processing element will provide it's node key's data, and the entire node's updates, additions and deletions can
+    then be ajaxed to the web server for processing.
+   Reasons for this approach
+    Elegant Undo prior to Save
+    Future ability to rewind changes on a per node, per update basis.
+      That is a give node could be rewound independent of other nodes (or a set of nodes, or the entire node base)
+      More research is needed to evaluate this feature, but it "feels" like the right approach.   
 */
 
-var JohaElems = function() {}; //abstract-like class
+var JohaComponents = function() {};
+JohaComponents.prototype = {
+  eventActions: function(event, actions) { 
+    var obj =  {};
+    obj[event] = actions; //functions of the form function(event)
+    //note that custom function parameters are passed in obj form and are
+    //availabe at event.data.{custom obj}
+    return obj
+  }
+}
+
+//Common Patterns
+//TODO: Learn what 'new function()' does
+var johaPats = new function() {
+  //Locally scoped
+  var self = this;
+
+  //Exposed
+  
+  this.testing = "Seems to be working ...";
+  
+  //eventActions function action parameter is an object with johaCtl and johaTgt parameters
+  //accessible in functions as event.data.johaCtl and event.data.johaTgt
+  //Leverage jQuery's live method
+  this.controlObj = function(controlElement, targetElement, eventActions, opts){
+    jlog("Called controlObj", eventActions);
+  
+    var jctl = makejQueryObj(controlElement);
+    var jtgt = makejQueryObj(targetElement);
+   
+    //this is different than $().live since here the events can be mapped to separate functions
+    //$().live maps multiple events to the same function    
+    for (ev in eventActions){
+
+      actionObj = {
+                    johaTgt: jtgt,
+                    johaCtl: jctl,
+                  };
+              
+      
+      //NOTE: The control must have an id due to some limitations with .live
+      jctlId = jQuery(controlElement).attr('id');
+      jQuery("#"+jctlId).live(ev, actionObj, eventActions[ev]);
+      
+    }
+    //removing jctl will remove attached event as well (yay! for jQuery!)
+    return jctl //return jQuery-ized element for direct jQuery actions (allows things to be more concise)
+  };
+  
+  this.editInPlaceControl = function(target, editClass){
+    //Uses jEditable
+    editClass = editClass || 'edit';
+    target = makejQueryObj(target);
+    target.addClass(editClass);
+  };
+  
+  //This will take an element that can hold text, add text, store any data associated with that text (i.e. metadata)
+  //and apply any functions needed (textEl and objData) are required.
+  this.textContentObj = function( textEl, textVal, objData, applyFunctions){
+    //TODO Try and have the data stored by jQuery as one of the applyFunctions
+    textEl = makejQueryObj(textEl);
+    textEl.text(textVal);
+    for (i in applyFunctions) {
+      applyFunctions[i](textEl, objData);
+    }
+  return textEl;
+  };
+ 
+};
+
+//Builders that create shiny complex Dom elements ready to be put somewhere
+var JohaBldr = function() {
+
+  //Locally scoped
+  var internalFunction = function() {
+  };
+
+  //Exposed
+  //this.<something>
+};
+JohaBldr.prototype = {
+  deleteControl: function(target, parentId){
+    
+    var elId = parentId + "_delctrl";
+    var elClass = "delete_controls";
+    var elHtml = "<img id=\"" + elId + "\" class=\"" + elClass + "\" src=\"./images/delete_normal.png\" alt=\"-\" />"
+    
+    //johaTgt and johaCtl are available with the event.data parameter by way of controlObj
+    var eventActions = {'click': function(event){
+        jlog("deleteControl clicked, Target:", event.data.johaTgt);
+        event.data.johaTgt.toggleClass('edit_deleted');
+      },
+    };
+    
+    var delCtl = johaPats.controlObj(elHtml, target, eventActions);
+    return delCtl[0];
+  },
+  
+  staticValueElement: function(textValue, parentId){
+    console.log('ok')
+    var elId = parentId + "_static";
+    var elClass = "static_text";
+    var elHtml = "<p id=\"" + elId + "\" class=\"" + elClass + "\"/p>";
+    console.log(elHtml);
+    var statValEl = johaPats.textContentObj(elHtml, textValue);
+    console.log(statValEl);
+    return statValEl;
+  },
+  
+  
+  
+
+}
+
+var JohaElems = function() {};
+
 JohaElems.prototype = {
+ 
   fieldContainer: function(fieldName, baseId) {
     var fc = jQuery("<div />", {
       id: baseId + "_" + fieldName + "_container",
@@ -166,6 +361,7 @@ JohaElems.prototype = {
     return anv;
   },  
 };
+
 
 var JohaValueContainerDom = function(valData, valIndex, keyIndex, keyName, fieldName, baseId, bindData) {
   var johaBuilder = new JohaElems();

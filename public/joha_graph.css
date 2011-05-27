@@ -359,7 +359,8 @@ a.borg_link_text {
      font-weight: bold;
 }
 
-.delete_show{
+/* replace delete_show with edit_deleted */
+.delete_show, .edit_deleted {
     color: red;
     text-decoration: line-through;
 }
