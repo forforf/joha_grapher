@@ -1,4 +1,8 @@
 
+
+
+/* Old, but may still be valid*/
+/* SEE BOTTOM FOR NEW */
 .field_container {
   background: #fffdba;
   border: 2px solid;
@@ -68,6 +72,18 @@
   height: 1.25em;
 }
 
+
+
+.delete_controls:hover {
+  background-color: orange;
+}
+
+
+/* New */
+
+.edit_text {
+}
+
 .delete_controls {
   float: left;
   font-size: 6pt;
@@ -77,10 +93,53 @@
   padding: 0px;
 }
 
-.delete_controls:hover {
-  background-color: orange;
+.delete_key_controls {
+  float: left;
+  font-size: 6pt;
+  height: 16px;
+  width: 16px;
+  margin: 0px;
+  padding: 0px;
 }
 
+.list_item_wrapper {
+  position: relative;
+  width: 400px;
+  background: green;
+  display: inline;
+}
+
+.list_item_wrapper>.edit_text {
+  float: left;
+  background: yellow;
+}
+
+.list_item_wrapper>.delete_controls {
+  float: left;
+}
+
+.list {
+  position: relative;
+}
+
+.kvlist_item {
+  border: solid; 
+  /* clear:right; */
+}
+
+.kvlist_item>.edit_text {
+  float: left;
+}
+
+.clearfix {
+  clear:both;
+  margin:0; 
+  padding:0;
+  height:0;
+  line-height:0;
+}
+
+/* OLD OLD */
 /*
 
 .log_in{

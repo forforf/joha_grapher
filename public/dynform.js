@@ -125,6 +125,274 @@
       More research is needed to evaluate this feature, but it "feels" like the right approach.   
 */
 
+
+/* Refactoring to have only a single Joha object in the global namespace */
+/* newbie at this so we'll see how it works */
+
+function Patterns() {
+
+  var self = this;
+  
+  //eventActions function action parameter is an object with johaCtl and johaTgt parameters
+  //accessible in functions as event.data.johaCtl and event.data.johaTgt
+  //Leverage jQuery's live method
+  this.controlObj = function(controlElement, targetElement, eventActions, opts){
+    jlog("Called controlObj", eventActions);
+  
+    var jctl = makejQueryObj(controlElement);
+    var jtgt = makejQueryObj(targetElement);
+   
+    //this is different than $().live since here the events can be mapped to separate functions
+    //$().live maps multiple events to the same function    
+    for (ev in eventActions){
+
+      actionObj = {
+                    johaTgt: jtgt,
+                    johaCtl: jctl,
+                  };
+              
+      
+      //NOTE: The control must have an id due to some limitations with .live
+      jctlId = jQuery(controlElement).attr('id');
+      jQuery("#"+jctlId).live(ev, actionObj, eventActions[ev]);
+      
+    }
+    //removing jctl will remove attached event as well (yay! for jQuery!)
+    return jctl //return jQuery-ized element for direct jQuery actions (allows things to be more concise)
+  };
+  
+  //this will cause the target to add edit toits class (is this used?)
+  this.editInPlaceControl = function(target, editClass){
+    //Uses jEditable
+    editClass = editClass || 'edit';
+    target = makejQueryObj(target);
+    target.addClass(editClass);
+  };
+  
+  //This will take an element that can hold text, add text, store any data associated with that text (i.e. metadata)
+  //and apply any functions needed (textEl and objData) are required.
+  this.textContentObj = function( textEl, textVal, objData, applyFunctions){
+    //TODO Try and have the data stored by jQuery as one of the applyFunctions
+    textEl = makejQueryObj(textEl);
+    textEl.text(textVal);
+    for (i in applyFunctions) {
+      applyFunctions[i](textEl, objData);
+    }
+  return textEl;
+  };
+}
+
+function Joha(){
+  var johaSelf = this;
+  
+  var PatternsObj = function Patterns() {
+    
+    this.testing = "1,2,3,4";
+    
+    this.fn_testing = function() { return this.testing };
+  
+    //eventActions function action parameter is an object with johaCtl and johaTgt parameters
+    //accessible in functions as event.data.johaCtl and event.data.johaTgt
+    //Leverage jQuery's live method
+    this.controlObj = function(controlElement, targetElement, eventActions, opts){
+      jlog("Called controlObj", eventActions);
+    
+      var jctl = makejQueryObj(controlElement);
+      var jtgt = makejQueryObj(targetElement);
+     
+      //this is different than $().live since here the events can be mapped to separate functions
+      //$().live maps multiple events to the same function    
+      for (ev in eventActions){
+
+        actionObj = {
+                      johaTgt: jtgt,
+                      johaCtl: jctl,
+                    };
+                
+        
+        //NOTE: The control must have an id due to some limitations with .live
+        jctlId = jQuery(controlElement).attr('id');
+        jQuery("#"+jctlId).live(ev, actionObj, eventActions[ev]);
+        
+      }
+      //removing jctl will remove attached event as well (yay! for jQuery!)
+      return jctl //return jQuery-ized element for direct jQuery actions (allows things to be more concise)
+    };
+    
+    //this will cause the target to add edit toits class (is this used?)
+    this.editInPlaceControl = function(target, editClass){
+      //Uses jEditable
+      editClass = editClass || 'edit';
+      target = makejQueryObj(target);
+      target.addClass(editClass);
+    };
+    
+    //This will take an element that can hold text, add text, store any data associated with that text (i.e. metadata)
+    //and apply any functions needed (textEl and objData) are required.
+    this.textContentObj = function( textEl, textVal, objData, applyFunctions){
+      //TODO Try and have the data stored by jQuery as one of the applyFunctions
+      textEl = makejQueryObj(textEl);
+      textEl.text(textVal);
+      for (i in applyFunctions) {
+        applyFunctions[i](textEl, objData);
+      }
+    return textEl;
+    };
+  };
+
+  this.patterns = new PatternsObj;
+
+  var BuildSimpleElem = function Builder() {
+
+    this.deleteControl = function(target, parentId){
+      
+      var elId = parentId + "_delctrl";
+      var elClass = "delete_controls";
+      var elHtml = "<img id=\"" + elId + "\" class=\"" + elClass + "\" src=\"./images/delete_normal.png\" alt=\"-\" />"
+      
+      //johaTgt and johaCtl are available with the event.data parameter by way of controlObj
+      var eventActions = {'click': function(event){
+          jlog("deleteControl clicked, Target:", event.data.johaTgt);
+          event.data.johaTgt.toggleClass('edit_deleted');
+        },
+      };
+      
+      var delCtl = johaPats.controlObj(elHtml, target, eventActions);
+      return delCtl[0];
+    };
+
+    this.deleteKeyControl = function(target, parentId){
+      
+      var elId = parentId + "_delkeyctrl";
+      var elClass = "delete_key_controls";
+      var elHtml = "<img id=\"" + elId + "\" class=\"" + elClass + "\" src=\"./images/delete_key.png\" alt=\"-\" />"
+      
+      //johaTgt and johaCtl are available with the event.data parameter by way of controlObj
+      var eventActions = {'click': function(event){
+          jlog("deleteKeyControl clicked, Target:", event.data.johaTgt);
+          event.data.johaTgt.toggleClass('edit_deleted');
+        },
+      };
+      
+      var delCtl = johaPats.controlObj(elHtml, target, eventActions);
+      return delCtl[0];
+    };
+    
+    this.staticValueElement = function(textValue, parentId){
+      var elId = parentId + "_static";
+      var elClass = "static_text";
+      var elHtml = "<span id=\"" + elId + "\" class=\"" + elClass + "\"/span>";
+      var statValEl = johaPats.textContentObj(elHtml, textValue);
+      return statValEl;
+    };
+  
+    this.editValueElement = function(textValue, parentId, valData){
+      var elId = parentId + '_edit_value';
+      var elClass = "edit edit_text";
+      var elHtml = "<span id=\"" + elId + "\" class=\"" + elClass + "\"/span>";
+      //Could make editable via passing a custom function, but instead adding in the class to the html
+      //var makeEditable = function(el, valData){ jQuery(el).addClass('edit') };
+      //makeEditable function would be added to the functions passed to the element pattern
+      var addValData = function(el, valData){ jQuery(el).data(valData) };
+      var editValEl = johaPats.textContentObj(elHtml, textValue, valData, [addValData]);
+      return editValEl;
+    };
+    
+  }
+  
+  this.buildSimpleElem = new BuildSimpleElem;
+  
+  this.buildListItem = function(listItemValue, index, parentId, valData){
+  
+    var bldr = johaSelf.buildSimpleElem;
+        
+    listItemId = parentId + "_" + index + "_li";
+    var listItemElem = bldr.editValueElement(listItemValue, listItemId, valData);
+    
+    var delId = parentId + "_" + index + "_delCtrl";
+    var delCtrl = bldr.deleteControl(listItemElem, delId)
+    
+    var wrId = parentId + "_" + index + "_listItemWrapper";
+    var wrClass = "list_item_wrapper";    
+    var wrHtml = "<li id=\"" + wrId + "\" class=\"" + wrClass + "\"</li>";
+    var wrEl = jQuery(wrHtml);
+    wrEl.append(listItemElem);
+    wrEl.append(delCtrl);
+    
+    return wrEl;
+  };
+  
+  this.buildList = function(listItemValues, parentId, listData) {
+    var listId = parentId + "_list";
+    var listClass = "list";
+    var listHtml = "<ul id=\"" + listId + "\" class=\"" + listClass + "\"></ul>"
+    var listEl = jQuery(listHtml);
+    for (i in listItemValues) {
+      li = this.buildListItem(listItemValues[i], i, listId, {} );
+      listEl.append(li);
+    }
+    return listEl;
+  };
+
+  this.buildKey = function(keyValue, parentId) {
+    keyId = parentId + "_key";
+    keyEl = this.buildSimpleElem.editValueElement(keyValue, keyId, {});
+    return keyEl;
+  };
+  
+  this.buildKvlistItem = function(keyValue, dataValues, kIndex, parentId, kvItemData) {
+    var kvliId = parentId + "_" + kIndex + "_kvitem"; 
+    var kvliClass = "kvlist_item";
+    
+    var keyEl = this.buildKey(keyValue, kvliId);
+    var kvlistList = this.buildList(dataValues, kvliId, {} );
+    
+    
+    
+    var kvliHtml = "<div id=\"" + kvliId + "\"class=\"" + kvliClass + "\"></div>"
+    var wrKvli = jQuery(kvliHtml);
+    
+    var kvDelCtrl = this.buildSimpleElem.deleteKeyControl(wrKvli, kvliId);
+    
+    wrKvli = wrKvli.append(kvDelCtrl);
+    wrKvli = wrKvli.append(keyEl);
+    wrKvli = wrKvli.append(kvlistList);
+    
+    
+    
+    //Temp
+    wrKvli.append(jQuery("<div />").addClass('clearfix'));
+    
+    return wrKvli;
+  };
+
+  
+}
+
+var JohaX = (function() {
+  var JohaX = function() {
+    this.accessor = "got it";
+  };
+  
+  JohaX.prototype.meth = function() {
+    console.log('executing prototype method with accesor, and ... ' + this.accessor);
+    return this;
+  };
+  
+  return function() {
+    var o = new JohaX();
+    var f = function() {console.log("I am awesome"); };
+    for (var k in o) {
+      f[k] = o[k];
+    }
+    
+    return f
+  };
+  
+})();
+
+
+
 var JohaComponents = function() {};
 JohaComponents.prototype = {
   eventActions: function(event, actions) { 
@@ -174,6 +442,7 @@ var johaPats = new function() {
     return jctl //return jQuery-ized element for direct jQuery actions (allows things to be more concise)
   };
   
+  //this will cause the target to add edit toits class (is this used?)
   this.editInPlaceControl = function(target, editClass){
     //Uses jEditable
     editClass = editClass || 'edit';
@@ -192,11 +461,10 @@ var johaPats = new function() {
     }
   return textEl;
   };
- 
+   
 };
 
-//Builders that create shiny complex Dom elements ready to be put somewhere
-var JohaBldr = function() {
+var JohaSimpleBldr = function() {
 
   //Locally scoped
   var internalFunction = function() {
@@ -205,7 +473,7 @@ var JohaBldr = function() {
   //Exposed
   //this.<something>
 };
-JohaBldr.prototype = {
+JohaSimpleBldr.prototype = {
   deleteControl: function(target, parentId){
     
     var elId = parentId + "_delctrl";
@@ -224,20 +492,64 @@ JohaBldr.prototype = {
   },
   
   staticValueElement: function(textValue, parentId){
-    console.log('ok')
     var elId = parentId + "_static";
     var elClass = "static_text";
-    var elHtml = "<p id=\"" + elId + "\" class=\"" + elClass + "\"/p>";
-    console.log(elHtml);
+    var elHtml = "<span id=\"" + elId + "\" class=\"" + elClass + "\"/span>";
     var statValEl = johaPats.textContentObj(elHtml, textValue);
-    console.log(statValEl);
     return statValEl;
   },
   
-  
+  editValueElement: function(textValue, parentId, valData){
+    var elId = parentId + '_edit_value';
+    var elClass = "edit edit_text";
+    var elHtml = "<span id=\"" + elId + "\" class=\"" + elClass + "\"/span>";
+    //Could make editable via passing a custom function, but instead adding in the class to the html
+    //var makeEditable = function(el, valData){ jQuery(el).addClass('edit') };
+    //makeEditable function would be added to the functions passed to the element pattern
+    var addValData = function(el, valData){ jQuery(el).data(valData) };
+    var editValEl = johaPats.textContentObj(elHtml, textValue, valData, [addValData]);
+    return editValEl;
+  },
+}
+
+//Builders that create shiny complex Dom elements ready to be put somewhere
+var JohaListBldr = function() {
+
+  //Locally scoped
+  var internalFunction = function() {
+  };
+
   
 
-}
+
+  //Exposed
+  //this.<something>
+};
+JohaListBldr.prototype = {
+
+  //Creates a single listItem with delete control
+  //Note that listItemElem must have #id
+  listItemObj: function(listItemValue, index, parentId, valData){
+  
+    var bldr = new JohaSimpleBldr;
+        
+    listItemId = parentId + "_" + index + "_li";
+    var listItemElem = bldr.editValueElement(listItemValue, listItemId, valData);
+    
+    var delId = parentId + "_" + index + "_delCtrl";
+    var delCtrl = bldr.deleteControl(listItemElem, delId)
+    
+    var wrId = parentId + "_" + index + "_listItemWrapper";
+    var wrClass = "list_item_wrapper";    
+    var wrHtml = "<li=\"" + wrId + "\" class=\"" + wrClass + "\"</li>";
+    var wrEl = jQuery(wrHtml);
+    wrEl.append(listItemElem);
+    wrEl.append(delCtrl);
+    
+    return wrEl;
+  },
+};
+
 
 var JohaElems = function() {};
 

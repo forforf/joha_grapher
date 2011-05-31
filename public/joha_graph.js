@@ -15,7 +15,7 @@ $(document).ready(function() {
   //New DynForm Tests
   
 
-  var bldr = new JohaBldr;
+  var bldr = new JohaSimpleBldr;
 
   /*
   var myTest = {
@@ -40,13 +40,39 @@ $(document).ready(function() {
   //jQuery('body').prepend(jQuery(myCtl));
   //this works too
   //johaPats.editInPlaceControl(dc);
-  johaPats.editInPlaceControl(dt);
+  //johaPats.editInPlaceControl(dt);
+  //this works too
+  //var myEditTxt = bldr.editValueElement("Click to Edit Text", "feefee", {foo: "bar"});
+  //console.log(jQuery(myEditTxt).data());
+  //jQuery('body').prepend(jQuery(myEditTxt));
   
-  var myStatTxt = bldr.staticValueElement("Some static Text", "feefee");
-  jQuery('body').prepend(jQuery(myStatTxt));
+  //var myListBldr = new JohaListBldr;
+  var myjoha = new Joha;
+  var bldr = myjoha.buildSimpleElem;
+  var mytestTxt = bldr.editValueElement("TEST Text", "fddeefee", {foo: "bar"});
+  //var myListBldr = myjoha.buildListItem;
+  //var myListItem = myjoha.buildListItem("List Item", "feefeelist", {foolist: "barlist"} );
+  //var myListItem2 = myjoha.buildListItem("List Item2", "feefeelist2", {foolist2: "barlist2"} );
+  //var myListItem = myListBldr.listItemObj("List Item", "feefeelist", {foolist: "barlist"} );
+  //var myListItem = JohaListBldr().listItem("List Item", "feefeelist", {foolist: "barlist"} );
+  //console.log(mytestTxt.data());
   
+  var myList = myjoha.buildList(["item1", "item2"], "fee", {} );
+  console.log(myList);
+  jQuery('body').prepend(jQuery(myList));
+  //jQuery('body').prepend(jQuery(myListItem));
+  //jQuery('body').prepend(jQuery(myListItem2));
+  
+  var myKvlist = myjoha.buildKvlistItem("MyKey0", ["a", "b"],0,"feede", {} );
+  jQuery('body').prepend(jQuery(myKvlist));
+  
+  
+  var myjohaPat = myjoha.patterns;
+  console.log(myjohaPat.fn_testing() );
 
-  
+  var foo = JohaX();
+  jlog('foo',foo());
+  jlog('foo.meth',foo.meth());
 
 });
 
