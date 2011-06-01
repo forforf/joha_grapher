@@ -111,9 +111,9 @@
    All necessary data is pushed down to the editable nodes. Field Names, Key Names. Updates have both original and new values.
    Additionally the DomId and collection function for the element that will collect the data (the niDataContainer element) is provided to the elements as well
    Finally when changes occur the changed elements will update their classes appropriately:
-    Elements with changed data will have a class assigned of .edit_updated
-    Elements with new data will have a class assigned of .edit_added
-    Elements with deleted data will have a class assigned of .edit_deleted
+    Elements with changed data will have a class assigned of .joha_update
+    Elements with new data will have a class assigned of .joha_add
+    Elements with deleted data will have a class assigned of .joha_delete
    On Save 
     Each changed element uses the function of the DomId provided to it, so that those elements will process and aggregate the data accordingly.
     Then each niDataContainer processing element will provide it's node key's data, and the entire node's updates, additions and deletions can
@@ -195,8 +195,7 @@ function Joha(){
     //accessible in functions as event.data.johaCtl and event.data.johaTgt
     //Leverage jQuery's live method
     this.controlObj = function(controlElement, targetElement, eventActions, opts){
-      jlog("Called controlObj", eventActions);
-    
+   
       var jctl = makejQueryObj(controlElement);
       var jtgt = makejQueryObj(targetElement);
      
@@ -243,6 +242,57 @@ function Joha(){
   this.patterns = new PatternsObj;
 
   var BuildSimpleElem = function Builder() {
+  
+      this.addItemControl = function(target, parentId, clickAction){
+      
+        var newObj = makejQueryObj(newObj);
+        var elId = parentId + "_additemctrl";
+        var elClass = "add_item_control";
+        var elHtml = "<img id=\"" + elId + "\" class=\"" + elClass + "\" src=\"./images/add_normal.png\" alt=\"-\" />"
+        
+        //johaTgt and johaCtl are available with the event.data parameter by way of controlObj
+        var eventActions = {'click': function(event){
+            jlog("addItemControl clicked, Target:", event.data.johaTgt);
+            var tgt = event.data.johaTgt;
+            clickAction(tgt);
+            //tgt.append(newObj);
+          },
+        };
+      
+        var addItemCtl = johaPats.controlObj(elHtml, target, eventActions);
+        return addItemCtl[0];
+      };
+      
+      
+      //TODO: DRY this up with the above
+      this.addKvlistItemControl = function(target, parentId, clickAction){
+      
+        var newObj = makejQueryObj(newObj);
+        var elId = parentId + "_addkvlistitemctrl";
+        var elClass = "add_kvlistitem_control";
+        var elHtml = "<img id=\"" + elId + "\" class=\"" + elClass + "\" src=\"./images/add_record.jpg\" alt=\"-\" />"
+        
+        //johaTgt and johaCtl are available with the event.data parameter by way of controlObj
+        var eventActions = {'click': function(event){
+            jlog("addKvlistItemControl clicked, Target:", event.data.johaTgt);
+            var tgt = event.data.johaTgt;
+            //tgt.addClass('joha_add');
+            clickAction(tgt);
+            //tgt.append(newObj);
+          },
+        };
+      
+        var addItemCtl = johaPats.controlObj(elHtml, target, eventActions);
+        return addItemCtl[0];
+      };
+    
+    this.staticValueElement = function(textValue, parentId){
+      var elId = parentId + "_static";
+      var elClass = "static_text";
+      var elHtml = "<span id=\"" + elId + "\" class=\"" + elClass + "\"/span>";
+      var statValEl = johaPats.textContentObj(elHtml, textValue);
+      return statValEl;
+    };
 
     this.deleteControl = function(target, parentId){
       
@@ -253,7 +303,7 @@ function Joha(){
       //johaTgt and johaCtl are available with the event.data parameter by way of controlObj
       var eventActions = {'click': function(event){
           jlog("deleteControl clicked, Target:", event.data.johaTgt);
-          event.data.johaTgt.toggleClass('edit_deleted');
+          event.data.johaTgt.toggleClass('joha_delete');
         },
       };
       
@@ -270,7 +320,7 @@ function Joha(){
       //johaTgt and johaCtl are available with the event.data parameter by way of controlObj
       var eventActions = {'click': function(event){
           jlog("deleteKeyControl clicked, Target:", event.data.johaTgt);
-          event.data.johaTgt.toggleClass('edit_deleted');
+          event.data.johaTgt.toggleClass('joha_delete');
         },
       };
       
@@ -331,6 +381,21 @@ function Joha(){
       li = this.buildListItem(listItemValues[i], i, listId, {} );
       listEl.append(li);
     }
+    
+    //Set up control for adding new items to the list
+    var bldr = johaSelf.buildSimpleElem;
+    //create the function to execute when add control is clicked
+    //Note that the target (first paramenter of addItemControl) is passed
+    //as a parameter to this function
+    var addOnClick = function(tgt) {
+      tgtChildren = listEl.children('li');
+      newListItem = johaSelf.buildListItem("?", tgtChildren.length, listId, {});
+      newListItem.children('.edit_text').addClass('joha_add');
+      tgtChildren.last().after(newListItem);
+    }
+    var addCtl = bldr.addItemControl(listEl, listId, addOnClick)
+
+    listEl.append(addCtl);  
     return listEl;
   };
 
@@ -345,10 +410,8 @@ function Joha(){
     var kvliClass = "kvlist_item";
     
     var keyEl = this.buildKey(keyValue, kvliId);
-    var kvlistList = this.buildList(dataValues, kvliId, {} );
-    
-    
-    
+    var kList = this.buildList(dataValues, kvliId, {} );
+  
     var kvliHtml = "<div id=\"" + kvliId + "\"class=\"" + kvliClass + "\"></div>"
     var wrKvli = jQuery(kvliHtml);
     
@@ -356,19 +419,51 @@ function Joha(){
     
     wrKvli = wrKvli.append(kvDelCtrl);
     wrKvli = wrKvli.append(keyEl);
-    wrKvli = wrKvli.append(kvlistList);
-    
-    
-    
+    wrKvli = wrKvli.append(kList);
+     
     //Temp
     wrKvli.append(jQuery("<div />").addClass('clearfix'));
     
     return wrKvli;
   };
+  
+  this.buildKvlist = function(klistObj, parentId, kvListData){
+    var kvlistId = parentId + "_kvlist";
+    var kvlistClass = "kvlist";
+    
+    var kvlistHtml = "<div id=\"" + kvlistId + "\"class=\"" + kvlistClass + "\"></div>"
+    var kvlistEl = jQuery(kvlistHtml);
+    
+    var i = 0;
+    for (key in klistObj){
+      var kvliEl = this.buildKvlistItem(key, klistObj[key], i, kvlistId, {} );
+      kvlistEl.append(kvliEl);
+      i += 1;
+    }
+    
+
+    //Set up control for adding new KeyLists
+    var bldr = johaSelf.buildSimpleElem;
+    //create the function to execute when add control is clicked
+    //Note that the target (first paramenter of addItemControl) is passed
+    //as a parameter to this function
+    var addOnClick = function(tgt) {
+      tgtChildren = tgt.children('.kvlist_item');
+      var newKvlistItem = johaSelf.buildKvlistItem("key?", ["?"], tgtChildren.length, kvlistId, {});
+
+      newKvlistItem.addClass('joha_add');
+      tgtChildren.last().after(newKvlistItem);
+    }
+    var addCtl = bldr.addKvlistItemControl(kvlistEl, kvlistId, addOnClick)
+    kvlistEl.append(addCtl);
+    
+    
+   return kvlistEl;
+  }
 
   
 }
-
+/*
 var JohaX = (function() {
   var JohaX = function() {
     this.accessor = "got it";
@@ -390,7 +485,7 @@ var JohaX = (function() {
   };
   
 })();
-
+*/
 
 
 var JohaComponents = function() {};
@@ -418,7 +513,6 @@ var johaPats = new function() {
   //accessible in functions as event.data.johaCtl and event.data.johaTgt
   //Leverage jQuery's live method
   this.controlObj = function(controlElement, targetElement, eventActions, opts){
-    jlog("Called controlObj", eventActions);
   
     var jctl = makejQueryObj(controlElement);
     var jtgt = makejQueryObj(targetElement);
@@ -483,7 +577,7 @@ JohaSimpleBldr.prototype = {
     //johaTgt and johaCtl are available with the event.data parameter by way of controlObj
     var eventActions = {'click': function(event){
         jlog("deleteControl clicked, Target:", event.data.johaTgt);
-        event.data.johaTgt.toggleClass('edit_deleted');
+        event.data.johaTgt.toggleClass('joha_delete');
       },
     };
     

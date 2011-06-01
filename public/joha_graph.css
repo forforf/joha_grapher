@@ -349,18 +349,21 @@ a.borg_link_text {
     font-weight: normal;
 }
 
-.edit_updated {
+/* remove .edit_updated at some point */
+.edit_updated, .joha_update {
      color: blue;
      font-weight: bold;
 }
 
-.edit_new {
+/*remove .edit_new at some point */
+.edit_new, .joha_add {
      color: green;
      font-weight: bold;
 }
 
-/* replace delete_show with edit_deleted */
+/* Moved to dynform.css and changed to joha_deleted replace delete_show with edit_deleted */
+/*
 .delete_show, .edit_deleted {
     color: red;
     text-decoration: line-through;
-}
+} */

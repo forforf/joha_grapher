@@ -58,21 +58,21 @@ $(document).ready(function() {
   //console.log(mytestTxt.data());
   
   var myList = myjoha.buildList(["item1", "item2"], "fee", {} );
-  console.log(myList);
+
   jQuery('body').prepend(jQuery(myList));
   //jQuery('body').prepend(jQuery(myListItem));
   //jQuery('body').prepend(jQuery(myListItem2));
   
-  var myKvlist = myjoha.buildKvlistItem("MyKey0", ["a", "b"],0,"feede", {} );
-  jQuery('body').prepend(jQuery(myKvlist));
+  //var myKvlist = myjoha.buildKvlistItem("MyKey0", ["a", "b"],0,"feede", {} );
+  //jQuery('body').prepend(jQuery(myKvlist));
   
-  
-  var myjohaPat = myjoha.patterns;
-  console.log(myjohaPat.fn_testing() );
-
-  var foo = JohaX();
-  jlog('foo',foo());
-  jlog('foo.meth',foo.meth());
+  var myKvlistObj = {"http:\\blah":["blah"],
+                     foo: ["bar","baz"],
+                     foofoo: ["barbar", "bazbaz"]
+                    };
+  var myKvlistEl = myjoha.buildKvlist(myKvlistObj, "kvl", {foo: "bar"});
+  console.log(myKvlistEl);
+  jQuery('body').prepend(jQuery(myKvlistEl));
 
 });
 
@@ -119,15 +119,14 @@ function set_up_onClicks() {
   jQuery('#save_node_data').live('click', function(event) {
     var all_edits = {};
 
-    var edit_updates = jQuery('.edit_updated');
+    var edit_updates = jQuery('.joha_update_jg');
     all_edits['updates'] = filterJohaUpdateData();
     jlog("Save Clicked", all_edits);
     //revert data to default (by acting like the node is clicked)
     jlog("Save Clicked", "TODO: Revert updated data to unchanged after node is saved");
-    //this works, but it's only styling
-    //edit_updates.removeClass('edit_updated').addClass('edit');
+
     
-    var edit_adds = jQuery('.edit_new');
+    var edit_adds = jQuery('.joha_add_jg');
     all_edits['adds'] = filterJohaUpdateData();
     jlog('edit adds dom', edit_adds);
     jlog('filtered edits', all_edits);
@@ -256,10 +255,10 @@ function add_new_key_element(el, value) {
     //               };
     var johaBuilder = new JohaElems();
     var addKey = johaBuilder.keyContainer(value, keyIndex, fieldName, baseId);
-    addKey.addClass('edit_new');
+    addKey.addClass('joha_add_jg');
     //= new JohaValueContainerDom(value, newElem.index, newElem.keyIndex, newElem.keyName, newElem.fieldName, baseId, bindData);
     //addNewVal.valueElem.data('johaData__NewValue', value);
-    //addNewVal.valueElem.addClass('edit_new');
+    //addNewVal.valueElem.addClass('joha_add_jg');
     //var addNewValDom = addNewVal.domObj
     
     var kvListItem = johaBuilder.kvListItem(fieldName, baseId);
@@ -324,7 +323,7 @@ function add_new_element(el, value) {
                    
     var addNewVal = new JohaValueContainerDom(value, newElem.index, newElem.keyIndex, newElem.keyName, newElem.fieldName, baseId, bindData);
     addNewVal.valueElem.data('johaData__NewValue', value);
-    addNewVal.valueElem.addClass('edit_new');
+    addNewVal.valueElem.addClass('joha_add_jg');
     var addNewValDom = addNewVal.domObj
 
     
@@ -338,7 +337,7 @@ function update_value_data(el, value, settings, isKey){
   //is Jeditable overkill with this approach?
     
   thisEl = jQuery(el);
-  if ( thisEl.is('.add_new')) {
+  if ( thisEl.is('.joha_add_jg')) {
     if ( isKey ) {
       add_new_key_element(el, value);
     } else {
@@ -346,7 +345,7 @@ function update_value_data(el, value, settings, isKey){
     }
   } else { //data value edit
     thisEl.data("johaData__UpdatedValue", value);
-    thisEl.removeClass('edit_orig').addClass('edit_updated');
+    thisEl.removeClass('edit_orig').addClass('joha_update_jg');
   }
  
  
@@ -423,7 +422,7 @@ var link_elements_format = function(links, divIdBase, el){
 
 function dynamic_edit_form(nodeData){
   //reset style to unedited
-  jQuery('.edit').removeClass('edit_updated').addClass('edit_orig');
+  jQuery('.edit').removeClass('joha_update_jg').addClass('edit_orig');
 
   //Define the functions that will display based on node data keys
   
