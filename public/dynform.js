@@ -125,7 +125,7 @@
       More research is needed to evaluate this feature, but it "feels" like the right approach.   
 */
 
-
+//Add note about joha_edit class (ids all editable containers)
 /* Refactoring to have only a single Joha object in the global namespace */
 /* newbie at this so we'll see how it works */
 
@@ -183,6 +183,7 @@ function Patterns() {
 }
 
 function Joha(){
+
   var johaSelf = this;
   
   var PatternsObj = function Patterns() {
@@ -338,7 +339,7 @@ function Joha(){
   
     this.editValueElement = function(textValue, parentId, valData){
       var elId = parentId + '_edit_value';
-      var elClass = "edit edit_text";
+      var elClass = "edit edit_text joha_edit";
       var elHtml = "<span id=\"" + elId + "\" class=\"" + elClass + "\"/span>";
       //Could make editable via passing a custom function, but instead adding in the class to the html
       //var makeEditable = function(el, valData){ jQuery(el).addClass('edit') };
@@ -373,6 +374,7 @@ function Joha(){
   };
   
   this.buildList = function(listItemValues, parentId, listData) {
+    jlog("buildList with", listItemValues);
     var listId = parentId + "_list";
     var listClass = "list";
     var listHtml = "<ul id=\"" + listId + "\" class=\"" + listClass + "\"></ul>"
@@ -407,7 +409,7 @@ function Joha(){
   
   this.buildKvlistItem = function(keyValue, dataValues, kIndex, parentId, kvItemData) {
     var kvliId = parentId + "_" + kIndex + "_kvitem"; 
-    var kvliClass = "kvlist_item";
+    var kvliClass = "kvlist_item joha_edit";
     
     var keyEl = this.buildKey(keyValue, kvliId);
     var kList = this.buildList(dataValues, kvliId, {} );
@@ -459,8 +461,62 @@ function Joha(){
     
     
    return kvlistEl;
-  }
+  };
+  
+  this.buildFieldValueElem = function(fieldValues, customData) {
+  
+    var dataType = customData['johaData__Type'];
+    var nodeId = customData['johaData__NodeId'];
+    var fieldIndex = customData['johaData__FieldIndex'];
+    var johaId = nodeId + "_" + fieldIndex;
+    
+    var fieldValueContainer = jQuery('<div />', {
+      'class': "joha_field_value_container",
+    });
+    fieldValueContainer.append(jQuery('<div> dummy field values </div>'));
+    jlog('Data Type', dataType);
+    //return fieldValueContainer
 
+    if (dataType == "static_ops") {
+      // figure out how to display static data 
+      alert('static_ops not implemented yet');
+    } else if (dataType == "replace_ops") {
+      domObj = this.buildSimpleElem.editValueElement(fieldValues, johaId, customData);
+      jlog('replace ops domObj', domObj );
+      //jlog('Node Label', jQuery('#joha-edit-label--').data() )
+    } else if (dataType == "list_ops") {
+      //domObj = new BuildListDom( fieldData, johaId);
+      domObj = this.buildList(fieldValues, johaId, customData);
+      //domObj = new BuildListDom(fieldData, johaId, johaBuilder, nodeId)
+      jlog("list ops domObj",domObj);
+    } else if (dataType == "key_list_ops") {
+      //domObj = new BuildKvlistDom( fieldData, johaId );
+    }
+    if (domObj == null) {
+      return "" ;
+    } else {
+    return domObj;
+    }
+  };
+  
+  this.buildFieldNameElem = function(fieldName){
+    var fieldNameEl = jQuery('<div />', {
+      text: fieldName,
+      'class': "joha_field_name",
+    });
+    return fieldNameEl;
+  };
+  
+  this.buildFieldDataDom = function(fieldData, customData){
+    var fieldName = get_keys(fieldData)[0];
+    customData['johaData__FieldName'] = fieldName;
+    var dummyFieldDataDom = jQuery('<div />');
+    var dummyFieldValueEl = this.buildFieldValueElem(fieldData[fieldName], customData);
+    var dummyFieldNameEl = this.buildFieldNameElem(fieldName);
+    dummyFieldDataDom.append(dummyFieldNameEl);
+    dummyFieldDataDom.append(dummyFieldValueEl);
+    return dummyFieldDataDom;
+  }
   
 }
 /*
@@ -595,7 +651,7 @@ JohaSimpleBldr.prototype = {
   
   editValueElement: function(textValue, parentId, valData){
     var elId = parentId + '_edit_value';
-    var elClass = "edit edit_text";
+    var elClass = "edit joha_value joha_edit";
     var elHtml = "<span id=\"" + elId + "\" class=\"" + elClass + "\"/span>";
     //Could make editable via passing a custom function, but instead adding in the class to the html
     //var makeEditable = function(el, valData){ jQuery(el).addClass('edit') };
@@ -676,7 +732,7 @@ JohaElems.prototype = {
 
   kvListItem: function(fieldName, baseId) {
     var kvli = jQuery("<div />", {
-      class: "kvlist_item",
+      class: "kvlist_item joha_edit",
     })
     return kvli;
   }, 
@@ -792,7 +848,8 @@ function augment(receivingClass, givingClass) {
       }
    }
 }
- 
+
+/* REMOVE 
 function BuildNodeEditDom(baseId, nodeId, appendDoms) {
   this.div_id = baseId;
   this.nodeId = nodeId;
@@ -807,6 +864,7 @@ function BuildNodeEditDom(baseId, nodeId, appendDoms) {
   };
   this.domObj = domTemp;
 }
+*/
 
 function BuildNodeFieldContainer(containerObj, fieldNameObj, fieldObj){
   containerObj.append(fieldNameObj);
@@ -851,22 +909,28 @@ function BuildReplaceDom(fieldData, baseId){
   this.domObj = currentDomObj;
 }
 
-function BuildListDom(fieldData, baseId) {
+//Working on this right now
+function BuildListDom(fieldData, baseId, johaBuilder, nodeId) {
 
-  this.parentDom = jQuery("<div />", {
-    id: baseId + "_list",
-    class: "list",
-  });
+  //this.parentDom = jQuery("<div />", {
+  //  id: baseId + "_list",
+  //  class: "list",
+  //});
+  
+  //ToDo Fix to ensure unique
+  var parentId = nodeId + "_" + baseId;
   
   this.fieldName = get_keys(fieldData)[0];
   
-  var johaBuilder = new JohaElems();
+  
+  //var johaBuilder = new JohaElems();
 
-  var fieldContainer = johaBuilder.fieldContainer(this.fieldName, baseId);
-  var listContainer = johaBuilder.listContainer(this.fieldName, baseId);
+  //var fieldContainer = johaBuilder.fieldContainer(this.fieldName, baseId);
+  //var listContainer = johaBuilder.listContainer(this.fieldName, baseId);
   
-  var myData = fieldData[this.fieldName]; //["a", "b", "c", "d"];
-  
+  var listData = fieldData[this.fieldName]; //["a", "b", "c", "d"];
+  listDomObj = johaBuilder.buildList(listData, parentId, {});
+/*  
   var valContainerDoms = []
   //var valueDatas = []
   var deleteControls = []
@@ -898,10 +962,10 @@ function BuildListDom(fieldData, baseId) {
   listContainer = listContainer.append(addNewValue);
   
   fieldContainer.append(listContainer);
+*/  
+  //var currentDomObj = this.parentDom.append(fieldContainer);
   
-  var currentDomObj = this.parentDom.append(fieldContainer);
-  
-  this.domObj = currentDomObj;
+  this.domObj = listDomObj;
   
 }
 
@@ -999,27 +1063,47 @@ function BuildKvlistDom(fieldData, baseId){
   
 }
 
-function domFieldFactory(dataType, fieldData, johaId){
+//fix the parameters
+function domFieldFactory(dataType, fieldData, johaId, johaBuilder, nodeId, fieldIndex){
+
+
+  //change to be non-destructive
+  var customData = {  "johaData__Type": dataType,
+                      "johaData__NodeId": nodeId,
+                      "johaData__FieldIndex": fieldIndex,
+                   };
   
-  var domObj = null;
+  var domObj = johaBuilder.buildFieldDataDom(fieldData, customData);
   
+  
+  return domObj;
+  /*
   if (dataType == "static_ops") {
-    /* figure out how to display static data */
+    /* figure out how to display static data *//*
   } else if (dataType == "replace_ops") {
-    domObj = new BuildReplaceDom( fieldData, johaId);
+    //domObj = new BuildReplaceDom( fieldData, johaId);
+    //domObj = johaBuilder.buildSimpleElem.editValueElement(fieldData, johaId, customData);
+    //jlog('domObj', domObj );
+    //jlog('Node Label', jQuery('#joha-edit-label--').data() )
   } else if (dataType == "list_ops") {
-    domObj = new BuildListDom( fieldData, johaId);
+    //domObj = new BuildListDom( fieldData, johaId);
+    
+    domObj = new BuildListDom(fieldData, johaId, johaBuilder, nodeId)
+    jlog("dobule domObj",domObj.domObj);
   } else if (dataType == "key_list_ops") {
-    domObj = new BuildKvlistDom( fieldData, johaId );
+    //domObj = new BuildKvlistDom( fieldData, johaId );
   }
   if (domObj == null) {
     return "" ;
   } else {
   return domObj;
   }
+  */
 }
 
-function domNodeFactory(nodeData, dataDef, reqDataToShow){
+function domNodeFactory(nodeData, specialTreatment, dataDef, reqDataToShow){
+
+
 
   //TODO, refactor to be passed in
   JOHA_ID = "joha_node";
@@ -1028,33 +1112,56 @@ function domNodeFactory(nodeData, dataDef, reqDataToShow){
   var nodeDomObj = null;
 
   //make a copy so we don't munge user data
+  //TODO: I think we've already done this
   var nodeCopy = jQuery.extend({}, nodeData);
-
-  var nodeKeys = get_keys(nodeCopy);
-
   
+  var nodeId = nodeCopy.id;
+
+  for (key in specialTreatment) {
+    if (nodeCopy[key]){
+      specialTreatment[key](nodeCopy[key]);
+      //delete nodeCopy[key];  // we've handled it so let's not worry about it anymore
+    }
+    delete nodeCopy[key];  //moved here to avoid the issue where node[key] = null; messing up stuff later.
+  }
+  
+  var johaBuilder = new Joha;
+
+
+  var fieldIndex = 0
   for (key in nodeCopy) { 
     //if our data defintion exists for that key, use the appropriate function for displaying it
+    
     if (dataDef[key] ) {
       var fieldData = {};
       fieldData[key] = nodeCopy[key];
-      domStack.push( domFieldFactory(dataDef[key], fieldData, JOHA_ID) );
+      var fieldDom = domFieldFactory(dataDef[key], fieldData, JOHA_ID, johaBuilder, nodeId, fieldIndex)
+      jlog("A field Dom", fieldDom);
+      //domStack.push( domFieldFactory(dataDef[key], fieldData, JOHA_ID, johaBuilder, nodeId) );
+      domStack.push(fieldDom);
       delete nodeCopy[key];
       array_remove_item(reqDataToShow, key);
     }
+    fieldIndex += 1;
   }
   
   //TODO: This screws up the display ordering (required shows will show last regardless) Refactor to preserve
   // display order
+  //THis is Currently Broken!!!!!!!!!
   for (i in reqDataToShow) {
     var key = reqDataToShow[i];
     var dataType = dataDef[key];
     var fieldData = {};
     fieldData[key] = "";
-    domStack.push( domFieldFactory(dataDef[key], fieldData, JOHA_ID) );
+    domStack.push( domFieldFactory(dataDef[key], fieldData, johaBuilder, JOHA_ID) );
   }
   
-  nodeDomObj = new BuildNodeEditDom(JOHA_ID, nodeData.id, domStack);
+  nodeDomObj = jQuery('<div />');
+  for (el in domStack) {
+    nodeDomObj.append(domStack[el])
+  }
+  //nodeDomObj = //new BuildNodeEditDom(JOHA_ID, nodeData.id, domStack);
+  jlog("final nodeDomObj", nodeDomObj);
   return nodeDomObj;
 }
 

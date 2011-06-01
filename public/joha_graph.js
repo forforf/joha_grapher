@@ -71,7 +71,7 @@ $(document).ready(function() {
                      foofoo: ["barbar", "bazbaz"]
                     };
   var myKvlistEl = myjoha.buildKvlist(myKvlistObj, "kvl", {foo: "bar"});
-  console.log(myKvlistEl);
+  //console.log(myKvlistEl);
   jQuery('body').prepend(jQuery(myKvlistEl));
 
 });
@@ -95,20 +95,27 @@ function set_up_onClicks() {
   //Set up editing in place (JQuery plugin Jeditable)
   //-- wrap it in .live so that future elements can use it
   jQuery('.edit').live('click', function(event) {
-    var keyEl = false
+    //////var keyEl = false
     event.preventDefault();
     // (this) is the element be edited
+    var origValue = jQuery(event.currentTarget).text();
+    console.log(origValue);
     
     jlog("click event", event);
-    if (jQuery(event.currentTarget).is('.add_new_key') ) {
-      keyEl = true;
-    }
+    //////if (jQuery(event.currentTarget).is('.add_new_key') ) {
+    //////  alert("OMG< .add_new_key was Set!!!");
+    //////  keyEl = true;
+    //////}
 
     //call the update_form_data function when an item is edited in place
 
     jQuery('.edit').editable( function(value, settings){
-      var isKeyValue = jQuery(this).is('.add_new_key');
-      return update_value_data(this, value, settings, isKeyValue);
+      ////// var isKeyValue = jQuery(this).is('.add_new_key');
+      ///// removed isKeyValue as paramater
+      ////// console.log(jEl.innerHTML);
+      var retVal = updateJeditElement(this, value, settings, origValue);
+      console.log(retVal);
+      return retVal
       }, {
       style: 'display: inline'
     });
@@ -175,7 +182,7 @@ function show_create_node_form(){
 
 function show_edit_node_form(node){
   jQuery('#create-node-form').hide();
-  dynamic_edit_form(node.data); 
+  dynamicEditForm(node.data); 
   jQuery('#edit-node-form').show();
 }
 
@@ -207,11 +214,11 @@ function toggleDelete(elId) {
 //  return jQuery('#current_node_id').text();
 //}
 
-function add_new_key_element(el, value) {
+//////function add_new_key_element(el, value) {
 
     //Todo: Fix dynform so that the baseID isn't hidden
-    var baseId = 'joha_node';
-/*  
+//////    var baseId = 'joha_node';
+/* ////// 
     var elemToUpdate = thisEl.parent();
 
     //TODO: This is very brittle as it relies on the dom structure staying constant
@@ -233,8 +240,8 @@ function add_new_key_element(el, value) {
     
     }
     //jlog('El Previous Sibling Value', lastValueElem.text() );
- */   
-    var keyIndex = jQuery('.key_field').length;
+ *////// /   
+ /*//////   var keyIndex = jQuery('.key_field').length;
     var thisLabel = thisEl.closest('.field_container').children('.field_label').first()
     var fieldName = thisLabel.data('johaData__FieldName');
     var newElem = {};
@@ -278,7 +285,8 @@ function add_new_key_element(el, value) {
     var addNewValue = johaBuilder.addNewValue(fieldName, "");
     listContainer.append(addNewValue);
 }
-
+*/ ///////
+/*//////
 function add_new_element(el, value) {
 
     //Todo: Fix dynform so that the baseID isn't hidden
@@ -330,33 +338,40 @@ function add_new_element(el, value) {
     
     thisEl.before(addNewValDom);
 }
+*///////
 
 //-- handle updating data
-function update_value_data(el, value, settings, isKey){
+function updateJeditElement(el, value, settings, origValue){
 
   //is Jeditable overkill with this approach?
-    
+   
+  //////console.log(el.innerHTML );   
   thisEl = jQuery(el);
-  if ( thisEl.is('.joha_add_jg')) {
+  //////var elId = thisEl.attr('id');
+  console.log(origValue);
+
+  /*//////if ( thisEl.is('.joha_add_jg')) {
     if ( isKey ) {
       add_new_key_element(el, value);
     } else {
       add_new_element(el, value);
     }
   } else { //data value edit
-    thisEl.data("johaData__UpdatedValue", value);
-    thisEl.removeClass('edit_orig').addClass('joha_update_jg');
-  }
+  *//////
+  thisEl.data("johaData__UpdatedValue", value);
+  thisEl.data("johaData__OriginalValue", origValue);
+  thisEl.addClass('joha_update');
+  //////}
  
  
   return value;
 }
 
 
-function add_new_format(parentContainer, value) {
+//////function add_new_format(parentContainer, value) {
   //make value container
   //insert in before ?
-}
+//////}
 
 
 
@@ -420,43 +435,102 @@ var link_elements_format = function(links, divIdBase, el){
 }
 */
 
-function dynamic_edit_form(nodeData){
-  //reset style to unedited
-  jQuery('.edit').removeClass('joha_update_jg').addClass('edit_orig');
-
-  //Define the functions that will display based on node data keys
-  
+//move out of Global space at some point
+var johaSpecialFunctions = {
   //-- Some data keys are special and get their own specific display function
-  var edit_id_elements = function(id){
+  //TODO: Pass elements into functions
+  edit_id_elements: function(id){
     var current_node_id = jQuery('#current_node_id').text();
-      if (current_node_id == id) { /* ok */} else {
-        alert("Current Node Id: " + current_node_id + " BUT Node Data has id: " + id + ".");
-      }
+    if (current_node_id == id) {} else {
+      alert("Current Node Id: " + current_node_id + " BUT Node Data has id: " + id + ".");
     }
+  },
 
-  var edit_label_elements = function(label){
+  edit_label_elements: function(label){
     //Note that the DOM eleemnt for label already exists, we're just inserting data into it.
+    //^^Bad we should pass it in or something
+    //I'm cryin 
     jQuery('#joha-edit-label--').text(node.name);
-  }
+    jQuery('#joha-edit-label--').addClass('joha_edit');
+  },
   
   //TODO: Create file object with filename and file data (if needed)
-  var edit_file_elements = function(filenames){
+  edit_file_elements: function(filenames){
     //simpler code, but best behavior to make sure selecting node multiple times creates multiple data?
     jQuery('#edit_file_elements').remove();
     file_elements_format(filenames, "joha-edit-filenames", jQuery('#dn_file_data') );
-  }
 
-    var edit_link_elements = function(links){
+  },
+
+  edit_link_elements: function(links){
       //TODO Refactor to eliminate the need to figure out element id just so we can delete it
       var baseId = "joha_node_links";
       var elId = baseId + "_kvlist";
       jQuery(elId).remove();
-      var link_elements_format = new BuildKvlistDom({"links": links}, baseId);
-      jQuery('#dn_link_data').append(link_elements_format.domObj);
+      //var link_elements_format = new BuildKvlistDom({"links": links}, baseId);
+      //jQuery('#dn_link_data').append(link_elements_format.domObj);
     //simpler code, but best behavior to make sure selecting node multiple times creates multiple data?
 //    jQuery('#joha-edit-links').remove();
 //    link_elements_format(links, "joha-edit-links", jQuery('#dn_link_data') );
-  }
+
+  },
+}
+
+var johaConfig = {
+  
+  specialTreatmentFields: {
+    "id": johaSpecialFunctions.edit_id_elements,
+    "label": johaSpecialFunctions.edit_label_elements,
+    "links": johaSpecialFunctions.edit_link_elements,
+    "attached_files": johaSpecialFunctions.edit_file_elements  
+  },
+}
+
+
+
+function dynamicEditForm(nodeData){
+
+  jQuery('.joha_edit').removeClass('joha_update joha_add joha_delete');
+
+  //create a clone of the node data because we are going to be changing it
+  //but only for display reasons
+  var nodeCopy = jQuery.extend({}, nodeData);
+  
+  //Validation not implemented yet 
+  //var nodeKeys = get_keys(nodeCopy);
+  //if (array_contains_all(nodeKeys, REQUIRED_DATA)) {} else {
+  //alert("Not all Required Data Elements are present in Node ID: " + nodeCopy.id + "Keys:" + nodeKeys) };
+  
+  
+  var specialTreatment = johaConfig.specialTreatmentFields;
+  
+  //Move into domNodeFactory
+  //for (key in specialTreatment) {
+  //  if (nodeCopy[key]){
+  //    specialTreatment[key](nodeCopy[key]);
+  //    //delete nodeCopy[key];  // we've handled it so let's not worry about it anymore
+  //  }
+  //  delete nodeCopy[key];  //moved here to avoid the issue where node[key] = null; messing up stuff later.
+  //}
+  
+  jQuery('#dn_node_data').empty();
+  jQuery('#dn_link_data').empty();
+  jQuery('#dn_file_data').empty();
+  
+  var SHOW_EVEN_IF_NULL = [];//["user_data"];  // show this field in the form even if it doesn't exist in the data
+  jlog('nodeCopy', nodeCopy);
+  var someObj = domNodeFactory(nodeCopy, specialTreatment, JOHA_DATA_DEF, SHOW_EVEN_IF_NULL);
+  jQuery('#dn_node_data').append(someObj);
+  jlog('domObj', someObj);
+  
+  
+  //in dynform.js library
+  
+  ////// Should have been refactred out I think
+  //////nodeDataDom = domNodeFactory(nodeCopy, JOHA_DATA_DEF, SHOW_EVEN_IF_NULL);
+  
+  
+/*
   
   //-- Other data keys can fall into some generic categories for display functions
   //-- Static Needs TESTING
@@ -475,11 +549,6 @@ function dynamic_edit_form(nodeData){
   var REQUIRED_DATA = ["id", "label"];  //may be able to refactor label out in the future
   var SHOW_EVEN_IF_NULL = ["user_data"];  // show this field in the form even if it doesn't exist in the data
   
-  //these keys will get special treatment for displaying their structue
-  var SPECIAL_TREATMENT = {"id": edit_id_elements,
-                           "label": edit_label_elements,
-                           "links": edit_link_elements,
-                           "attached_files": edit_file_elements}
   
   
   //main algorithm
@@ -495,7 +564,7 @@ function dynamic_edit_form(nodeData){
   
   var nodeKeys = get_keys(nodeCopy);
   
-  //if (array_contains_all(nodeKeys, REQUIRED_DATA)) { /* ok */ } else {
+  //if (array_contains_all(nodeKeys, REQUIRED_DATA)) {} else {
   //alert("Not all Required Data Elements are present in Node ID: " + nodeCopy.id + "Keys:" + nodeKeys) };
   
   for (key in SPECIAL_TREATMENT) {
@@ -511,10 +580,14 @@ function dynamic_edit_form(nodeData){
   console.log('DynData v');
   
   //in dynform.js library
-  nodeDataDom = domNodeFactory(nodeCopy, JOHA_DATA_DEF, SHOW_EVEN_IF_NULL);
-  console.log(nodeDataDom);
-  jQuery('#dn_node_data').append(nodeDataDom.domObj);
   
+  ////// Should have been refactred out I think
+  //////nodeDataDom = domNodeFactory(nodeCopy, JOHA_DATA_DEF, SHOW_EVEN_IF_NULL);
+  /////console.log(nodeDataDom);
+  alert('Dynamic Node Data');
+  var dummyDom = jQuery('<div>dummy</div>');
+  jQuery('#dn_node_data').append(dummyDom);
+*/  
 }
 
 //functions dealing with attached files
