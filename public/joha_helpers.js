@@ -9,7 +9,15 @@ function get_keys(obj){
       keys.push(key);
    }
    return keys;
-}  
+}
+
+function get_values(obj){
+  var values = [];
+  for(var key in obj){
+    values.push(obj[key]);
+  }
+  return values;
+}
 
 function array_contains(a, obj) {
   var i = a.length;
@@ -88,9 +96,10 @@ function makejQueryObj(obj) {
   }
 }
 
-function filterJohaUpdateData() {
-  var test_list =  jQuery('.edit_updated').map(function() {
-    var fieldData = {};
+function filterJohaData(jQSelector) {
+  var johaData =  jQuery(jQSelector).map(function() {
+    var filterData = {};
+    console.log('filtering Joha data');
     console.log(this.id);
     
     //filter so we only get johaData keys
@@ -103,10 +112,10 @@ function filterJohaUpdateData() {
     });
     for (i in johaKeys) {
       thisKey = johaKeys[i];
-      fieldData[thisKey] = allData[thisKey];
+      filterData[thisKey] = allData[thisKey];
     };
     
-    return fieldData;
+    return filterData;
   }).get();
-  return test_list;
+  return johaData;
 }

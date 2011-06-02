@@ -137,8 +137,7 @@ function Patterns() {
   //accessible in functions as event.data.johaCtl and event.data.johaTgt
   //Leverage jQuery's live method
   this.controlObj = function(controlElement, targetElement, eventActions, opts){
-    jlog("Called controlObj", eventActions);
-  
+      
     var jctl = makejQueryObj(controlElement);
     var jtgt = makejQueryObj(targetElement);
    
@@ -286,6 +285,28 @@ function Joha(){
         var addItemCtl = johaPats.controlObj(elHtml, target, eventActions);
         return addItemCtl[0];
       };
+      
+      //TODO: DRY this up with the above 
+      this.addLinksListItemControl = function(target, parentId, clickAction){
+      
+        var newObj = makejQueryObj(newObj);
+        var elId = parentId + "_addlinkslistitemctrl";
+        var elClass = "add_linkslistitem_control";
+        var elHtml = "<img id=\"" + elId + "\" class=\"" + elClass + "\" src=\"./images/add_record.jpg\" alt=\"-\" />"
+        
+        //johaTgt and johaCtl are available with the event.data parameter by way of controlObj
+        var eventActions = {'click': function(event){
+            jlog("addLinksListItemControl clicked, Target:", event.data.johaTgt);
+            var tgt = event.data.johaTgt;
+            //tgt.addClass('joha_add');
+            clickAction(tgt);
+            //tgt.append(newObj);
+          },
+        };
+      
+        var addItemCtl = johaPats.controlObj(elHtml, target, eventActions);
+        return addItemCtl[0];
+      };      
     
     this.staticValueElement = function(textValue, parentId){
       var elId = parentId + "_static";
@@ -344,8 +365,13 @@ function Joha(){
       //Could make editable via passing a custom function, but instead adding in the class to the html
       //var makeEditable = function(el, valData){ jQuery(el).addClass('edit') };
       //makeEditable function would be added to the functions passed to the element pattern
-      var addValData = function(el, valData){ jQuery(el).data(valData) };
-      var editValEl = johaPats.textContentObj(elHtml, textValue, valData, [addValData]);
+      
+      var empty = {}
+      var origValData = {}    
+      origValData['johaData__OriginalValue'] = textValue;
+      var newValData = jQuery.extend(empty, valData, origValData)
+      var addValDataFn = function(el, valData){ jQuery(el).data(valData) };
+      var editValEl = johaPats.textContentObj(elHtml, textValue, newValData, [addValDataFn]);
       return editValEl;
     };
     
@@ -374,16 +400,24 @@ function Joha(){
   };
   
   this.buildList = function(listItemValues, parentId, listData) {
-    jlog("buildList with", listItemValues);
     var listId = parentId + "_list";
     var listClass = "list";
     var listHtml = "<ul id=\"" + listId + "\" class=\"" + listClass + "\"></ul>"
     var listEl = jQuery(listHtml);
+    
+    var empty = {}
+    var thisListData = {}    
+    //thisListData['johaData__?'] = "?";
+    var newListData = jQuery.extend(empty, listData, thisListData)
+    
     for (i in listItemValues) {
-      li = this.buildListItem(listItemValues[i], i, listId, {} );
+      newListData['johaData__ItemIndex'] = i;
+      li = this.buildListItem(listItemValues[i], i, listId, newListData );
       listEl.append(li);
     }
     
+    
+ 
     //Set up control for adding new items to the list
     var bldr = johaSelf.buildSimpleElem;
     //create the function to execute when add control is clicked
@@ -391,19 +425,25 @@ function Joha(){
     //as a parameter to this function
     var addOnClick = function(tgt) {
       tgtChildren = listEl.children('li');
-      newListItem = johaSelf.buildListItem("?", tgtChildren.length, listId, {});
+      jlog('Children of list', tgtChildren);
+      newListItem = johaSelf.buildListItem("?", tgtChildren.length, listId, newListData);
       newListItem.children('.edit_text').addClass('joha_add');
-      tgtChildren.last().after(newListItem);
+      jlog('add click new list item', newListItem);
+      if ( tgtChildren.length > 0 ) {
+        tgtChildren.last().after(newListItem);
+      } else {
+        listEl.append(newListItem);
+      }
     }
-    var addCtl = bldr.addItemControl(listEl, listId, addOnClick)
+    var addCtl = bldr.addItemControl(listEl, listId, addOnClick);
 
     listEl.append(addCtl);  
     return listEl;
   };
 
-  this.buildKey = function(keyValue, parentId) {
+  this.buildKey = function(keyValue, parentId, elData) {
     keyId = parentId + "_key";
-    keyEl = this.buildSimpleElem.editValueElement(keyValue, keyId, {});
+    keyEl = this.buildSimpleElem.editValueElement(keyValue, keyId, elData);
     return keyEl;
   };
   
@@ -411,7 +451,7 @@ function Joha(){
     var kvliId = parentId + "_" + kIndex + "_kvitem"; 
     var kvliClass = "kvlist_item joha_edit";
     
-    var keyEl = this.buildKey(keyValue, kvliId);
+    var keyEl = this.buildKey(keyValue, kvliId, kvItemData);
     var kList = this.buildList(dataValues, kvliId, {} );
   
     var kvliHtml = "<div id=\"" + kvliId + "\"class=\"" + kvliClass + "\"></div>"
@@ -429,6 +469,7 @@ function Joha(){
     return wrKvli;
   };
   
+  
   this.buildKvlist = function(klistObj, parentId, kvListData){
     var kvlistId = parentId + "_kvlist";
     var kvlistClass = "kvlist";
@@ -438,7 +479,7 @@ function Joha(){
     
     var i = 0;
     for (key in klistObj){
-      var kvliEl = this.buildKvlistItem(key, klistObj[key], i, kvlistId, {} );
+      var kvliEl = this.buildKvlistItem(key, klistObj[key], i, kvlistId, kvListData );
       kvlistEl.append(kvliEl);
       i += 1;
     }
@@ -451,7 +492,7 @@ function Joha(){
     //as a parameter to this function
     var addOnClick = function(tgt) {
       tgtChildren = tgt.children('.kvlist_item');
-      var newKvlistItem = johaSelf.buildKvlistItem("key?", ["?"], tgtChildren.length, kvlistId, {});
+      var newKvlistItem = johaSelf.buildKvlistItem("key?", ["?"], tgtChildren.length, kvlistId, kvListData);
 
       newKvlistItem.addClass('joha_add');
       tgtChildren.last().after(newKvlistItem);
@@ -463,40 +504,134 @@ function Joha(){
    return kvlistEl;
   };
   
+  this.buildLinksListItem = function(linkURL, linkName, kIndex, parentId, linksListItemData) {
+    var linksListItemId = parentId + "_" + kIndex + "_linkitem"; 
+    var linksListItemClass = "links_list_item joha_edit";
+    
+    var dataValues = [linkName];
+    
+    //passing data down the chain
+    var empty = {}
+    var linkItemData = {} 
+    linkItemData['johaData__KeyName'] = linkURL;
+    linkItemData['johaData__dataValues'] = dataValues; 
+    var listData = jQuery.extend(empty, linksListItemData, linkItemData)
+    
+    var keyEl = this.buildKey(linkURL, linksListItemId, listData);
+  
+    var linksList = this.buildList(dataValues, linksListItemId, listData );
+  
+    var linksListHtml = "<div id=\"" + linksListItemId + "\"class=\"" + linksListItemClass + "\"></div>"
+    var wrLinksListItem = jQuery(linksListHtml);
+    
+    var linksListDelCtrl = this.buildSimpleElem.deleteKeyControl(wrLinksListItem, linksListItemId);
+    
+    wrLinksListItem.append(linksListDelCtrl);
+    wrLinksListItem.append(keyEl);
+    wrLinksListItem.append(linksList);
+    
+    wrLinksListItem.data(listData);
+    
+
+     
+    //Temp
+    wrLinksListItem.append(jQuery("<div />").addClass('clearfix'));
+    
+    return wrLinksListItem;
+  };  
+
+  this.buildLinksList = function(linksListObj, parentId, linksListData){
+    //var linksFieldValueContainer = this.buildFieldValueElem("", linksListData);
+    var empty = {};
+    var customData = {}
+    customData['johaData__Type'] = 'link_ops';  //links is just made up right here
+    customData['johaData__NodeId'] = jQuery("#current_node_id").text();
+    customData['johaData__FieldIndex'] = 'links';
+    
+    var linkFieldName = "Links";
+    customData['johaData__FieldName'] = linkFieldName;
+    
+    var linksListData = jQuery.extend(empty, customData, linksListData)
+    
+    var linksListId = parentId + "_links_list";
+    var linksListClass = "links_list";
+    
+    var linksListHtml = "<div id=\"" + linksListId + "\"class=\"" + linksListClass + "\"></div>"
+    var linksListEl = jQuery(linksListHtml);
+    var linkFieldNameEl = this.buildFieldNameElem(linkFieldName);
+    linksListEl.append(linkFieldNameEl);
+    
+    var linksFieldValueContainer = this.buildFieldValueElem("", linksListData);
+    var i = 0;
+    for (key in linksListObj){
+      var linksListItemEl = this.buildLinksListItem(key, linksListObj[key], i, linksListId, linksListData );
+      linksFieldValueContainer.append(linksListItemEl);
+      i += 1;
+    }
+  
+    //Set up control for adding new Link Lists
+    var bldr = johaSelf.buildSimpleElem;
+    //create the function to execute when add control is clicked
+    //Note that the target (first paramenter of addItemControl) is passed
+    //as a parameter to this function
+    var addOnClick = function(tgt) {
+      tgtChildren = tgt.children('.links_list_item');
+      var newLinksListItem = johaSelf.buildLinksListItem("URL?", ["?"], tgtChildren.length, linksListId, linksListData);
+      newLinksListItem.addClass('joha_add');
+      newLinksListItem.data(linksListData);  //A bit of a hack to get data into the container
+      tgtChildren.last().after(newLinksListItem);
+    }
+    var addCtl = bldr.addLinksListItemControl(linksFieldValueContainer, linksListId, addOnClick)
+    linksFieldValueContainer.append(addCtl);
+  
+    linksListEl.append(linksFieldValueContainer);  
+    //linksFieldValueContainer.append(linksListEl);
+   return linksListEl;
+  };
+  
   this.buildFieldValueElem = function(fieldValues, customData) {
   
     var dataType = customData['johaData__Type'];
     var nodeId = customData['johaData__NodeId'];
     var fieldIndex = customData['johaData__FieldIndex'];
+    
     var johaId = nodeId + "_" + fieldIndex;
     
     var fieldValueContainer = jQuery('<div />', {
       'class': "joha_field_value_container",
+      'id': johaId + '_valuecontainer',
     });
-    fieldValueContainer.append(jQuery('<div> dummy field values </div>'));
-    jlog('Data Type', dataType);
+    //fieldValueContainer.append(jQuery('<div> dummy field values </div>'));
     //return fieldValueContainer
 
+    var domObj = null;
     if (dataType == "static_ops") {
       // figure out how to display static data 
       alert('static_ops not implemented yet');
     } else if (dataType == "replace_ops") {
       domObj = this.buildSimpleElem.editValueElement(fieldValues, johaId, customData);
-      jlog('replace ops domObj', domObj );
       //jlog('Node Label', jQuery('#joha-edit-label--').data() )
     } else if (dataType == "list_ops") {
       //domObj = new BuildListDom( fieldData, johaId);
       domObj = this.buildList(fieldValues, johaId, customData);
       //domObj = new BuildListDom(fieldData, johaId, johaBuilder, nodeId)
-      jlog("list ops domObj",domObj);
     } else if (dataType == "key_list_ops") {
+      //Not Tested!!
+      domObj = this.buildKvlist(fieldValues, johaId, customData);
       //domObj = new BuildKvlistDom( fieldData, johaId );
-    }
-    if (domObj == null) {
-      return "" ;
     } else {
-    return domObj;
+      //returns empty container if we don't know how to build the container
+      //the caller should then build the underlying container (i.e. Links List)
+      domObj = jQuery("");
+
     }
+    
+    var retData = domObj.data();
+    //add container level data
+    var empty = {};
+    var containerData = jQuery.extend(empty, customData, retData);
+    fieldValueContainer.data(containerData);
+    return fieldValueContainer.append(domObj);
   };
   
   this.buildFieldNameElem = function(fieldName){
@@ -613,7 +748,7 @@ var johaPats = new function() {
   };
    
 };
-
+/*
 var JohaSimpleBldr = function() {
 
   //Locally scoped
@@ -838,9 +973,10 @@ var JohaValueContainerDom = function(valData, valIndex, keyIndex, keyName, field
   valueContainerParent = valueContainerParent.append(deleteControls);
   this.domObj = valueContainerParent;
 }
-
+*/
 /* Augment function. from: http://chamnapchhorn.blogspot.com/2009/05/javascript-mixins.html */
 /* Used for mixing together two classes ... not used yet */
+/*
 function augment(receivingClass, givingClass) {
    for(methodName in givingClass.prototype) {
       if(!receivingClass.prototype[methodName]) {
@@ -848,7 +984,7 @@ function augment(receivingClass, givingClass) {
       }
    }
 }
-
+*/
 /* REMOVE 
 function BuildNodeEditDom(baseId, nodeId, appendDoms) {
   this.div_id = baseId;
@@ -865,7 +1001,7 @@ function BuildNodeEditDom(baseId, nodeId, appendDoms) {
   this.domObj = domTemp;
 }
 */
-
+/*
 function BuildNodeFieldContainer(containerObj, fieldNameObj, fieldObj){
   containerObj.append(fieldNameObj);
   containerObj.append(fieldObj);
@@ -964,11 +1100,12 @@ function BuildListDom(fieldData, baseId, johaBuilder, nodeId) {
   fieldContainer.append(listContainer);
 */  
   //var currentDomObj = this.parentDom.append(fieldContainer);
-  
+/*  
   this.domObj = listDomObj;
   
 }
-
+*/
+/*
 function BuildKvlistDom(fieldData, baseId){
   this.parentDom = jQuery("<div />", {
     id: baseId + "_kvlist",
@@ -1062,12 +1199,10 @@ function BuildKvlistDom(fieldData, baseId){
   this.domObj = currentDomObj;
   
 }
-
+*/
 //fix the parameters
 function domFieldFactory(dataType, fieldData, johaId, johaBuilder, nodeId, fieldIndex){
 
-
-  //change to be non-destructive
   var customData = {  "johaData__Type": dataType,
                       "johaData__NodeId": nodeId,
                       "johaData__FieldIndex": fieldIndex,
@@ -1077,33 +1212,9 @@ function domFieldFactory(dataType, fieldData, johaId, johaBuilder, nodeId, field
   
   
   return domObj;
-  /*
-  if (dataType == "static_ops") {
-    /* figure out how to display static data *//*
-  } else if (dataType == "replace_ops") {
-    //domObj = new BuildReplaceDom( fieldData, johaId);
-    //domObj = johaBuilder.buildSimpleElem.editValueElement(fieldData, johaId, customData);
-    //jlog('domObj', domObj );
-    //jlog('Node Label', jQuery('#joha-edit-label--').data() )
-  } else if (dataType == "list_ops") {
-    //domObj = new BuildListDom( fieldData, johaId);
-    
-    domObj = new BuildListDom(fieldData, johaId, johaBuilder, nodeId)
-    jlog("dobule domObj",domObj.domObj);
-  } else if (dataType == "key_list_ops") {
-    //domObj = new BuildKvlistDom( fieldData, johaId );
-  }
-  if (domObj == null) {
-    return "" ;
-  } else {
-  return domObj;
-  }
-  */
 }
 
 function domNodeFactory(nodeData, specialTreatment, dataDef, reqDataToShow){
-
-
 
   //TODO, refactor to be passed in
   JOHA_ID = "joha_node";
@@ -1136,7 +1247,6 @@ function domNodeFactory(nodeData, specialTreatment, dataDef, reqDataToShow){
       var fieldData = {};
       fieldData[key] = nodeCopy[key];
       var fieldDom = domFieldFactory(dataDef[key], fieldData, JOHA_ID, johaBuilder, nodeId, fieldIndex)
-      jlog("A field Dom", fieldDom);
       //domStack.push( domFieldFactory(dataDef[key], fieldData, JOHA_ID, johaBuilder, nodeId) );
       domStack.push(fieldDom);
       delete nodeCopy[key];

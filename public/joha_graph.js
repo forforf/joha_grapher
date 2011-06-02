@@ -15,7 +15,7 @@ $(document).ready(function() {
   //New DynForm Tests
   
 
-  var bldr = new JohaSimpleBldr;
+  //var bldr = new JohaSimpleBldr;
 
   /*
   var myTest = {
@@ -29,9 +29,11 @@ $(document).ready(function() {
   var myEvAction = CompBldr.eventActions(myTest.ev, myTest.action);
   */
   //dc = jQuery("<p id=\"oof\">Del Ctl</p>");
+  //
+  /*
   dt = jQuery("<p id=\"footyfoo\">Del Me</p>");
   jQuery('body').prepend(dt);
-  
+  */
   
   //this works (not anymore)
   //var myCtlObj = ElemBldr.controlObj('#node_id_tracker', '#main-header-text', myEvAction);
@@ -47,9 +49,9 @@ $(document).ready(function() {
   //jQuery('body').prepend(jQuery(myEditTxt));
   
   //var myListBldr = new JohaListBldr;
-  var myjoha = new Joha;
-  var bldr = myjoha.buildSimpleElem;
-  var mytestTxt = bldr.editValueElement("TEST Text", "fddeefee", {foo: "bar"});
+  //var myjoha = new Joha;
+  //var bldr = myjoha.buildSimpleElem;
+  //var mytestTxt = bldr.editValueElement("TEST Text", "fddeefee", {foo: "bar"});
   //var myListBldr = myjoha.buildListItem;
   //var myListItem = myjoha.buildListItem("List Item", "feefeelist", {foolist: "barlist"} );
   //var myListItem2 = myjoha.buildListItem("List Item2", "feefeelist2", {foolist2: "barlist2"} );
@@ -57,22 +59,22 @@ $(document).ready(function() {
   //var myListItem = JohaListBldr().listItem("List Item", "feefeelist", {foolist: "barlist"} );
   //console.log(mytestTxt.data());
   
-  var myList = myjoha.buildList(["item1", "item2"], "fee", {} );
+  //var myList = myjoha.buildList(["item1", "item2"], "fee", {} );
 
-  jQuery('body').prepend(jQuery(myList));
+  //jQuery('body').prepend(jQuery(myList));
   //jQuery('body').prepend(jQuery(myListItem));
   //jQuery('body').prepend(jQuery(myListItem2));
   
   //var myKvlist = myjoha.buildKvlistItem("MyKey0", ["a", "b"],0,"feede", {} );
   //jQuery('body').prepend(jQuery(myKvlist));
   
-  var myKvlistObj = {"http:\\blah":["blah"],
-                     foo: ["bar","baz"],
-                     foofoo: ["barbar", "bazbaz"]
-                    };
-  var myKvlistEl = myjoha.buildKvlist(myKvlistObj, "kvl", {foo: "bar"});
+  //var myKvlistObj = {"http:\\blah":["blah"],
+  //                   foo: ["bar","baz"],
+  //                   foofoo: ["barbar", "bazbaz"]
+  //                  };
+  //var myKvlistEl = myjoha.buildKvlist(myKvlistObj, "kvl", {foo: "bar"});
   //console.log(myKvlistEl);
-  jQuery('body').prepend(jQuery(myKvlistEl));
+  //jQuery('body').prepend(jQuery(myKvlistEl));
 
 });
 
@@ -91,29 +93,24 @@ function syncJax(srcUrl) {
 }
 
 //-- Set up listeners (onclick, etc)
+
 function set_up_onClicks() {
+
+
+
   //Set up editing in place (JQuery plugin Jeditable)
   //-- wrap it in .live so that future elements can use it
-  jQuery('.edit').live('click', function(event) {
-    //////var keyEl = false
+
+  //changed 'click' to 'hover' so single click editing works
+  jQuery('.edit').live('hover', function(event) {
+
     event.preventDefault();
-    // (this) is the element be edited
-    var origValue = jQuery(event.currentTarget).text();
-    console.log(origValue);
-    
+
     jlog("click event", event);
-    //////if (jQuery(event.currentTarget).is('.add_new_key') ) {
-    //////  alert("OMG< .add_new_key was Set!!!");
-    //////  keyEl = true;
-    //////}
 
-    //call the update_form_data function when an item is edited in place
-
-    jQuery('.edit').editable( function(value, settings){
-      ////// var isKeyValue = jQuery(this).is('.add_new_key');
-      ///// removed isKeyValue as paramater
-      ////// console.log(jEl.innerHTML);
-      var retVal = updateJeditElement(this, value, settings, origValue);
+    //call the updateJeditElement function when an item is edited in place
+    jQuery(this).editable( function(value, settings){
+      var retVal = updateJeditElement(this, value, settings);
       console.log(retVal);
       return retVal
       }, {
@@ -125,20 +122,35 @@ function set_up_onClicks() {
   //Collect updated data when user selects to save the node data
   jQuery('#save_node_data').live('click', function(event) {
     var all_edits = {};
+    fieldValueData = jQuery('.joha_field_value_container').map(function(){ return jQuery(this).data();}).get();
+    jlog('all field value containers data', fieldValueData);
 
-    var edit_updates = jQuery('.joha_update_jg');
-    all_edits['updates'] = filterJohaUpdateData();
+    var joha_updates = jQuery('.joha_update');
+    
+    all_edits['updates'] = filterJohaData('.joha_update');
+    all_edits['adds']= filterJohaData('.joha_add');
+    all_edits['deletes'] = filterJohaData('.joha_delete');
+    
     jlog("Save Clicked", all_edits);
     //revert data to default (by acting like the node is clicked)
     jlog("Save Clicked", "TODO: Revert updated data to unchanged after node is saved");
 
-    
-    var edit_adds = jQuery('.joha_add_jg');
-    all_edits['adds'] = filterJohaUpdateData();
-    jlog('edit adds dom', edit_adds);
-    jlog('filtered edits', all_edits);
+   
   });
- 
+
+
+  //Collect updated data when user selects to save the node data
+  jQuery('#clear_node_edits').live('click', function(event) {
+    //clear the edit classes then reset the node
+    var editClasses = ['joha_add', 'joha_delete', 'joha_update'];
+    for (i in editClasses){
+      var editClass = editClasses[i];
+      jQuery('.'+editClass).removeClass(editClass);
+    }
+    //reset node 
+    var nodeId = jQuery('#current_node_id').text();
+    actLikeNodeClicked(nodeId);
+  });  
  
   //listen for clicks on delete buttons
   jQuery('.delete_controls').live('click', function(event) {
@@ -149,19 +161,14 @@ function set_up_onClicks() {
     jlog('delete clicked', delData );
     toggleDelete(delData.johaData__deleteContainerId);
   });
-/*  
-  //listen for clicks to create new data values
-  jQuery('.add_new_value').live('click', function(event) {
-    addNewValData = jQuery(this).data();
-    jlog('Add New Value Clicked', addNewValData);
+
+  jQuery('#create_node').live('click', function(event) {
+    nodeId = jQuery('#create_node_id').val();
+    nodeLabel = jQuery('#create_node_label').val();
+    nodeParents = jQuery('#create_node_parents').val();
+    var initialNodeData = {id: nodeId, label: nodeLabel, parents: nodeParents};
+    console.log(initialNodeData);
   });
-  
-  //listen for clicks to create new data keys
-  jQuery('.add_new_key').live('click', function(event) {
-    addNewKeyData = jQuery(this).data();
-    jlog('Add New Key Clicked', addNewKeyData);
-  });
-*/
 }
 
 function initializeGraph(){
@@ -341,14 +348,14 @@ function add_new_element(el, value) {
 *///////
 
 //-- handle updating data
-function updateJeditElement(el, value, settings, origValue){
+function updateJeditElement(el, value, settings){
 
   //is Jeditable overkill with this approach?
    
   //////console.log(el.innerHTML );   
   thisEl = jQuery(el);
   //////var elId = thisEl.attr('id');
-  console.log(origValue);
+  //console.log(origValue);
 
   /*//////if ( thisEl.is('.joha_add_jg')) {
     if ( isKey ) {
@@ -359,7 +366,7 @@ function updateJeditElement(el, value, settings, origValue){
   } else { //data value edit
   *//////
   thisEl.data("johaData__UpdatedValue", value);
-  thisEl.data("johaData__OriginalValue", origValue);
+  //thisEl.data("johaData__OriginalValue", origValue);
   thisEl.addClass('joha_update');
   //////}
  
@@ -464,11 +471,15 @@ var johaSpecialFunctions = {
 
   edit_link_elements: function(links){
       //TODO Refactor to eliminate the need to figure out element id just so we can delete it
-      var baseId = "joha_node_links";
-      var elId = baseId + "_kvlist";
+      var baseId = "joha_node";
+      var elId = baseId + "_links";
       jQuery(elId).remove();
+      var myJoha = new Joha;
+      
+      var customData = {};
+      var myLinksEl = myJoha.buildLinksList(links, elId, customData)
       //var link_elements_format = new BuildKvlistDom({"links": links}, baseId);
-      //jQuery('#dn_link_data').append(link_elements_format.domObj);
+      jQuery('#dn_link_data').append(myLinksEl);
     //simpler code, but best behavior to make sure selecting node multiple times creates multiple data?
 //    jQuery('#joha-edit-links').remove();
 //    link_elements_format(links, "joha-edit-links", jQuery('#dn_link_data') );
@@ -486,11 +497,49 @@ var johaConfig = {
   },
 }
 
+var johaNodeData = {};
 
+//indexes id with label data and iterate through children
+function indexData(treeData, indexedSet){
+  //indexedSet is an associative array, watch out for key dupes
+  var currentIndexedSet = indexedSet || {};
+  currentIndexedSet[treeData.name] = treeData.id;
+  var children = treeData.children;
+  if (children && children.length > 0) {
+    for (var i in children) {
+      child = children[i];
+      indexData(child, currentIndexedSet);
+    }
+  }
+  return currentIndexedSet;
+}
+
+function setFinder() {
+		var nodes = johaNodeData;
+    var names = get_keys(nodes);
+    jlog('Node Names', names);
+		jQuery( "#node-finder-textbox" ).autocomplete({
+			source: names
+		});
+    jQuery( "#node-finder-textbox" ).bind( "autocompleteselect", function(event, ui) {
+      foundNodeName = ui.item.value;
+      foundNodeId = nodes[foundNodeName];
+      actLikeNodeClicked(foundNodeId);
+    });
+};
+
+function johaIndex(graphData){
+  johaNodeData = indexData(graphData);
+  setFinder();
+  return johaNodeData;
+}
 
 function dynamicEditForm(nodeData){
 
   jQuery('.joha_edit').removeClass('joha_update joha_add joha_delete');
+  
+  //reset the label field
+  jQuery('#joha-edit-label--').text("** Empty Node **");
 
   //create a clone of the node data because we are going to be changing it
   //but only for display reasons
@@ -504,21 +553,13 @@ function dynamicEditForm(nodeData){
   
   var specialTreatment = johaConfig.specialTreatmentFields;
   
-  //Move into domNodeFactory
-  //for (key in specialTreatment) {
-  //  if (nodeCopy[key]){
-  //    specialTreatment[key](nodeCopy[key]);
-  //    //delete nodeCopy[key];  // we've handled it so let's not worry about it anymore
-  //  }
-  //  delete nodeCopy[key];  //moved here to avoid the issue where node[key] = null; messing up stuff later.
-  //}
-  
+  //TODO: pass the Dom locations as a parameter in the special functions rather than
+  //having it hard coded in the function.
   jQuery('#dn_node_data').empty();
   jQuery('#dn_link_data').empty();
   jQuery('#dn_file_data').empty();
   
   var SHOW_EVEN_IF_NULL = [];//["user_data"];  // show this field in the form even if it doesn't exist in the data
-  jlog('nodeCopy', nodeCopy);
   var someObj = domNodeFactory(nodeCopy, specialTreatment, JOHA_DATA_DEF, SHOW_EVEN_IF_NULL);
   jQuery('#dn_node_data').append(someObj);
   jlog('domObj', someObj);
@@ -526,68 +567,7 @@ function dynamicEditForm(nodeData){
   
   //in dynform.js library
   
-  ////// Should have been refactred out I think
-  //////nodeDataDom = domNodeFactory(nodeCopy, JOHA_DATA_DEF, SHOW_EVEN_IF_NULL);
   
-  
-/*
-  
-  //-- Other data keys can fall into some generic categories for display functions
-  //-- Static Needs TESTING
-  var edit_static_elements = function(staticVar){
-    alert("Static Var: " + staticVar.key + " handled statically");
-  }
-
-  
-  //-- We may have node data that has no defined treatment
-  //-- in this approach we still allow editing of that data, but because
-  //-- we don't know the structure, we defer to the user to make sure it's
-  //-- the data form is correct (i.e. braces for maps, brackets for arrays, quotes for embedded strings, etc)
-  var edit_no_data_def = console.log("No Data Def for some data field");
-  
-  //these keys are required to be present in the node data
-  var REQUIRED_DATA = ["id", "label"];  //may be able to refactor label out in the future
-  var SHOW_EVEN_IF_NULL = ["user_data"];  // show this field in the form even if it doesn't exist in the data
-  
-  
-  
-  //main algorithm
-  //-- remove any existing data in the dynamic divs
-  jQuery('#dn_node_data').empty();
-  jQuery('#dn_link_data').empty();
-  jQuery('#dn_file_data').empty();
-  //-- create a clone of the node data because we are going to be changing it
-  //-- but only for display reasons
-  var nodeCopy = jQuery.extend({}, nodeData);
-  console.log('Node Copy before Special Treatment v');
-  console.log(nodeCopy);
-  
-  var nodeKeys = get_keys(nodeCopy);
-  
-  //if (array_contains_all(nodeKeys, REQUIRED_DATA)) {} else {
-  //alert("Not all Required Data Elements are present in Node ID: " + nodeCopy.id + "Keys:" + nodeKeys) };
-  
-  for (key in SPECIAL_TREATMENT) {
-    if (nodeCopy[key]){
-      SPECIAL_TREATMENT[key](nodeCopy[key]);
-      //delete nodeCopy[key];  // we've handled it so let's not worry about it anymore
-    }
-    delete nodeCopy[key];  //moved here to avoid the issue where node[key] = null; messing up stuff later.
-  }
-  console.log('After special treatment v');
-  console.log(nodeCopy);
-  
-  console.log('DynData v');
-  
-  //in dynform.js library
-  
-  ////// Should have been refactred out I think
-  //////nodeDataDom = domNodeFactory(nodeCopy, JOHA_DATA_DEF, SHOW_EVEN_IF_NULL);
-  /////console.log(nodeDataDom);
-  alert('Dynamic Node Data');
-  var dummyDom = jQuery('<div>dummy</div>');
-  jQuery('#dn_node_data').append(dummyDom);
-*/  
 }
 
 //functions dealing with attached files
@@ -601,6 +581,7 @@ function insertNodesIntoGraph(aGraph, nodeLoc){
 
   jQuery.get(nodeLoc,
     function(graph_data) {
+      jlog('indexed data', johaIndex(graph_data));
       aGraph.loadJSON(graph_data);
       aGraph.refresh();
       myGraph = aGraph; //remember this is Asynchonous.  This won't be set right away.
