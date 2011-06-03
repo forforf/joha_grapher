@@ -11,70 +11,6 @@ $(document).ready(function() {
 
   initializeGraph();
   set_up_onClicks();
-  
-  //New DynForm Tests
-  
-
-  //var bldr = new JohaSimpleBldr;
-
-  /*
-  var myTest = {
-    ev: 'click',
-    action: function(event) {
-      jlog("Target", event.data.johaTgt);
-      event.data.johaTgt.css("color","red");
-    },
-  };
-  
-  var myEvAction = CompBldr.eventActions(myTest.ev, myTest.action);
-  */
-  //dc = jQuery("<p id=\"oof\">Del Ctl</p>");
-  //
-  /*
-  dt = jQuery("<p id=\"footyfoo\">Del Me</p>");
-  jQuery('body').prepend(dt);
-  */
-  
-  //this works (not anymore)
-  //var myCtlObj = ElemBldr.controlObj('#node_id_tracker', '#main-header-text', myEvAction);
-  //this works too
-  //var myCtl = bldr.deleteControl(dt, "footyfoo");
-  //jQuery('body').prepend(jQuery(myCtl));
-  //this works too
-  //johaPats.editInPlaceControl(dc);
-  //johaPats.editInPlaceControl(dt);
-  //this works too
-  //var myEditTxt = bldr.editValueElement("Click to Edit Text", "feefee", {foo: "bar"});
-  //console.log(jQuery(myEditTxt).data());
-  //jQuery('body').prepend(jQuery(myEditTxt));
-  
-  //var myListBldr = new JohaListBldr;
-  //var myjoha = new Joha;
-  //var bldr = myjoha.buildSimpleElem;
-  //var mytestTxt = bldr.editValueElement("TEST Text", "fddeefee", {foo: "bar"});
-  //var myListBldr = myjoha.buildListItem;
-  //var myListItem = myjoha.buildListItem("List Item", "feefeelist", {foolist: "barlist"} );
-  //var myListItem2 = myjoha.buildListItem("List Item2", "feefeelist2", {foolist2: "barlist2"} );
-  //var myListItem = myListBldr.listItemObj("List Item", "feefeelist", {foolist: "barlist"} );
-  //var myListItem = JohaListBldr().listItem("List Item", "feefeelist", {foolist: "barlist"} );
-  //console.log(mytestTxt.data());
-  
-  //var myList = myjoha.buildList(["item1", "item2"], "fee", {} );
-
-  //jQuery('body').prepend(jQuery(myList));
-  //jQuery('body').prepend(jQuery(myListItem));
-  //jQuery('body').prepend(jQuery(myListItem2));
-  
-  //var myKvlist = myjoha.buildKvlistItem("MyKey0", ["a", "b"],0,"feede", {} );
-  //jQuery('body').prepend(jQuery(myKvlist));
-  
-  //var myKvlistObj = {"http:\\blah":["blah"],
-  //                   foo: ["bar","baz"],
-  //                   foofoo: ["barbar", "bazbaz"]
-  //                  };
-  //var myKvlistEl = myjoha.buildKvlist(myKvlistObj, "kvl", {foo: "bar"});
-  //console.log(myKvlistEl);
-  //jQuery('body').prepend(jQuery(myKvlistEl));
 
 });
 
@@ -125,13 +61,38 @@ function set_up_onClicks() {
     fieldValueData = jQuery('.joha_field_value_container').map(function(){ return jQuery(this).data();}).get();
     jlog('all field value containers data', fieldValueData);
 
-    var joha_updates = jQuery('.joha_update');
+    
+    //This is fairly elegant (but belongs somewhere else to be called by here)
+    //Reduce the user operations of add, update and delete to what makes sense
+    //any adds and deletes together result in NOOP (add something only to delete it?)
+    //update and delete is a delete
+    //add and update is add (with updated info)
+    
+    //This probably breaks kvlists (but not links)
+    //consider using a pseudo delete class to keep delete styling in case something
+    //breaks between this event and the node resetting
+    
+    noop = jQuery('.joha_add.joha_delete');
+    noop.removeClass('joha_add joha_delete joha_update');
+    
+    
+    //addUpdate = jQuery('.joha_add.joha_update');
+    //addUpdate.removeClass('joha_update');
+    //jlog('add w/ update', addUpdate);
+    
+    //updateDelete = jQuery('.joha_update.joha_delete');
+    //updateDelete.removeClass('joha_update')
+    //Done with filtering operations by updating classes ^^
     
     all_edits['updates'] = filterJohaData('.joha_update');
     all_edits['adds']= filterJohaData('.joha_add');
     all_edits['deletes'] = filterJohaData('.joha_delete');
     
+    var currentNodeId = jQuery('#current_node_id').text();
+    saveObj = johaSaveDataFix(currentNodeId, all_edits);
+    
     jlog("Save Clicked", all_edits);
+    jlog("Save Obj", saveObj);
     //revert data to default (by acting like the node is clicked)
     jlog("Save Clicked", "TODO: Revert updated data to unchanged after node is saved");
 
@@ -213,172 +174,18 @@ function toggleDelete(elId) {
   }
 }
 
-//Dynamic element creation based on data structure
-//-- get current node
-//TODO: Refactor to use this method?
-//function get_current_node() {
-//  alert("called get current node");
-//  return jQuery('#current_node_id').text();
-//}
-
-//////function add_new_key_element(el, value) {
-
-    //Todo: Fix dynform so that the baseID isn't hidden
-//////    var baseId = 'joha_node';
-/* ////// 
-    var elemToUpdate = thisEl.parent();
-
-    //TODO: This is very brittle as it relies on the dom structure staying constant
-    var prevElem = jQuery(el).prev('.value_outer').children('.value_field');
-    jlog('El Previous Sibling', prevElem);
-    var elemData = {};
-    if (prevElem.length != 0) {
-      elemData = prevElem.data();
-    } else {
-      elemData['johaData__ListIndex'] = -1;  //will be incremented to 0
-      //TODO: More ugliness to fix
-      thisLabel = thisEl.closest('.field_container').children('.field_label').first()
-      elemData['johaData__Type'] = thisLabel.data('johaData__Type');
-      elemData['johaData__FieldName'] = thisLabel.data('johaData__FieldName');
-      
-      //Need to fix so that works with Keys :(
-      elemData['johaData__Key'] = "";
-      elemData['johaData__KeyIndex'] = "";
-    
-    }
-    //jlog('El Previous Sibling Value', lastValueElem.text() );
- *////// /   
- /*//////   var keyIndex = jQuery('.key_field').length;
-    var thisLabel = thisEl.closest('.field_container').children('.field_label').first()
-    var fieldName = thisLabel.data('johaData__FieldName');
-    var newElem = {};
-    //newElem.value = value;
-    newElem.keyName = value; //elemData['johaData__Key'];
-    newElem.keyIndex = keyIndex ;//elemData['johaData__KeyIndex'];
-    //newElem.index = parseInt(elemData['johaData__ListIndex']) + 1;
-    
-    //TODO Derive this rather than hardcoding it
-    newElem.dataType = "key_list_ops"; //elemData['johaData__Type'];
-    newElem.fieldName = fieldName; //elemData['johaData__FieldName'];
-    
-
-    jlog('New Key Elem Data', newElem  );
-    //create new element
-    //var bindData = { 'johaData__Type': newElem.dataType,
-    //                 'johaData__ListIndex': newElem.index,
-    //               };
-    var johaBuilder = new JohaElems();
-    var addKey = johaBuilder.keyContainer(value, keyIndex, fieldName, baseId);
-    addKey.addClass('joha_add_jg');
-    //= new JohaValueContainerDom(value, newElem.index, newElem.keyIndex, newElem.keyName, newElem.fieldName, baseId, bindData);
-    //addNewVal.valueElem.data('johaData__NewValue', value);
-    //addNewVal.valueElem.addClass('joha_add_jg');
-    //var addNewValDom = addNewVal.domObj
-    
-    var kvListItem = johaBuilder.kvListItem(fieldName, baseId);
-    
-    thisKvlist = jQuery(thisEl).closest('.kvlist_container');
-    thisKvlist.append(addKey);
-    thisKvlist.append(kvListItem);
-    
-    //var addNewKey = johaBuilder.addNewKey(fieldName);
-    
-    var listContainer = johaBuilder.listContainer(fieldName, baseId);
-    //jlog('Where is the DIV', jQuery().closest('.kvlist_container'));
-    kvListItem.append(listContainer);
-    
-    kvListItem.append(thisEl);
-
-    var addNewValue = johaBuilder.addNewValue(fieldName, "");
-    listContainer.append(addNewValue);
-}
-*/ ///////
-/*//////
-function add_new_element(el, value) {
-
-    //Todo: Fix dynform so that the baseID isn't hidden
-    var baseId = 'joha_node';
-  
-    var elemToUpdate = thisEl.parent();
-
-    //TODO: This is very brittle as it relies on the dom structure staying constant
-    var prevElem = jQuery(el).prev('.value_outer').children('.value_field');
-    jlog('El Previous Sibling', prevElem);
-    var elemData = {};
-    if (prevElem.length != 0) {
-      elemData = prevElem.data();
-    } else {
-      elemData['johaData__ListIndex'] = -1;  //will be incremented to 0
-      //TODO: More ugliness to fix
-      var thisLabel = thisEl.closest('.field_container').children('.field_label').first()
-      elemData['johaData__Type'] = thisLabel.data('johaData__Type');
-      elemData['johaData__FieldName'] = thisLabel.data('johaData__FieldName');
-      
-      //Need to fix so that works with Keys :(
-      elemData['johaData__Key'] = "";
-      elemData['johaData__KeyIndex'] = "";
-    
-    }
-    //jlog('El Previous Sibling Value', lastValueElem.text() );
-    
-    var newElem = {}
-    newElem.value = value;
-    newElem.keyName = elemData['johaData__Key'];
-    newElem.keyIndex = elemData['johaData__KeyIndex'];
-    newElem.index = parseInt(elemData['johaData__ListIndex']) + 1;
-    newElem.dataType = elemData['johaData__Type'];
-    newElem.fieldName = elemData['johaData__FieldName'];
-    
-
-    jlog('New Elem Data', newElem  );
-    //create new element
-    var bindData = { 'johaData__Type': newElem.dataType,
-                     'johaData__ListIndex': newElem.index,
-                   };
-                   
-    var addNewVal = new JohaValueContainerDom(value, newElem.index, newElem.keyIndex, newElem.keyName, newElem.fieldName, baseId, bindData);
-    addNewVal.valueElem.data('johaData__NewValue', value);
-    addNewVal.valueElem.addClass('joha_add_jg');
-    var addNewValDom = addNewVal.domObj
-
-    
-    
-    thisEl.before(addNewValDom);
-}
-*///////
 
 //-- handle updating data
 function updateJeditElement(el, value, settings){
 
-  //is Jeditable overkill with this approach?
-   
-  //////console.log(el.innerHTML );   
   thisEl = jQuery(el);
-  //////var elId = thisEl.attr('id');
-  //console.log(origValue);
 
-  /*//////if ( thisEl.is('.joha_add_jg')) {
-    if ( isKey ) {
-      add_new_key_element(el, value);
-    } else {
-      add_new_element(el, value);
-    }
-  } else { //data value edit
-  *//////
   thisEl.data("johaData__UpdatedValue", value);
-  //thisEl.data("johaData__OriginalValue", origValue);
+
   thisEl.addClass('joha_update');
-  //////}
- 
  
   return value;
 }
-
-
-//////function add_new_format(parentContainer, value) {
-  //make value container
-  //insert in before ?
-//////}
 
 
 
@@ -398,49 +205,6 @@ var file_elements_format = function(filenames, divIdBase, el){
   }
 }
 
-// Note that the mapping of the keys to an index value could be quite brittle
-// It requires the consumer of the #id to have exactly the same data
-// A better approach would be to use a map to convert the iterator back into the proper
-// key (where to put this?)
-
-/*
-var link_elements_format = function(links, divIdBase, el){
-  var linkHtml = "";
-  var urlKeys = get_keys(links);
-  if (urlKeys) {
-    /* ok */
-/*
-  } else {
-    alert("Cant find URL Keys");
-  }     
-  for (url in links){
-    var indivLabels = links[url];
-    var urlIndex = obj_key_position(links, url);
-    if (urlIndex >= 0) {
-      if (indivLabels instanceof Array){
-        /* ok */
-/*        
-        } else {
-        indivLabels = [indivLabels]; //make array
-      }
-      for (i in indivLabels){ 
-       console.log(divIdBase);
-       var divIdLabel = divIdBase + "-" + urlIndex + "-" + i;
-       linkHtml += "<a id=\"" + divIdLabel + "\" href=\"" + url + "\">" + indivLabels[i] + "</a></br>"
-       //make bigger html
-      }
-    } else {
-      alert("Cant find url in array of links keys");
-    }
-  }
-  
-  //Build Dom Element
-  jQuery("<div />", {
-    "id": divIdBase,
-    html: linkHtml
-  }).appendTo(el);
-}
-*/
 
 //move out of Global space at some point
 var johaSpecialFunctions = {
@@ -497,6 +261,7 @@ var johaConfig = {
   },
 }
 
+// -- Autocomplete helpers
 var johaNodeData = {};
 
 //indexes id with label data and iterate through children
@@ -532,6 +297,163 @@ function johaIndex(graphData){
   johaNodeData = indexData(graphData);
   setFinder();
   return johaNodeData;
+}
+
+function figureOutDataOps(rawData, opType, op) {
+  //server operations:
+  // for values: add, subtract, replace
+  // for keys: subtact_key, add_key
+  
+  //raw Data keys
+  //johaData__KeyName  
+  //johaData__dataValues
+  // or
+  //johaData__OriginalValue
+  //johaData__UpdatedValue
+  // also indexes are available
+  
+  var srvrCmdMap = {
+    'updates': 'replace',
+    'adds': 'add',
+    'deletes': 'subtract',
+  }
+  
+  var srvrCmd = srvrCmdMap[op];
+  
+  //is it a key or value item
+  var keyOps = ['kvlist_ops', 'link_ops'];
+  var serverSubCommand = {};
+  
+  var origVal = rawData["johaData__OriginalValue"];
+  var keyName = rawData["johaData__KeyName"];
+  var newVal = rawData["johaData__UpdatedValue"];
+  var keyItem = rawData["johaData__KeyItem"];
+
+  
+  if (!keyItem){
+    
+    serverSubCommand[srvrCmd] =  {  "orig_val": origVal,
+                              "new_val": newVal
+                            }
+                       
+                       
+  } else if (keyItem && keyItem == "value"){
+    //alert("key-value");
+    var keyOrigValue = {};
+    keyOrigValue[keyName] = origVal;
+    var keyNewValue = {};
+    keyNewValue[keyName] = newVal;
+    
+    serverSubCommand[srvrCmd] =  {  "orig_val": keyOrigValue,
+                                "new_val": keyNewValue
+                              }
+
+  } else if (keyItem && keyItem =="key"){
+    //alert("key only");
+    var srvrKeyCmd = srvrCmd + "_key";
+    var origKeyValue = rawData["johaData__OriginalValue"];
+    var newKeyValue = rawData["johaData__UpdatedValue"];
+    serverSubCommand[srvrKeyCmd] =  { "orig_val": origKeyValue,
+                                      "new_val": newKeyValue
+                            }
+
+  }
+  return serverSubCommand;  
+}
+
+//-- Transform data collected from DOM to more suitable for server
+//function johaMake
+function johaSaveDataFix(nodeId, domSaveObj) {
+  
+  //TODO: This approach could use some re-architecting
+  //determines where to send the data to format
+  //based on data type
+ 
+  //transfrom from node - operation - nodedata format to
+  //  node - fieldName - operation - operation data
+  // and filtering out unnecessary operations (like add + delete)
+  var saveObj = {}
+  var xformObj = {}
+
+  
+  for (var op in domSaveObj){
+    //work on particular operation (add, update, delete) data
+    var opObj = domSaveObj[op];
+    for (var i in opObj){
+      //parse particular user operation
+      var fieldName = null;
+      var operation = op;
+      var rawOpData = {};
+      var dataType = null;
+      
+      johaData = opObj[i];
+      for (var johaKey in johaData) {
+      //work on the data provided for the operation on that particular field
+        if (johaKey == "johaData__NodeId"){
+          if (nodeId != johaData[johaKey]){
+            alert('Node Id mismatch between Edit Data and Current Node');
+          }
+        } else if(johaKey == "johaData__FieldName") {
+          fieldName = johaData[johaKey];
+        } else if(johaKey == "johaData__Type") {
+          dataType = johaData[johaKey];
+        } else {
+          rawOpData[johaKey] = johaData[johaKey];
+        }
+      }
+      xformObj[fieldName] = xformObj[fieldName] || {};
+      var tmpOpObj = {};
+      tmpOpObj[op] = rawOpData;
+      xformObj[fieldName]["rawData"] = xformObj[fieldName]["rawData"] || []
+      xformObj[fieldName]["rawData"].push(tmpOpObj);
+      xformObj[fieldName]["op_type"] = dataType;
+
+      //**//filter uneccessary operations
+      //**var ops = get_keys(xformObj[fieldName]);
+      //**console.log('Ops before filtering');
+      //**console.log(ops);
+      //**//-- add + delete = NOOP
+      //**if (array_contains(ops, "adds") && array_contains(ops, "deletes")){
+      //**  xformObj[fieldName] = {};
+      //**}
+      
+      //-- any delete takes precedence
+      
+      //console.log('Ops after filtering');
+      //var ops = get_keys(xformObj[fieldName]);
+      //console.log(ops);
+    }
+    //We've now parsed a particul user operations
+    console.log('User Operation: ' + op);
+    console.log(xformObj);
+  }
+  //gather field value related data
+  for (var fieldObj in xformObj){
+    var opList = []
+    var opType = xformObj[fieldObj]["op_type"];
+
+    var fieldRawData = xformObj[fieldObj];
+    
+    for (var i in fieldRawData["rawData"]) {
+      dataByOp = fieldRawData["rawData"][i];
+      for (var op in dataByOp){
+        var tmpData = {};
+        var rawData = dataByOp[op];
+        var serverSubCmd = figureOutDataOps(rawData, opType, op);
+        //jlog("Server Sub Cmd", serverSubCmd);
+        //var opSrvrData = {};
+        //opSrvrData[fieldName] = serverSubCmd;
+        //tmpData["serverOps"] = opSrvrData;
+        //tmpData["op"] = op;
+        opList.push(serverSubCmd);
+      }
+      
+    }
+    //delete xformObj[fieldObj]["rawData"];
+    xformObj[fieldObj]["op_list"] = opList;    
+  }
+  saveObj[nodeId] = xformObj;
+  return saveObj;
 }
 
 function dynamicEditForm(nodeData){

@@ -508,18 +508,30 @@ function Joha(){
     var linksListItemId = parentId + "_" + kIndex + "_linkitem"; 
     var linksListItemClass = "links_list_item joha_edit";
     
-    var dataValues = [linkName];
+    //**var dataValues = [linkName];
     
     //passing data down the chain
-    var empty = {}
-    var linkItemData = {} 
+    var empty = {};
+    var linkItemData = {}; 
     linkItemData['johaData__KeyName'] = linkURL;
-    linkItemData['johaData__dataValues'] = dataValues; 
-    var listData = jQuery.extend(empty, linksListItemData, linkItemData)
+    linkItemData['johaData__dataValues'] = linkName;//**dataValues; 
+    var keyData = {};
+    keyData['johaData__KeyItem'] = "key";
+    var listKeyData = jQuery.extend(empty, linksListItemData, linkItemData, keyData);
     
-    var keyEl = this.buildKey(linkURL, linksListItemId, listData);
+    //TODO Add to kvlist
+    
+    
+    var keyEl = this.buildKey(linkURL, linksListItemId, listKeyData);
   
-    var linksList = this.buildList(dataValues, linksListItemId, listData );
+    //**var linksList = this.buildList(dataValues, linksListItemId, listData );
+
+    var empty = {};    
+    var keyValData = {};
+    keyValData['johaData__KeyItem'] = "value";
+    var listValData = jQuery.extend(empty, linksListItemData, linkItemData, keyValData);
+
+    linkItem = this.buildSimpleElem.editValueElement(linkName, linksListItemId, listValData);
   
     var linksListHtml = "<div id=\"" + linksListItemId + "\"class=\"" + linksListItemClass + "\"></div>"
     var wrLinksListItem = jQuery(linksListHtml);
@@ -528,9 +540,10 @@ function Joha(){
     
     wrLinksListItem.append(linksListDelCtrl);
     wrLinksListItem.append(keyEl);
-    wrLinksListItem.append(linksList);
+    //**wrLinksListItem.append(linksList);
+    wrLinksListItem.append(linkItem);
     
-    wrLinksListItem.data(listData);
+    wrLinksListItem.data(keyData);
     
 
      
@@ -576,7 +589,7 @@ function Joha(){
     //as a parameter to this function
     var addOnClick = function(tgt) {
       tgtChildren = tgt.children('.links_list_item');
-      var newLinksListItem = johaSelf.buildLinksListItem("URL?", ["?"], tgtChildren.length, linksListId, linksListData);
+      var newLinksListItem = johaSelf.buildLinksListItem("URL?", "link?", tgtChildren.length, linksListId, linksListData);
       newLinksListItem.addClass('joha_add');
       newLinksListItem.data(linksListData);  //A bit of a hack to get data into the container
       tgtChildren.last().after(newLinksListItem);

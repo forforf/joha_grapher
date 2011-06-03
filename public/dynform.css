@@ -138,6 +138,10 @@
   float: left;
 }
 
+.links_list_item>.edit_text {
+  margin: 15px;
+}
+
 .clearfix {
   clear:both;
   margin:0; 
