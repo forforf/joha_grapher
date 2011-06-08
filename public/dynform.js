@@ -316,7 +316,7 @@ function Joha(){
       return statValEl;
     };
 
-    this.deleteControl = function(target, parentId){
+    this.deleteControl = function(target, parentId, otherEls){
       
       var elId = parentId + "_delctrl";
       var elClass = "delete_controls";
@@ -326,6 +326,9 @@ function Joha(){
       var eventActions = {'click': function(event){
           jlog("deleteControl clicked, Target:", event.data.johaTgt);
           event.data.johaTgt.toggleClass('joha_delete');
+          for(var i in otherEls){
+            otherEls[i].toggleClass('joha_delete');
+          }
         },
       };
       
@@ -341,15 +344,19 @@ function Joha(){
       
       //johaTgt and johaCtl are available with the event.data parameter by way of controlObj
       var eventActions = {'click': function(event){
-          jlog("deleteKeyControl clicked, Target:", event.data.johaTgt);
-          event.data.johaTgt.toggleClass('joha_delete');
+          var tgt = event.data.johaTgt;
+          jlog("deleteKeyControl clicked, Target:", tgt);
+          tgt.toggleClass('joha_delete');
+          //A Terrible Hack to deal with sub Elements TODO: Find a better way
+          tgt.find('.edit_text.joha_edit').toggleClass('joha_delete');
         },
       };
       
       var delCtl = johaPats.controlObj(elHtml, target, eventActions);
       return delCtl[0];
     };
-    
+
+  
     this.staticValueElement = function(textValue, parentId){
       var elId = parentId + "_static";
       var elClass = "static_text";
@@ -505,6 +512,9 @@ function Joha(){
   };
   
   this.buildLinksListItem = function(linkURL, linkName, kIndex, parentId, linksListItemData) {
+    if (jQuery.isArray(linkName)) {
+      linkName = linkName[0];
+    }
     var linksListItemId = parentId + "_" + kIndex + "_linkitem"; 
     var linksListItemClass = "links_list_item joha_edit";
     
@@ -531,22 +541,43 @@ function Joha(){
     keyValData['johaData__KeyItem'] = "value";
     var listValData = jQuery.extend(empty, linksListItemData, linkItemData, keyValData);
 
-    linkItem = this.buildSimpleElem.editValueElement(linkName, linksListItemId, listValData);
-  
+    var linkItem = this.buildSimpleElem.editValueElement(linkName, linksListItemId, listValData);
+    var hyperLink = jQuery("<a href=\"" + linkURL + "\" target=\"_blank\"></>");
+    hyperLink.html(linkName);
+    
+ 
+    
     var linksListHtml = "<div id=\"" + linksListItemId + "\"class=\"" + linksListItemClass + "\"></div>"
-    var wrLinksListItem = jQuery(linksListHtml);
-    
-    var linksListDelCtrl = this.buildSimpleElem.deleteKeyControl(wrLinksListItem, linksListItemId);
-    
-    wrLinksListItem.append(linksListDelCtrl);
-    wrLinksListItem.append(keyEl);
-    //**wrLinksListItem.append(linksList);
-    wrLinksListItem.append(linkItem);
-    
-    wrLinksListItem.data(keyData);
-    
+    var editLinksListItem = jQuery(linksListHtml);
 
-     
+    var linksListDelCtrl = this.buildSimpleElem.deleteKeyControl(editLinksListItem, linksListItemId);
+    
+    editLinksListItem.append(linksListDelCtrl);
+    editLinksListItem.append(keyEl);
+    //**wrLinksListItem.append(linksList);
+    editLinksListItem.append(linkItem);
+    
+    editLinksListItem.data(keyData);
+    
+    
+    editLinksListItem.hide();
+    var wrLinksListItem = jQuery('<div class=\"link_edit_toggle_div\" />');
+    wrLinksListItem.append(editLinksListItem);
+    wrLinksListItem.append(hyperLink);
+    
+    editCtlId = linksListItemId + "_editctl"
+    editCtlClass = "link_edit_control"
+    var editHtml = "<img id=\"" + editCtlId + "\" class=\"" + editCtlClass + "\" src=\"./images/edit.png\" alt=\"-!\" />";
+    var editCtl = jQuery(editHtml);
+    editCtl.click( function(){
+      
+      //TODO: Figure out an elegant way to show if there is a pending editing change
+      //Probalby requires refactoring of the underlying controls
+      hyperLink.toggle();
+      editLinksListItem.toggle();
+    });
+
+    wrLinksListItem.append(editCtl);
     //Temp
     wrLinksListItem.append(jQuery("<div />").addClass('clearfix'));
     
@@ -561,7 +592,7 @@ function Joha(){
     customData['johaData__NodeId'] = jQuery("#current_node_id").text();
     customData['johaData__FieldIndex'] = 'links';
     
-    var linkFieldName = "Links";
+    var linkFieldName = "links";
     customData['johaData__FieldName'] = linkFieldName;
     
     var linksListData = jQuery.extend(empty, customData, linksListData)
@@ -591,6 +622,10 @@ function Joha(){
       tgtChildren = tgt.children('.links_list_item');
       var newLinksListItem = johaSelf.buildLinksListItem("URL?", "link?", tgtChildren.length, linksListId, linksListData);
       newLinksListItem.addClass('joha_add');
+      //add joha_add class to list items as well
+      //really belongs in the the builder functions of the elements
+      newLinksListItem.find('.joha_edit').addClass('joha_add');
+      
       newLinksListItem.data(linksListData);  //A bit of a hack to get data into the container
       tgtChildren.last().after(newLinksListItem);
     }

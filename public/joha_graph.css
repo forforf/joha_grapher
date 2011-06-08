@@ -140,6 +140,18 @@ a {
     overflow:hidden;
 }
 
+/* Graph Visualization node class */
+.node:hover { 
+  cursor:pointer; 
+  color: #222; 
+  background-color:white;
+  font-weight:bold;
+  opacity:1;
+  position:absolute;
+  z-index: 2;
+  
+} 
+
 /*TOOLTIPS*/
 .tip {
     color: #111;

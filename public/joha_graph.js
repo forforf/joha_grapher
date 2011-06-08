@@ -1,5 +1,7 @@
 /* Header data */
 
+
+var johaGraph = {};  //Global graph container
 // Write something here about initialization or getting ready, something something
 $(document).ready(function() {
   //Constants
@@ -7,10 +9,12 @@ $(document).ready(function() {
   
   //Temporary for Testing
   JOHA_DATA_DEF['user_data'] = "key_list_ops";
-  
-
+    
+ 
   initializeGraph();
   set_up_onClicks();
+  
+
 
 });
 
@@ -32,15 +36,36 @@ function syncJax(srcUrl) {
 
 function set_up_onClicks() {
 
+  //File Attachment Related
+  jQuery('.show_add_attach_form').click(function(){
+    jQuery('#add_attach_form').show();
+    //jQuery('#fileupload').show();
+  });
+  
+  jQuery('.hide_add_attach_form').click(function(){
+    jQuery('#add_attach_form').hide();
+    //jQuery('#fileupload').hide();
+  });
+  
+  jQuery('.ready_attachment_button').click(function(){
+    var filesToAdd = document.getElementById('add_attach_edit')
+    //Attachment is uploaded when node data is saved
+    readyAttachment(filesToAdd.files);
+  });
 
-
+  jQuery('.upload_attachment_button').click(function(){
+    var filesToAdd = document.getElementById('add_attach_edit')
+    //Attachment is uploaded when node data is saved
+    uploadAttachments();
+  });
+  
   //Set up editing in place (JQuery plugin Jeditable)
   //-- wrap it in .live so that future elements can use it
 
   //changed 'click' to 'hover' so single click editing works
   jQuery('.edit').live('hover', function(event) {
 
-    event.preventDefault();
+    //event.preventDefault();
 
     jlog("click event", event);
 
@@ -55,6 +80,7 @@ function set_up_onClicks() {
     
   });
   
+  //ToDo: I think regular old bind/click will work here
   //Collect updated data when user selects to save the node data
   jQuery('#save_node_data').live('click', function(event) {
     var all_edits = {};
@@ -76,12 +102,13 @@ function set_up_onClicks() {
     noop.removeClass('joha_add joha_delete joha_update');
     
     
-    //addUpdate = jQuery('.joha_add.joha_update');
-    //addUpdate.removeClass('joha_update');
-    //jlog('add w/ update', addUpdate);
+    addUpdate = jQuery('.joha_add.joha_update');
+    //jlog('Add Update Els', addUpdate);
+    addUpdate.removeClass('joha_update');
+ 
     
-    //updateDelete = jQuery('.joha_update.joha_delete');
-    //updateDelete.removeClass('joha_update')
+    updateDelete = jQuery('.joha_update.joha_delete');
+    updateDelete.removeClass('joha_update')
     //Done with filtering operations by updating classes ^^
     
     all_edits['updates'] = filterJohaData('.joha_update');
@@ -93,10 +120,33 @@ function set_up_onClicks() {
     
     jlog("Save Clicked", all_edits);
     jlog("Save Obj", saveObj);
+
+    //post to server for updating
+    if (objSize(saveObj) > 0){
+      jQuery.post("./node_data_update", saveObj,
+      function(data){
+        jlog("returned graph data", data);
+        alert('?');
+        jlog("joha myGraph", johaGraph.myGraph);
+        alert("Just changed to sum, haven't tested it yet");
+        //console.log(johaGraph.myGraph.toJSON());
+        johaGraph.myGraph.op.sum(data, {
+          type: 'fade',
+          duration: 1500 
+        });
+        
+        //jlog('indexed new data', johaIndex(data));
+        //johaGraph.myGraph.loadJSON(data); 
+        //johaGraph.myGraph.refresh();
+        console.log(johaGraph.myGraph.toJSON());
+      },
+      "json");
+    } 
+    
     //revert data to default (by acting like the node is clicked)
     jlog("Save Clicked", "TODO: Revert updated data to unchanged after node is saved");
-
-   
+    
+    
   });
 
 
@@ -187,13 +237,45 @@ function updateJeditElement(el, value, settings){
   return value;
 }
 
+//-- file attachment handling
+
+function readyAttachment(filesToAdd){
+   jQuery('#pending_file_attachments').children().remove();
+  var idx = jQuery('.joha-edit-files-pending').length;
+  var divIdBase = "joha-edit-files-pending";
+  console.log(filesToAdd);
+  for (var i=0; i<filesToAdd.length; i++){
+   var fileName = filesToAdd[i].fileName;
+   index = idx + i;
+   pendingFileDiv = jQuery("<div />", {
+        "id": divIdBase + "--" + index,
+        "class": "joha-edit-files-pending",
+        text: fileName,
+        data: {"johaData__fileData": filesToAdd[i]},
+   });
+   jQuery('#pending_file_attachments').append(pendingFileDiv);
+  }
+};
+
+
+function redirectSubmit(){
+  $('add_attach_form').target = 'files_uploaded_iframe'; //return result goes to iframe
+  $('add_attach_form').submit();
+};
+  //
+function uploadAttachments(){  
+    redirectSubmit();
+//  //Refreshes the list
+    //with return value of Ajax (it's in the hidden iframe)
+
+};
 
 
 //-- -- data structures 
 var file_elements_format = function(filenames, divIdBase, el){
   if (filenames.length > 0 ){
     //create the DOM elements
-    for (i in filenames){
+    for (var i in filenames){
       jQuery("<div />", {
         "id": divIdBase + "--" + i,
         text: filenames[i],
@@ -228,8 +310,8 @@ var johaSpecialFunctions = {
   //TODO: Create file object with filename and file data (if needed)
   edit_file_elements: function(filenames){
     //simpler code, but best behavior to make sure selecting node multiple times creates multiple data?
-    jQuery('#edit_file_elements').remove();
-    file_elements_format(filenames, "joha-edit-filenames", jQuery('#dn_file_data') );
+    jQuery('#file_attachment_list').html("");
+    file_elements_format(filenames, "joha-edit-filenames", jQuery('#file_attachment_list') );
 
   },
 
@@ -241,6 +323,16 @@ var johaSpecialFunctions = {
       var myJoha = new Joha;
       
       var customData = {};
+      
+      //Another UGLY Hack to prevent arrays from screwing things up
+      //I'm not sure why Arrays are passed in to begin with
+      for (var key in links) {
+        if (!key){
+          return "";
+        }
+      }
+      
+      
       var myLinksEl = myJoha.buildLinksList(links, elId, customData)
       //var link_elements_format = new BuildKvlistDom({"links": links}, baseId);
       jQuery('#dn_link_data').append(myLinksEl);
@@ -266,6 +358,7 @@ var johaNodeData = {};
 
 //indexes id with label data and iterate through children
 function indexData(treeData, indexedSet){
+  
   //indexedSet is an associative array, watch out for key dupes
   var currentIndexedSet = indexedSet || {};
   currentIndexedSet[treeData.name] = treeData.id;
@@ -276,6 +369,8 @@ function indexData(treeData, indexedSet){
       indexData(child, currentIndexedSet);
     }
   }
+  
+
   return currentIndexedSet;
 }
 
@@ -364,6 +459,7 @@ function figureOutDataOps(rawData, opType, op) {
 //-- Transform data collected from DOM to more suitable for server
 //function johaMake
 function johaSaveDataFix(nodeId, domSaveObj) {
+
   
   //TODO: This approach could use some re-architecting
   //determines where to send the data to format
@@ -452,8 +548,12 @@ function johaSaveDataFix(nodeId, domSaveObj) {
     //delete xformObj[fieldObj]["rawData"];
     xformObj[fieldObj]["op_list"] = opList;    
   }
-  saveObj[nodeId] = xformObj;
-  return saveObj;
+  if (objSize(xformObj) > 0){
+    saveObj[nodeId] = xformObj;
+    return saveObj;
+  } else {
+    return {}
+  }
 }
 
 function dynamicEditForm(nodeData){
@@ -466,7 +566,6 @@ function dynamicEditForm(nodeData){
   //create a clone of the node data because we are going to be changing it
   //but only for display reasons
   var nodeCopy = jQuery.extend({}, nodeData);
-  
   //Validation not implemented yet 
   //var nodeKeys = get_keys(nodeCopy);
   //if (array_contains_all(nodeKeys, REQUIRED_DATA)) {} else {
@@ -503,12 +602,14 @@ function insertNodesIntoGraph(aGraph, nodeLoc){
 
   jQuery.get(nodeLoc,
     function(graph_data) {
-      jlog('indexed data', johaIndex(graph_data));
+      console.log(graph_data);
       aGraph.loadJSON(graph_data);
+  
       aGraph.refresh();
-      myGraph = aGraph; //remember this is Asynchonous.  This won't be set right away.
+      johaGraph.myGraph = aGraph; //remember this is Asynchonous.  This won't be set right away.
     },
   "json");
+  
 }
 
 //TODO: Refactor this so it is no longer assigned by a view
@@ -516,8 +617,8 @@ function insertNodesIntoGraph(aGraph, nodeLoc){
 //Change so that only data is exchanged with server, so that any bindings
 //can be done locally
 function actLikeNodeClicked(node_id) {
-  var visnode = myGraph.graph.getNode(node_id);
-  myGraph.onClick(visnode.id);
+  var visnode = johaGraph.myGraph.graph.getNode(node_id);
+  johaGraph.myGraph.onClick(visnode.id);
   routeClickedNodeDataToElements(visnode);
 }
 
@@ -527,7 +628,7 @@ function routeClickedNodeDataToElements(nodeStale) {
   //is stale, and new tree data isn't part of it
   //the below is to update the passed in node with updated
   //information
-  node = $jit.json.getSubtree(myGraph.json, nodeStale.id);  //elements to receive node data
+  node = $jit.json.getSubtree(johaGraph.myGraph.json, nodeStale.id);  //elements to receive node data
 
   //Need this here for parents that are not nodes
   jQuery('#current_node_id').text(node.id);
@@ -587,7 +688,7 @@ function rgraphInit(){
         },
         //Set Node and Edge styles.
         Node: {
-            color: '#ddeeff'
+            color: '#ddeeff'            
         },
         
         Edge: {

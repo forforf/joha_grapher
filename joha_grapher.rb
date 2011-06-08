@@ -36,6 +36,108 @@ helpers do
     ok_user2 = (creds[:un] == "me" && creds[:pw] == 'mefi1')
     valid = ok_user1 || ok_user2
   end
+  
+  #move to model
+  def update_node(jm, node_ops)
+    node_id = nil
+    tk_class = jm.tinkit_class
+    link_ops = "link_ops"
+    kvlist_ops = "kvlist_ops"
+    #combine_related_ops
+    #op types that combine due to complex data
+    #TODO: Combining types like this kinda smells
+    combine_types = [link_ops, kvlist_ops]
+    link_data_holder = nil #{:orig_data => {}, :new_data => {}}
+    new_link_data = {}
+    kvlist_data_holder = nil #{:orig_data => {}, :new_data => {}}
+    new_kvlist_data = {}
+    #require 'pp'
+    #pp node_op_data
+    combined_ops = []
+    node_ops.each do |node_op_data|
+      op_type = node_op_data[:op_type]
+      #next unless  combine_types.include?(op_type)
+      case op_type
+        when link_ops
+          link_data_holder ||= {:orig_data => {}, :new_data => {}} 
+          if node_op_data[:op] =~ /_key$/
+            link_data_holder[:orig_data][:key] = node_op_data[:orig_data]
+            link_data_holder[:new_data][:key] = node_op_data[:new_data]
+            new_link_data.merge!(node_op_data)
+            new_link_data.merge!(link_data_holder)
+            combined_ops << new_link_data
+          else
+            link_data_holder[:orig_data][:value] = node_op_data[:orig_data]
+            link_data_holder[:new_data][:value] = node_op_data[:new_data]
+          end
+          
+        
+        when kvlist_ops
+          kvlist_data_holder ||= {:orig_data => {}, :new_data => {}} 
+          if node_op_data[:op] =~ /_key$/
+            kvlist_data_holder[:orig_data][:key] = node_op_data[:orig_data]
+            kvlist_data_holder[:new_data][:key] = node_op_data[:new_data]
+            new_kvlist_data.merge!(node_op_data)
+            new_kvlist_data.merge!(kvlist_data_holder)
+            combined_ops << new_kvlist_data
+          else
+            kvlist_data_holder[:orig_data][:value] = node_op_data[:orig_data]
+            kvlist_data_holder[:new_data][:value] = node_op_data[:new_data]
+          end
+        
+        else #case
+            combined_ops << node_op_data
+        #need to dig a bit deep to see whether the node_op_data is key or value
+        #we then need to merge the original and new values
+        #into the proper key value
+      end
+    end
+
+    require 'pp'
+    pp link_data_holder
+    puts
+    pp combined_ops
+    puts
+    #pp node_ops
+    puts "Node Ops Size Going In: #{node_ops.size}"
+    #node_ops.uniq!
+    puts "Node Ops Size Coming Out: #{combined_ops.size}" 
+    #puts
+    #pp node_ops
+        
+    combined_ops.each do |ops|
+    
+      node_id = ops[:node_id]
+      #op_type = ops[:op_type]  
+      tk_node = tk_class.get(node_id)
+      field = ops[:field_name]
+      new_data = ops[:new_data]
+      orig_data = ops[:orig_data]
+      
+      op = ops[:op]
+      puts "Op: #{op}"
+      case op
+        when "add"
+          puts "adding #{new_data} to field: #{field} for node: #{node_id}"
+          #jm.add_item(node_id, field, 
+          tk_meth = "#{field}_#{op}"
+          tk_data = new_data
+          tk_node.__send__(tk_meth.to_sym, tk_data)
+          
+        when "subtract"
+        puts "deleting #{orig_data} of field: #{field} of node: #{node_id}"
+        tk_meth = "#{field}_#{op}"
+          tk_data = orig_data
+          tk_node.__send__(tk_meth.to_sym, tk_data)
+      end
+      #
+    end
+
+  #TODO: Rather than making new joha_model, add refresh method
+  
+  jm.refresh
+  return jm.tree_graph(node_id)
+  end
 end
 
 
@@ -166,9 +268,57 @@ end
 
 #TODO: Need to figure this out better (is it add, update, all at once, one at a time, etc)
 post '/node_data_update' do
+  
   token = session[:token]
   joha_class_name = session[:joha_class_name]
   @jm = @@session[token][joha_class_name] #|| create it
+
+  
+  #process the data to get the operational data
+  #magic names (TODO: move to configuration or something)
+  op_type_key = "op_type"
+  op_list_key = "op_list"
+  orig_val = "orig_val"
+  new_val = "new_val"
+  
+  tinkit_ops = []
+ 
+  node_id = params.keys.first
+  field_names = params[node_id].keys
+  #a null (from javascript) is sneaking in
+  field_names.map!{|f| f=="null" ? nil : f}
+  field_names.compact!
+  
+  
+  field_names.each do |field|
+    
+    pre_field_ops = params[node_id][field][op_list_key]
+    op_type = params[node_id][field][op_type_key]
+    #For some reason the JSON array is parsed as a ruby hash
+
+    pre_field_ops.each do |op_idx, op|
+      actions = op.keys
+      action = actions.first #should only be one
+      orig_data = op[action][orig_val]
+      new_data = op[action][new_val]
+      tinkit_ops.push({:node_id => node_id,
+                             :field_name => field,
+                             :op_type => op_type,
+                             :op => action,
+                             :op_index => op_idx,
+                             :orig_data => orig_data,
+                             :new_data => new_data
+                            })
+    end
+  end
+  
+  new_graph =  update_node(@jm, tinkit_ops)
+  content_type :json
+  return new_graph
+  #require 'pp'
+  #pp tinkit_ops
+
+=begin
   new_data = params[:value]
   orig_data = params[:orig_value]
   node_id = params[:node_id]
@@ -189,4 +339,12 @@ post '/node_data_update' do
   puts "Node Saved #{node.id}: #{node_field}: #{new_data}"
   puts "#{node._user_data}"
   new_data
+=end
+end
+
+
+post '/upload_test' do
+  puts "Uploaded Params"
+  p params
+  return "Params: #{params.inspect}"
 end

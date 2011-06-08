@@ -5,18 +5,18 @@
 <title>Joha -- Find, Connect, Organize</title>
 
 <!-- CSS Files -->
-<link type="text/css" href="./jquery-ui-custom.css" rel="stylesheet" />
-<link type="text/css" href="./default.css" rel="stylesheet" />
-<link type="text/css" href="./joha_graph.css" rel="stylesheet" />
-<link type="text/css" href="./dynform.css" rel="stylesheet" />
+<link type="text/css" href="./default.css" rel="stylesheet" >
+<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.13/themes/base/jquery-ui.css" id="theme" >
+<link type="text/css" href="./jquery-ui-custom.css" rel="stylesheet" >
+<link type="text/css" href="./joha_graph.css" rel="stylesheet" >
+<link type="text/css" href="./dynform.css" rel="stylesheet" >
 
 <!--[if IE]><script language="javascript" type="text/javascript" src="../javascripts/jit/Extras/excanvas.js"></script><![endif]-->
 
 <!-- JIT Library File -->
 <script language="javascript" type="application/javascript" src="jit.js"></script>
-<!-- <script language="javascript" type="text/javascript" src="./prototype.js"></script> -->
-<script language="javascript" type="application/javascript" src="jquery-1.6.js"></script>
-<script language="javascript" type="application/javascript" src="jquery-ui-autocomplete-min.js"></script>
+<script language="javascript" type="application/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js"></script>
+<script language="javascript" type="application/javascript" src="//ajax.googleapis.com/ajax/libs/jqueryui/1.8.13/jquery-ui.min.js"></script>
 <script language="javascript" type="application/javascript" src="jquery.jeditable.js"></script>
 <script language="javascript" type="application/javascript" src="joha_helpers.js"></script>
 <script language="javascript" type="application/javascript" src="dynform.js"></script>
@@ -124,7 +124,7 @@
       </div>
 
 
-      <div id="edit-node-form" class="node-forms" style="display:none;">
+      <div id="edit-node-form" class="node-forms" style="display:none">
         <div id="node_editor">
           <fieldset>
             <legend>
@@ -135,6 +135,31 @@
                 <div id="dn_node_data"></div>
                 <div id="dn_link_data"></div>
                 <div id="dn_file_data"></div>
+                  <span id="attachment_label">File Attachments</span>
+                  <div id="file_attachment_list" class="attachment_list">No Node Selected</div>
+                  <div id="pending_file_attachments" class="pending_attachment_list"></div>
+                  <div id="add_attach" class="element-list">
+                    <span class="show_add_attach_form clickable">Add new attachments</span>
+                  </div>
+             
+                  <form id="add_attach_form" action="/upload_test"  method="post" enctype="multipart/form-data" style="display:none">
+  
+                    <input id="authtok_attach_form" type="hidden" value=" " name="authenticity_token">
+                    <input id="node_id_input_edit" name="node_cat" type="hidden" />
+
+                    <div id="att_button_area">
+                      <b>Add Attachments  </b><span class="hide_add_attach_form clickable">hide this again</span> <br />
+                      <input id="add_attach_edit" name="add_files[]" type="file" multiple="multiple"/>
+                      <input class="ready_attachment_button" name="action" value="See Pending Files" type="button"  />
+                      <input class="upload_attachment_button" name="uploadFiles" value="Upload to Node" type="button"  />
+                    </div>
+
+                    <iframe id="files_uploaded_iframe" name="files_uploaded_iframe" src="" style="display:none">
+                    </iframe>
+
+                  </form>
+
+                </div>
               </div>
             </div>
           </fieldset>

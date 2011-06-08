@@ -109,6 +109,13 @@
   padding: 0px;
 }
 
+.link_edit_control {
+  position: relative;
+  margin: 2px;
+  height: 16px;
+  width: 16px;
+}
+
 .list_item_wrapper {
   position: relative;
   background: green;

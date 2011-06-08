@@ -96,6 +96,14 @@ function makejQueryObj(obj) {
   }
 }
 
+function objSize(obj) {
+    var size = 0, key;
+    for (key in obj) {
+        if (obj.hasOwnProperty(key)) size++;
+    }
+    return size;
+}
+
 function filterJohaData(jQSelector) {
   var johaData =  jQuery(jQSelector).map(function() {
     var filterData = {};
