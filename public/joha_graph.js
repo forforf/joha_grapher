@@ -65,7 +65,7 @@ function set_up_onClicks() {
   //changed 'click' to 'hover' so single click editing works
   jQuery('.edit').live('hover', function(event) {
 
-    //event.preventDefault();
+    event.preventDefault();
 
     jlog("click event", event);
 
@@ -126,18 +126,17 @@ function set_up_onClicks() {
       jQuery.post("./node_data_update", saveObj,
       function(data){
         jlog("returned graph data", data);
-        alert('?');
         jlog("joha myGraph", johaGraph.myGraph);
-        alert("Just changed to sum, haven't tested it yet");
+        alert("loading new JSON");
         //console.log(johaGraph.myGraph.toJSON());
-        johaGraph.myGraph.op.sum(data, {
-          type: 'fade',
-          duration: 1500 
-        });
+        //johaGraph.myGraph.op.morph(data, {
+        //  type: 'fade',
+        //  duration: 1500 
+        //});
         
         //jlog('indexed new data', johaIndex(data));
-        //johaGraph.myGraph.loadJSON(data); 
-        //johaGraph.myGraph.refresh();
+        johaGraph.myGraph.loadJSON(data); 
+        johaGraph.myGraph.refresh();
         console.log(johaGraph.myGraph.toJSON());
       },
       "json");
@@ -229,7 +228,7 @@ function toggleDelete(elId) {
 function updateJeditElement(el, value, settings){
 
   thisEl = jQuery(el);
-
+  
   thisEl.data("johaData__UpdatedValue", value);
 
   thisEl.addClass('joha_update');
@@ -264,6 +263,9 @@ function redirectSubmit(){
 };
   //
 function uploadAttachments(){  
+    var node_id = jQuery('#current_node_id').text()
+    jQuery("#node_id_input_edit").val(node_id);
+    alert(jQuery("#node_id_input_edit").val());
     redirectSubmit();
 //  //Refreshes the list
     //with return value of Ajax (it's in the hidden iframe)
@@ -302,9 +304,16 @@ var johaSpecialFunctions = {
   edit_label_elements: function(label){
     //Note that the DOM eleemnt for label already exists, we're just inserting data into it.
     //^^Bad we should pass it in or something
-    //I'm cryin 
+    customData = {
+        "johaData__FieldName": "label",
+        "johaData__NodeId": jQuery('#current_node_id').text(),
+        "johaData__OriginalValue": jQuery('#joha-edit-label--').text(),
+        "johaData__Type": "replace_ops",
+        "johaData__UpdatedValue": node.name
+    }
     jQuery('#joha-edit-label--').text(node.name);
-    jQuery('#joha-edit-label--').addClass('joha_edit');
+    jQuery('#joha-edit-label--').data(customData);
+    jQuery('#joha-edit-label--').addClass('joha_edit joha_field_value_container');
   },
   
   //TODO: Create file object with filename and file data (if needed)
@@ -424,6 +433,10 @@ function figureOutDataOps(rawData, opType, op) {
   var newVal = rawData["johaData__UpdatedValue"];
   var keyItem = rawData["johaData__KeyItem"];
 
+  console.log(keyItem);
+  console.log(keyName);
+  console.log(newVal);
+  console.log(keyItem);
   
   if (!keyItem){
     
@@ -453,6 +466,8 @@ function figureOutDataOps(rawData, opType, op) {
                             }
 
   }
+  console.log("SERVER COMMAND");
+  console.log(serverSubCommand);
   return serverSubCommand;  
 }
 

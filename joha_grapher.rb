@@ -58,6 +58,7 @@ helpers do
       op_type = node_op_data[:op_type]
       #next unless  combine_types.include?(op_type)
       case op_type
+          
         when link_ops
           link_data_holder ||= {:orig_data => {}, :new_data => {}} 
           if node_op_data[:op] =~ /_key$/
@@ -125,10 +126,22 @@ helpers do
           tk_node.__send__(tk_meth.to_sym, tk_data)
           
         when "subtract"
-        puts "deleting #{orig_data} of field: #{field} of node: #{node_id}"
-        tk_meth = "#{field}_#{op}"
+          puts "deleting #{orig_data} of field: #{field} of node: #{node_id}"
+          tk_meth = "#{field}_#{op}"
           tk_data = orig_data
           tk_node.__send__(tk_meth.to_sym, tk_data)
+        
+        when "replace"
+          puts "replacing #{orig_data} with #{new_data} of field: #{field} of node: #{node_id}"
+          tk_subtract = "#{field}_subtract"
+          tk_subtract_data = orig_data
+          tk_node.__send__(tk_subtract.to_sym, tk_subtract_data)
+          tk_add = "#{field}_add"
+          tk_add_data = new_data
+          tk_node.__send__(tk_add.to_sym, tk_add_data)
+        else
+          puts "Unknown Operation"
+          
       end
       #
     end
@@ -347,4 +360,43 @@ post '/upload_test' do
   puts "Uploaded Params"
   p params
   return "Params: #{params.inspect}"
+end
+
+post '/upload_files' do
+  puts "Uploaded Files"
+  token = session[:token]
+  joha_class_name = session[:joha_class_name]
+  jm = @@session[token][joha_class_name]
+  node_id = params[:node_id]
+  tk_class = jm.tinkit_class
+  tk_node = tk_class.get(node_id)
+  uploaded_files = params[:add_files]
+  puts "#: #{uploaded_files.size}"
+  uploaded_files.each do |upload_file|
+    p upload_file[:node_id]
+    p upload_file[:tempfile]
+    p upload_file[:filename]
+  
+    user_dir = token
+    tmp_file = upload_file[:tempfile]
+    src_filename = upload_file[:filename]
+    #TODO Fix tinkit so that a new filename can be assigned
+    # rather than using the existing filename
+    new_file_dir = "/tmp/#{user_dir.hash}"
+    new_file_loc = "/#{new_file_dir}/#{src_filename}"
+    if File.exist?(new_file_dir)
+      FileUtils.cp(tmp_file, new_file_loc)
+    else
+      FileUtils.mkdir(new_file_dir)
+      FileUtils.cp(tmp_file, new_file_loc)
+    end
+    FileUtils.rm(tmp_file)
+    
+    
+    add_file_data = {:src_filename => new_file_loc}
+    tk_node.files_add(add_file_data)
+  end
+  
+  
+  return "stub"
 end

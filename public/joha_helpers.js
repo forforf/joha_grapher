@@ -109,6 +109,7 @@ function filterJohaData(jQSelector) {
     var filterData = {};
     console.log('filtering Joha data');
     console.log(this.id);
+    console.log(jQuery(this).data());
     
     //filter so we only get johaData keys
     var allData = jQuery(this).data();
@@ -118,12 +119,13 @@ function filterJohaData(jQSelector) {
         return i
       }
     });
-    for (i in johaKeys) {
+    for (var i in johaKeys) {
       thisKey = johaKeys[i];
       filterData[thisKey] = allData[thisKey];
     };
     
     return filterData;
   }).get();
+  console.log(johaData);
   return johaData;
 }
