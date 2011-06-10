@@ -373,6 +373,16 @@ a.borg_link_text {
      font-weight: bold;
 }
 
+/*File Attachments*/
+#file_attachment_list .delete_controls {
+  float: none;
+}
+#pending_file_attachments{
+  clear: both;
+}
+#pending_file_attachments .delete_controls {
+  float: none;
+}
 /* Moved to dynform.css and changed to joha_deleted replace delete_show with edit_deleted */
 /*
 .delete_show, .edit_deleted {

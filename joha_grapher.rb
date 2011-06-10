@@ -146,8 +146,6 @@ helpers do
       #
     end
 
-  #TODO: Rather than making new joha_model, add refresh method
-  
   jm.refresh
   return jm.tree_graph(node_id)
   end
@@ -266,17 +264,33 @@ post '/desc_data' do
   end
 end
 
-get '/create_node' do
-  #top_node = session[:top_node]
+post '/create_node' do
+  #TODO: Validate against data def
   token = session[:token]
   joha_class_name = session[:joha_class_name]
   @jm = @@session[token][joha_class_name] #|| create it
 
-  content_type :json
-  node_data = params[:node_data]
-  #@jm.create_node(node_data)
+  
+  node_id = params[:node_id]
+  node_label = params[:node_label]
+  node_parents = params[:node_parents]
+  node_data = {  :id => node_id,
+                        :label => node_label,
+                        :parents => node_parents
+                    }
+  
+  
+  @jm.create_node(node_data)
   #top_node_id = node.id
-  #ret_json = @jm.tree_graph(top_node_id)
+  
+  @jm.refresh
+
+  ret_val = { :node => node_data,
+                    :graph => @jm.tree_graph(node_id)
+                }
+  ret_json = ret_val.to_json
+  content_type :json
+  return ret_json
 end
 
 #TODO: Need to figure this out better (is it add, update, all at once, one at a time, etc)
@@ -298,6 +312,7 @@ post '/node_data_update' do
  
   node_id = params.keys.first
   field_names = params[node_id].keys
+  
   #a null (from javascript) is sneaking in
   field_names.map!{|f| f=="null" ? nil : f}
   field_names.compact!
@@ -331,36 +346,9 @@ post '/node_data_update' do
   #require 'pp'
   #pp tinkit_ops
 
-=begin
-  new_data = params[:value]
-  orig_data = params[:orig_value]
-  node_id = params[:node_id]
-  node_field = params[:node_field]
-  key_data = params[:key_for_value]
-  if key_data
-    puts "Do kvlist manipulation here"
-  end
-  
-  #TODO move to the model
-  #update = subtract then add
-  field_subtract_meth = "#{node_field}_subtract".to_sym
-  field_add_meth = "#{node_field}_add".to_sym
-  node = @jm.select_node(node_id)
-  node.__send__(field_subtract_meth, orig_data)
-  node.__send__(field_add_meth, new_data)
-  node.__save
-  puts "Node Saved #{node.id}: #{node_field}: #{new_data}"
-  puts "#{node._user_data}"
-  new_data
-=end
 end
 
 
-post '/upload_test' do
-  puts "Uploaded Params"
-  p params
-  return "Params: #{params.inspect}"
-end
 
 post '/upload_files' do
   puts "Uploaded Files"
@@ -397,6 +385,41 @@ post '/upload_files' do
     tk_node.files_add(add_file_data)
   end
   
-  
-  return "stub"
+  content_type :json
+  return jm.list_attachments(node_id)
+end
+
+post '/post_test' do
+  content_type :json
+  return params.to_json
+end
+
+post '/delete_files' do
+  node_id = params[:node_id]
+  delete_files = params[:del_files]
+  token = session[:token]
+  joha_class_name = session[:joha_class_name]
+  jm = @@session[token][joha_class_name]
+
+  if delete_files && delete_files.size > 0
+    #TODO: Update Model (jm) rather than pass through directly
+    tk_class = jm.tinkit_class
+    tk_node = tk_class.get(node_id)
+    tk_node.files_subtract(delete_files)
+  end
+  remaining_files = jm.list_attachments(node_id)
+  p remaining_files
+  content_type :json
+  return remaining_files.to_json
+end
+
+post '/delete_node' do
+  node_id = params[:node_id]
+  delete_files = params[:del_files]
+  token = session[:token]
+  joha_class_name = session[:joha_class_name]
+  jm = @@session[token][joha_class_name]
+  jm.destroy_node(node_id)
+  #Not sure what to return
+  #Probably a new graph, but that requires a bug fix first
 end

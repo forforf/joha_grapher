@@ -36,6 +36,65 @@ function syncJax(srcUrl) {
 
 function set_up_onClicks() {
 
+  //Create Node
+  jQuery('#create_node').click(function(){
+    var nodeId = jQuery('#create_node_id').val();
+    var nodeLabel = jQuery('#create_node_label').val();
+    var nodeParents = jQuery('#create_node_parents').val();
+    if (nodeId.length == 0) {
+      alert("Node ID can't be empty");
+      return "";
+    }
+    //ToDo: Validate nodeID unique?
+    if (nodeLabel.length == 0) {
+      alert("Node Label can't be empty");
+      return "";
+    }
+    var node_data = {
+      node_id: nodeId,
+      node_label: nodeLabel,
+      node_parents: nodeParents
+    };
+    jQuery.post("./create_node", node_data,
+      function(data){
+        alert('create node post succeeded');
+        var node = {};
+        console.log(data);
+        var graph = data.graph
+        var node_data = data.node;
+        
+        show_edit_node_form({data: node_data});
+      }, "json");
+      //data type goes here, i.e., ,"json"
+    //);
+  });
+
+  //Delete Node click
+  jQuery('#delete_node').click(function(){
+    var node_id = jQuery('#current_node_id').text();
+    var delMsg = 'Delete Node: ' + node_id;
+    var confirmDelete = jQuery('<div />')
+      .html(delMsg)
+      .dialog({
+        autoOpen: false,
+        title: 'Delete Node',
+        buttons: [
+          {
+            text: "Cancel",
+            click: function() {jQuery(this).dialog("close"); }
+          },
+          { text: "Delete it all",
+            click: function() {deleteNode(node_id); jQuery(this).dialog("close");}
+          }
+        ]
+      });
+      
+    
+      
+    //open dialog
+    confirmDelete.dialog('open');
+  });
+  
   //File Attachment Related
   jQuery('.show_add_attach_form').click(function(){
     jQuery('#add_attach_form').show();
@@ -59,6 +118,26 @@ function set_up_onClicks() {
     uploadAttachments();
   });
   
+  jQuery('.delete_attach_list').click(function(){
+    var node_id = jQuery('#current_node_id').text();
+    var fileAttachmentDeletes = jQuery('.file_attachment_name.joha_delete').map(function() {
+     return jQuery(this).text();
+    }).get()
+        
+    var deleteFileData = {
+      "node_id": node_id,
+      "del_files": fileAttachmentDeletes
+    };
+  
+    
+    jQuery.post("./delete_files", deleteFileData,
+      function(data){
+        //TODO: Synchronize the setting of base IDs
+        jQuery('#file_attachment_list').children().remove();
+        files_element_format(data, "joha-edit-filenames", jQuery('#file_attachment_list'));
+      },
+    "json");
+  });
   //Set up editing in place (JQuery plugin Jeditable)
   //-- wrap it in .live so that future elements can use it
 
@@ -111,9 +190,15 @@ function set_up_onClicks() {
     updateDelete.removeClass('joha_update')
     //Done with filtering operations by updating classes ^^
     
+    //fileAttachmentDeletes = jQuery('.file_attachment_name.joha_delete').map(function() {
+    //  return jQuery(this).text();
+    //}).get()
+    
+    
     all_edits['updates'] = filterJohaData('.joha_update');
     all_edits['adds']= filterJohaData('.joha_add');
     all_edits['deletes'] = filterJohaData('.joha_delete');
+    //all_edits['file_deletes'] = fileAttachmentDeletes;
     
     var currentNodeId = jQuery('#current_node_id').text();
     saveObj = johaSaveDataFix(currentNodeId, all_edits);
@@ -124,22 +209,22 @@ function set_up_onClicks() {
     //post to server for updating
     if (objSize(saveObj) > 0){
       jQuery.post("./node_data_update", saveObj,
-      function(data){
-        jlog("returned graph data", data);
-        jlog("joha myGraph", johaGraph.myGraph);
-        alert("loading new JSON");
-        //console.log(johaGraph.myGraph.toJSON());
-        //johaGraph.myGraph.op.morph(data, {
-        //  type: 'fade',
-        //  duration: 1500 
-        //});
-        
-        //jlog('indexed new data', johaIndex(data));
-        johaGraph.myGraph.loadJSON(data); 
-        johaGraph.myGraph.refresh();
-        console.log(johaGraph.myGraph.toJSON());
-      },
-      "json");
+        function(data){
+          jlog("returned graph data", data);
+          jlog("joha myGraph", johaGraph.myGraph);
+          alert("loading new JSON");
+          //console.log(johaGraph.myGraph.toJSON());
+          //johaGraph.myGraph.op.morph(data, {
+          //  type: 'fade',
+          //  duration: 1500 
+          //});
+          
+          //jlog('indexed new data', johaIndex(data));
+          johaGraph.myGraph.loadJSON(data); 
+          johaGraph.myGraph.refresh();
+          console.log(johaGraph.myGraph.toJSON());
+        },
+        "json");
     } 
     
     //revert data to default (by acting like the node is clicked)
@@ -172,13 +257,13 @@ function set_up_onClicks() {
     toggleDelete(delData.johaData__deleteContainerId);
   });
 
-  jQuery('#create_node').live('click', function(event) {
-    nodeId = jQuery('#create_node_id').val();
-    nodeLabel = jQuery('#create_node_label').val();
-    nodeParents = jQuery('#create_node_parents').val();
-    var initialNodeData = {id: nodeId, label: nodeLabel, parents: nodeParents};
-    console.log(initialNodeData);
-  });
+  //jQuery('#create_node').live('click', function(event) {
+  //  nodeId = jQuery('#create_node_id').val();
+  //  nodeLabel = jQuery('#create_node_label').val();
+  //  nodeParents = jQuery('#create_node_parents').val();
+  //  var initialNodeData = {id: nodeId, label: nodeLabel, parents: nodeParents};
+  //  console.log(initialNodeData);
+  //});
 }
 
 function initializeGraph(){
@@ -194,13 +279,16 @@ function initializeGraph(){
 //--Showing/Hiding Edit Forms
 function show_create_node_form(){
   jQuery('#edit-node-form').hide();
+  jQuery('#descendant-info').hide();
   jQuery('#create-node-form').show();
+  generateCreateNode();
 }
 
 function show_edit_node_form(node){
   jQuery('#create-node-form').hide();
   dynamicEditForm(node.data); 
   jQuery('#edit-node-form').show();
+  jQuery('#descendant-info').show();
 }
 
 function toggle(divId) {
@@ -223,7 +311,32 @@ function toggleDelete(elId) {
   }
 }
 
+//-- New node creation
+function generateCreateNode(){
+  //Add in suggestion for ID
+  var current_node_id = jQuery('#current_node_id').text();
+  
+  var guid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
+    return v.toString(16);
+  });
+  
+  jQuery('#create_node_id').val(guid);
+  
+  //Add suggestoin for parents
+  jQuery('#create_node_parents').val(current_node_id);
+  jQuery('#current_node_id').text("");
+  //NOT HERE BUT add listener for create button
+  //update to the new node and edit function
+}
 
+//-- Delete Node
+function deleteNode(nodeId){
+  jQuery.post("./delete_node", {node_id: nodeId},
+        function(data){
+          alert("node deleted")
+        });
+}
 //-- handle updating data
 function updateJeditElement(el, value, settings){
 
@@ -239,20 +352,52 @@ function updateJeditElement(el, value, settings){
 //-- file attachment handling
 
 function readyAttachment(filesToAdd){
+  var joha = new Joha();
    jQuery('#pending_file_attachments').children().remove();
   var idx = jQuery('.joha-edit-files-pending').length;
   var divIdBase = "joha-edit-files-pending";
   console.log(filesToAdd);
+  var pendingLabelId = "pending_files_label"
+  var pendingFileSectionLabel = "<span id =\"" + pendingLabelId + "\">Pending Attachments</span>";
+  
+  var filesIdBase = divIdBase + "_";
   for (var i=0; i<filesToAdd.length; i++){
    var fileName = filesToAdd[i].fileName;
-   index = idx + i;
-   pendingFileDiv = jQuery("<div />", {
-        "id": divIdBase + "--" + index,
-        "class": "joha-edit-files-pending",
-        text: fileName,
-        data: {"johaData__fileData": filesToAdd[i]},
-   });
-   jQuery('#pending_file_attachments').append(pendingFileDiv);
+   if (fileName.length == 0) { continue; }
+   
+   var index = idx + i;
+   var fileIdBase = filesIdBase + index;
+    
+    //for (var i in filenames){
+      
+    var fileWr = jQuery("<div />", {
+      "id": fileIdBase + "_wr_" + index,
+      "class": "pending_file_wrapper",
+    });   
+     var pendingFileEl = joha.buildSimpleElem.staticValueElement(fileName, fileIdBase);
+     
+     fileWr.append(pendingFileEl);
+     //fileDelCtl = joha.buildSimpleElem.deleteControl(pendingFileEl, fileIdBase);
+     
+     var elId = "pending_delete";
+     var elClass = "delete_controls";
+     //TODO: This is duplicative but joha builder was not abstract enough
+     var elHtml = "<img id=\"" + elId + "\" class=\"" + elClass + "\" src=\"./images/delete_normal.png\" alt=\"-\" />"
+     var target = fileWr;
+     //johaTgt and johaCtl are available with the event.data parameter by way of controlObj
+      var eventActions = {'click': function(event){
+        jlog("Pending deleteControl clicked, Target:", event.data.johaTgt);
+        event.data.johaTgt.remove();
+        if (jQuery('.pending_file_wrapper').length == 0) {
+          jQuery('#pending_file_attachments').hide;
+        }
+      }};
+     var delCtl = johaPats.controlObj(elHtml, target, eventActions);
+     fileWr.append(delCtl);
+     //});
+     //pendingFileDiv.data({"johaData__fileData": filesToAdd[i]})
+     
+     jQuery('#pending_file_attachments').append(fileWr);
   }
 };
 
@@ -274,15 +419,24 @@ function uploadAttachments(){
 
 
 //-- -- data structures 
-var file_elements_format = function(filenames, divIdBase, el){
+var files_element_format = function(filenames, divIdBase, el){
+  var joha = new Joha;
+  
   if (filenames.length > 0 ){
     //create the DOM elements
+    var filesIdBase = divIdBase + "_";
     for (var i in filenames){
-      jQuery("<div />", {
-        "id": divIdBase + "--" + i,
-        text: filenames[i],
-        click: function(){get_current_node_attachment(filenames[i])}
-      }).appendTo(el);
+      var fileIdBase = filesIdBase + i;
+      var fileWr = jQuery("<div />", {
+        "id": fileIdBase,
+      });
+      var fileLabel = joha.buildSimpleElem.staticValueElement(filenames[i], fileIdBase);
+      fileLabel.addClass('file_attachment_name');
+      fileWr.append(fileLabel);
+      var fileDelCtl = joha.buildSimpleElem.deleteControl(fileLabel, fileIdBase);
+      fileWr.append(fileDelCtl);
+      fileWr.appendTo(el);
+
     }
   } else {
     alert('zero length filenames passed');
@@ -320,7 +474,7 @@ var johaSpecialFunctions = {
   edit_file_elements: function(filenames){
     //simpler code, but best behavior to make sure selecting node multiple times creates multiple data?
     jQuery('#file_attachment_list').html("");
-    file_elements_format(filenames, "joha-edit-filenames", jQuery('#file_attachment_list') );
+    files_element_format(filenames, "joha-edit-filenames", jQuery('#file_attachment_list') );
 
   },
 
@@ -369,6 +523,7 @@ var johaNodeData = {};
 function indexData(treeData, indexedSet){
   
   //indexedSet is an associative array, watch out for key dupes
+  //is of the form { name1: id1, name2: id2, .... }
   var currentIndexedSet = indexedSet || {};
   currentIndexedSet[treeData.name] = treeData.id;
   var children = treeData.children;

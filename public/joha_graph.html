@@ -112,12 +112,12 @@
             <b>Parents</b><br/>
             <input id="create_node_parents" name="create_node_parents" type="text" />
             </p>
-            <p>
+            <!--<p>
              <b> Add Attachment  -- Not working yet</b><br/>
              <input name="add_attachment" type="file" />
-            </p>
+            </p> -->
             <p>
-            <input id="create_node" name="commit_create_node" value="Create Node" type="submit" />
+            <input id="create_node" name="commit_create_node" value="Create Node" type="button" />
           </p>
           </fieldset>
          </div>
@@ -137,11 +137,13 @@
                 <div id="dn_file_data"></div>
                   <span id="attachment_label">File Attachments</span>
                   <div id="file_attachment_list" class="attachment_list">No Node Selected</div>
-                  <div id="pending_file_attachments" class="pending_attachment_list"></div>
+                  <div id="delete_attach">
+                    <span class="delete_attach_list clickable">Implement Deletions</span>
+                  </div>                  
                   <div id="add_attach" class="element-list">
                     <span class="show_add_attach_form clickable">Add new attachments</span>
                   </div>
-             
+
                   <form id="add_attach_form" action="/upload_files"  method="post" enctype="multipart/form-data" style="display:none">
   
                     <input id="authtok_attach_form" type="hidden" value=" " name="authenticity_token">
@@ -157,7 +159,9 @@
                     <iframe id="files_uploaded_iframe" name="files_uploaded_iframe" src="" style="display:none">
                     </iframe>
 
-                  </form>
+                  </form>                  
+                  <div id="pending_file_attachments" class="pending_attachment_list"></div>
+
 
                 </div>
               </div>
@@ -168,6 +172,9 @@
         </div>
         <div id="clear_node_edits">
           Clear
+        </div>  
+        <div id="delete_node">
+          Delete Entire Node
         </div>        
       </div>
 
