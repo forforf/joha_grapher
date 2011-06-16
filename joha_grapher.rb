@@ -273,7 +273,10 @@ post '/create_node' do
   
   node_id = params[:node_id]
   node_label = params[:node_label]
-  node_parents = params[:node_parents]
+  node_parents = params[:node_parents].split(',')
+  node_parents = ["none"] if node_parents.empty?
+    
+  
   node_data = {  :id => node_id,
                         :label => node_label,
                         :parents => node_parents

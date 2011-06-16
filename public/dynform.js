@@ -152,8 +152,8 @@ function Patterns() {
               
       
       //NOTE: The control must have an id due to some limitations with .live
-      jctlId = jQuery(controlElement).attr('id');
-      jQuery("#"+jctlId).live(ev, actionObj, eventActions[ev]);
+      jctlId = $j(controlElement).attr('id');
+      $j("#"+jctlId).live(ev, actionObj, eventActions[ev]);
       
     }
     //removing jctl will remove attached event as well (yay! for jQuery!)
@@ -210,8 +210,8 @@ function Joha(){
                 
         
         //NOTE: The control must have an id due to some limitations with .live
-        jctlId = jQuery(controlElement).attr('id');
-        jQuery("#"+jctlId).live(ev, actionObj, eventActions[ev]);
+        jctlId = $j(controlElement).attr('id');
+        $j("#"+jctlId).live(ev, actionObj, eventActions[ev]);
         
       }
       //removing jctl will remove attached event as well (yay! for jQuery!)
@@ -370,14 +370,14 @@ function Joha(){
       var elClass = "edit edit_text joha_edit";
       var elHtml = "<span id=\"" + elId + "\" class=\"" + elClass + "\"/span>";
       //Could make editable via passing a custom function, but instead adding in the class to the html
-      //var makeEditable = function(el, valData){ jQuery(el).addClass('edit') };
+      //var makeEditable = function(el, valData){ $j(el).addClass('edit') };
       //makeEditable function would be added to the functions passed to the element pattern
       
       var empty = {}
       var origValData = {}    
       origValData['johaData__OriginalValue'] = textValue;
       var newValData = jQuery.extend(empty, valData, origValData)
-      var addValDataFn = function(el, valData){ jQuery(el).data(valData) };
+      var addValDataFn = function(el, valData){ $j(el).data(valData) };
       var editValEl = johaPats.textContentObj(elHtml, textValue, newValData, [addValDataFn]);
       return editValEl;
     };
@@ -399,7 +399,7 @@ function Joha(){
     var wrId = parentId + "_" + index + "_listItemWrapper";
     var wrClass = "list_item_wrapper";    
     var wrHtml = "<li id=\"" + wrId + "\" class=\"" + wrClass + "\"</li>";
-    var wrEl = jQuery(wrHtml);
+    var wrEl = $j(wrHtml);
     wrEl.append(listItemElem);
     wrEl.append(delCtrl);
     
@@ -410,7 +410,7 @@ function Joha(){
     var listId = parentId + "_list";
     var listClass = "list";
     var listHtml = "<ul id=\"" + listId + "\" class=\"" + listClass + "\"></ul>"
-    var listEl = jQuery(listHtml);
+    var listEl = $j(listHtml);
     
     var empty = {}
     var thisListData = {}    
@@ -462,7 +462,7 @@ function Joha(){
     var kList = this.buildList(dataValues, kvliId, {} );
   
     var kvliHtml = "<div id=\"" + kvliId + "\"class=\"" + kvliClass + "\"></div>"
-    var wrKvli = jQuery(kvliHtml);
+    var wrKvli = $j(kvliHtml);
     
     var kvDelCtrl = this.buildSimpleElem.deleteKeyControl(wrKvli, kvliId);
     
@@ -471,7 +471,7 @@ function Joha(){
     wrKvli = wrKvli.append(kList);
      
     //Temp
-    wrKvli.append(jQuery("<div />").addClass('clearfix'));
+    wrKvli.append($j("<div />").addClass('clearfix'));
     
     return wrKvli;
   };
@@ -482,7 +482,7 @@ function Joha(){
     var kvlistClass = "kvlist";
     
     var kvlistHtml = "<div id=\"" + kvlistId + "\"class=\"" + kvlistClass + "\"></div>"
-    var kvlistEl = jQuery(kvlistHtml);
+    var kvlistEl = $j(kvlistHtml);
     
     var i = 0;
     for (key in klistObj){
@@ -542,13 +542,13 @@ function Joha(){
     var listValData = jQuery.extend(empty, linksListItemData, linkItemData, keyValData);
 
     var linkItem = this.buildSimpleElem.editValueElement(linkName, linksListItemId, listValData);
-    var hyperLink = jQuery("<a href=\"" + linkURL + "\" target=\"_blank\"></>");
+    var hyperLink = $j("<a href=\"" + linkURL + "\" target=\"_blank\"></>");
     hyperLink.html(linkName);
     
  
     
     var linksListHtml = "<div id=\"" + linksListItemId + "\"class=\"" + linksListItemClass + "\"></div>"
-    var editLinksListItem = jQuery(linksListHtml);
+    var editLinksListItem = $j(linksListHtml);
 
     var linksListDelCtrl = this.buildSimpleElem.deleteKeyControl(editLinksListItem, linksListItemId);
     
@@ -561,14 +561,14 @@ function Joha(){
     
     
     editLinksListItem.hide();
-    var wrLinksListItem = jQuery('<div class=\"link_edit_toggle_div\" />');
+    var wrLinksListItem = $j('<div class=\"link_edit_toggle_div\" />');
     wrLinksListItem.append(editLinksListItem);
     wrLinksListItem.append(hyperLink);
     
     editCtlId = linksListItemId + "_editctl"
     editCtlClass = "link_edit_control"
     var editHtml = "<img id=\"" + editCtlId + "\" class=\"" + editCtlClass + "\" src=\"./images/edit.png\" alt=\"-!\" />";
-    var editCtl = jQuery(editHtml);
+    var editCtl = $j(editHtml);
     editCtl.click( function(){
       
       //TODO: Figure out an elegant way to show if there is a pending editing change
@@ -579,7 +579,7 @@ function Joha(){
 
     wrLinksListItem.append(editCtl);
     //Temp
-    wrLinksListItem.append(jQuery("<div />").addClass('clearfix'));
+    wrLinksListItem.append($j("<div />").addClass('clearfix'));
     
     return wrLinksListItem;
   };  
@@ -589,7 +589,7 @@ function Joha(){
     var empty = {};
     var customData = {}
     customData['johaData__Type'] = 'link_ops';  //links is just made up right here
-    customData['johaData__NodeId'] = jQuery("#current_node_id").text();
+    customData['johaData__NodeId'] = $j("#current_node_id").text();
     customData['johaData__FieldIndex'] = 'links';
     
     var linkFieldName = "links";
@@ -601,7 +601,7 @@ function Joha(){
     var linksListClass = "links_list";
     
     var linksListHtml = "<div id=\"" + linksListId + "\"class=\"" + linksListClass + "\"></div>"
-    var linksListEl = jQuery(linksListHtml);
+    var linksListEl = $j(linksListHtml);
     var linkFieldNameEl = this.buildFieldNameElem(linkFieldName);
     linksListEl.append(linkFieldNameEl);
     
@@ -645,11 +645,11 @@ function Joha(){
     
     var johaId = nodeId + "_" + fieldIndex;
     
-    var fieldValueContainer = jQuery('<div />', {
+    var fieldValueContainer = $j('<div />', {
       'class': "joha_field_value_container",
       'id': johaId + '_valuecontainer',
     });
-    //fieldValueContainer.append(jQuery('<div> dummy field values </div>'));
+    //fieldValueContainer.append($j('<div> dummy field values </div>'));
     //return fieldValueContainer
 
     var domObj = null;
@@ -658,7 +658,7 @@ function Joha(){
       alert('static_ops not implemented yet');
     } else if (dataType == "replace_ops") {
       domObj = this.buildSimpleElem.editValueElement(fieldValues, johaId, customData);
-      //jlog('Node Label', jQuery('#joha-edit-label--').data() )
+      //jlog('Node Label', $j('#joha-edit-label--').data() )
     } else if (dataType == "list_ops") {
       //domObj = new BuildListDom( fieldData, johaId);
       domObj = this.buildList(fieldValues, johaId, customData);
@@ -670,7 +670,7 @@ function Joha(){
     } else {
       //returns empty container if we don't know how to build the container
       //the caller should then build the underlying container (i.e. Links List)
-      domObj = jQuery("");
+      domObj = $j("");
 
     }
     
@@ -683,7 +683,7 @@ function Joha(){
   };
   
   this.buildFieldNameElem = function(fieldName){
-    var fieldNameEl = jQuery('<div />', {
+    var fieldNameEl = $j('<div />', {
       text: fieldName,
       'class': "joha_field_name",
     });
@@ -693,7 +693,7 @@ function Joha(){
   this.buildFieldDataDom = function(fieldData, customData){
     var fieldName = get_keys(fieldData)[0];
     customData['johaData__FieldName'] = fieldName;
-    var dummyFieldDataDom = jQuery('<div />');
+    var dummyFieldDataDom = $j('<div />');
     var dummyFieldValueEl = this.buildFieldValueElem(fieldData[fieldName], customData);
     var dummyFieldNameEl = this.buildFieldNameElem(fieldName);
     dummyFieldDataDom.append(dummyFieldNameEl);
@@ -767,8 +767,8 @@ var johaPats = new function() {
               
       
       //NOTE: The control must have an id due to some limitations with .live
-      jctlId = jQuery(controlElement).attr('id');
-      jQuery("#"+jctlId).live(ev, actionObj, eventActions[ev]);
+      jctlId = $j(controlElement).attr('id');
+      $j("#"+jctlId).live(ev, actionObj, eventActions[ev]);
       
     }
     //removing jctl will remove attached event as well (yay! for jQuery!)
@@ -863,12 +863,58 @@ function domNodeFactory(nodeData, specialTreatment, dataDef, reqDataToShow){
     domStack.push( domFieldFactory(dataDef[key], fieldData, johaBuilder, JOHA_ID) );
   }
   
-  nodeDomObj = jQuery('<div />');
+
+  
+  var nodeDomObj = $j('<div />', {
+    id: "dn_node_data_children"
+  });
+  //var nodeDomObj = $j('#dn_node_data');  <- This is a better approach but breaks things
   for (el in domStack) {
     nodeDomObj.append(domStack[el])
   }
-  //nodeDomObj = //new BuildNodeEditDom(JOHA_ID, nodeData.id, domStack);
+  
+  //Add the ability to add fields
+  var label = $j("<label>Add New Data Field</label>")
+  var select = $j('<select id="add_field_combobox"></select>')
+  var addNewFieldDom = $j('<div />')
+    .addClass('ui-widget')
+    .append(label)
+    .append(select);
+
+  
+
+  
+  nodeDomObj.append(addNewFieldDom);
+  
   jlog("final nodeDomObj", nodeDomObj);
   return nodeDomObj;
 }
 
+ //jquery ui combobox code
+ //(function( $j ) {
+
+ function updateComboBoxList(el, list){
+
+  var existingKeys = $j('.joha_field_name', $j('#dn_node_data') ).map(function(){
+    return $j(this).text();
+  }).get();
+  
+  existingKeys.push("attached_files");
+  existingKeys.push("links");
+  existingKeys.push("label");
+  existingKeys.push("id");
+
+  console.log(existingKeys);
+  for (var i=0; i<existingKeys.length; i++){
+    //alert(exceptForKeys[i]);
+    delete list[existingKeys[i]]
+  }
+  
+  el.append("<option value=\"\">Select one...</option>");
+  for (var key in list) {
+    html = "<option value=\"" + key + "\">" + key + "</option>";
+    el.append(html)
+  };
+  el.append("<option value=\"custom_name\">Custom field name</option");
+ 
+ }
