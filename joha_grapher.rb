@@ -147,7 +147,9 @@ helpers do
     end
 
   jm.refresh
-  return jm.tree_graph(node_id)
+  top_node = session[:top_node]
+
+  return jm.tree_graph(top_node)
   end
 end
 
@@ -202,11 +204,20 @@ get "/user/:username" do |username|
       redirect "/user/#{username}/select_domain"
   end
   
+end 
+
+
+get '/redirect_to_graphs' do
+  token = session[:token]
+  username = @@authed.key(token)
+  joha_class_name = session[:current_joha_class]
+  redirect "/user/#{username}/graph/#{joha_class_name}"  
 end
 
 get '/user/*/graph/*' do
   username = params[:splat][0]
   joha_class_name = params[:splat][1]
+  session[:current_joha_class] = joha_class_name
   token = session[:token]
   #list avaialbe classes, go to next if only on class
   #username = session[:username]
@@ -287,10 +298,16 @@ post '/create_node' do
   #top_node_id = node.id
   
   @jm.refresh
-
+  
+  top_node = session[:top_node]
+  #TODO: Fix the jsivt grapher and/or model so we don't have this mess
+  #SO ugly my eyes burn
+  ruby_graph = JSON.parse(@jm.tree_graph(top_node))
+  
   ret_val = { :node => node_data,
-                    :graph => @jm.tree_graph(node_id)
+                    :graph => ruby_graph
                 }
+  p ret_val[:graph]
   ret_json = ret_val.to_json
   content_type :json
   return ret_json
@@ -315,6 +332,7 @@ post '/node_data_update' do
  
   node_id = params.keys.first
   field_names = params[node_id].keys
+  current_root_node_id = params[:root]
   
   #a null (from javascript) is sneaking in
   field_names.map!{|f| f=="null" ? nil : f}
@@ -423,6 +441,11 @@ post '/delete_node' do
   joha_class_name = session[:joha_class_name]
   jm = @@session[token][joha_class_name]
   jm.destroy_node(node_id)
+  jm.refresh
+  top_node = session[:top_node]
+  new_graph = jm.tree_graph(top_node)
+  content_type :json
+  return new_graph
   #Not sure what to return
   #Probably a new graph, but that requires a bug fix first
 end

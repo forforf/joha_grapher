@@ -118,6 +118,18 @@ function syncJax(srcUrl) {
 //including onChange
 function set_up_onClicks() {
 
+  $j('#rotate_test').click(function(){
+    var theta = Math.PI/2;
+    johaGraph.myGraph.graph.eachNode(function(n) { 
+      var p = n.getPos('current'); 
+      p.theta += theta; 
+      if (p.theta < 0) { 
+        p.theta += Math.PI * 2; 
+      } 
+    }); 
+   johaGraph.myGraph.plot(); 
+    });
+
   //Create Node
   $j('#create_node').click(function(){
     var nodeId = $j('#create_node_id').val();
@@ -139,13 +151,13 @@ function set_up_onClicks() {
     };
     jQuery.post("./create_node", node_data,
       function(data){
-        alert('create node post succeeded');
+        //alert('create node post succeeded');
         var node = {};
         console.log(data);
         var graph = data.graph
         var node_data = data.node;
-        
-        show_edit_node_form({data: node_data});
+        newNodeCreated(data)
+        //show_edit_node_form({data: node_data});
       }, "json");
       //data type goes here, i.e., ,"json"
     //);
@@ -220,6 +232,8 @@ function set_up_onClicks() {
       },
     "json");
   });
+  
+
   //Set up editing in place (JQuery plugin Jeditable)
   //-- wrap it in .live so that future elements can use it
 
@@ -244,6 +258,7 @@ function set_up_onClicks() {
   //ToDo: I think regular old bind/click will work here
   //Collect updated data when user selects to save the node data
   $j('#save_node_data').live('click', function(event) {
+    
     var all_edits = {};
     fieldValueData = $j('.joha_field_value_container').map(function(){ return $j(this).data();}).get();
     jlog('all field value containers data', fieldValueData);
@@ -292,9 +307,9 @@ function set_up_onClicks() {
     if (objSize(saveObj) > 0){
       jQuery.post("./node_data_update", saveObj,
         function(data){
-          jlog("returned graph data", data);
-          jlog("joha myGraph", johaGraph.myGraph);
-          alert("loading new JSON");
+          //jlog("returned graph data", data);
+          //jlog("joha myGraph", johaGraph.myGraph);
+          //alert("loading new JSON");
           //console.log(johaGraph.myGraph.toJSON());
           //johaGraph.myGraph.op.morph(data, {
           //  type: 'fade',
@@ -304,7 +319,8 @@ function set_up_onClicks() {
           //jlog('indexed new data', johaIndex(data));
           johaGraph.myGraph.loadJSON(data); 
           johaGraph.myGraph.refresh();
-          console.log(johaGraph.myGraph.toJSON());
+          actLikeNodeClicked(currentNodeId);
+          //console.log(johaGraph.myGraph.toJSON());
         },
         "json");
     } 
@@ -346,6 +362,54 @@ function set_up_onClicks() {
   //  var initialNodeData = {id: nodeId, label: nodeLabel, parents: nodeParents};
   //  console.log(initialNodeData);
   //});
+}
+
+
+function newNodeCreated(data){
+  var nodeData = data.node;
+  var graphData = data.graph;
+  console.log(nodeData);
+  //console.log(graphData);
+  //TODO: See if there maybe an more elegant way of seeing if node is attached to graph
+  //comparing root nodes??, leveraging server side information when node is created?
+  var nodeId = nodeData.id;
+  var parentsIds = nodeData.parents;
+  //Do parents exist in graph?
+  for (var i=0;i<parentsIds.length;i++) {
+    var parentId = parentsIds[i];
+    node_in_graph = johaGraph.myGraph.graph.getNode(parentId);
+    if (node_in_graph) {
+      johaGraph.myGraph.loadJSON(graphData); 
+      johaGraph.myGraph.refresh();
+      actLikeNodeClicked(nodeId);
+    } else {
+      
+        var msg = "The new node (" + nodeId + ") is not linked to this graph.  "
+        msg += "You can stay on this graph, or go to the graph select screen to select the graph with the new node";
+        var unlinkedNodeDialog = $j('<div />')
+      .html(msg)
+      .dialog({
+        autoOpen: false,
+        title: 'Unlink Node Created',
+        buttons: [
+          {
+            text: "Stay",
+            click: function() {$j(this).dialog("close"); }
+          },
+          { text: "Choose Graph",
+            click: function() {window.location = "/redirect_to_graphs";}
+          }
+        ]
+      });
+      
+    
+      
+    //open dialog
+    unlinkedNodeDialog.dialog('open');
+    }
+  }
+  
+  //show_edit_node_form(nodeData);
 }
 
 function initializeGraph(){
@@ -416,7 +480,14 @@ function generateCreateNode(){
 function deleteNode(nodeId){
   jQuery.post("./delete_node", {node_id: nodeId},
         function(data){
-          alert("node deleted")
+          alert("node deleted");
+          console.log(data);
+          if (data.lenth>0){
+            johaGraph.myGraph.loadJSON(data); 
+            johaGraph.myGraph.refresh();
+          } else {
+            window.location = "/redirect_to_graphs";
+          }
         });
 }
 //-- handle updating data
@@ -711,7 +782,9 @@ function figureOutDataOps(rawData, opType, op) {
 //-- Transform data collected from DOM to more suitable for server
 //function johaMake
 function johaSaveDataFix(nodeId, domSaveObj) {
-
+  var currentRoot = johaGraph.myGraph.json.data.id;
+  console.log(johaGraph.myGraph.json);
+  alert('current root: ' + currentRoot);
   
   //TODO: This approach could use some re-architecting
   //determines where to send the data to format
