@@ -316,7 +316,7 @@ function set_up_onClicks() {
           //  duration: 1500 
           //});
           
-          //jlog('indexed new data', johaIndex(data));
+          johaIndex(data);
           johaGraph.myGraph.loadJSON(data); 
           johaGraph.myGraph.refresh();
           actLikeNodeClicked(currentNodeId);
@@ -379,6 +379,7 @@ function newNodeCreated(data){
     var parentId = parentsIds[i];
     node_in_graph = johaGraph.myGraph.graph.getNode(parentId);
     if (node_in_graph) {
+      johaIndex(graphData);
       johaGraph.myGraph.loadJSON(graphData); 
       johaGraph.myGraph.refresh();
       actLikeNodeClicked(nodeId);
@@ -483,6 +484,7 @@ function deleteNode(nodeId){
           alert("node deleted");
           console.log(data);
           if (data.lenth>0){
+            johaIndex(data);
             johaGraph.myGraph.loadJSON(data); 
             johaGraph.myGraph.refresh();
           } else {
@@ -694,6 +696,7 @@ function indexData(treeData, indexedSet){
 function setFinder() {
 		var nodes = johaNodeData;
     var names = get_keys(nodes);
+    alert('setting node finder');
     jlog('Node Names', names);
 		$j( "#node-finder-textbox" ).autocomplete({
 			source: names
@@ -986,6 +989,7 @@ function insertNodesIntoGraph(aGraph, nodeLoc){
   jQuery.get(nodeLoc,
     function(graph_data) {
       console.log(graph_data);
+      johaIndex(graph_data);
       aGraph.loadJSON(graph_data);
   
       aGraph.refresh();
