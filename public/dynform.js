@@ -705,6 +705,7 @@ function Joha(){
     var fieldName = get_keys(fieldData)[0];
     customData['johaData__FieldName'] = fieldName;
     var dummyFieldDataDom = $j('<div />');
+    dummyFieldDataDom.addClass('node_field_data');
     var dummyFieldValueEl = this.buildFieldValueElem(fieldData[fieldName], customData);
     var dummyFieldNameEl = this.buildFieldNameElem(fieldName);
     dummyFieldDataDom.append(dummyFieldNameEl);
@@ -832,7 +833,8 @@ function domNodeFactory(nodeData, specialTreatment, dataDef, reqDataToShow){
 
   //make a copy so we don't munge user data
   //TODO: I think we've already done this
-  var nodeCopy = jQuery.extend({}, nodeData);
+  //TODO: Do the copy here, at the top, remove other nodeCopy
+  var nodeCopy = jQuery.extend(true, {}, nodeData);
   
   var nodeId = nodeCopy.id;
 
@@ -847,13 +849,16 @@ function domNodeFactory(nodeData, specialTreatment, dataDef, reqDataToShow){
   var johaBuilder = new Joha;
 
 
-  var fieldIndex = 0
+  var fieldIndex = 0;
+  console.log('before creating dyn data', nodeCopy);
+  console.log('dataDef', dataDef);
   for (key in nodeCopy) { 
     //if our data defintion exists for that key, use the appropriate function for displaying it
-    
+    console.log('Data Def by Key', key, dataDef[key]);
     if (dataDef[key] ) {
       var fieldData = {};
       fieldData[key] = nodeCopy[key];
+      console.log('FieldData', fieldData);
       var fieldDom = domFieldFactory(dataDef[key], fieldData, JOHA_ID, johaBuilder, nodeId, fieldIndex)
       //domStack.push( domFieldFactory(dataDef[key], fieldData, JOHA_ID, johaBuilder, nodeId) );
       domStack.push(fieldDom);
@@ -871,9 +876,10 @@ function domNodeFactory(nodeData, specialTreatment, dataDef, reqDataToShow){
     var dataType = dataDef[key];
     var fieldData = {};
     fieldData[key] = "";
-    domStack.push( domFieldFactory(dataDef[key], fieldData, johaBuilder, JOHA_ID) );
+    var domFieldEl = domFieldFactory(dataDef[key], fieldData, johaBuilder, JOHA_ID)
+    domStack.push( domFieldEl );
   }
-  
+  console.log('dom stack', domStack);
 
   
   var nodeDomObj = $j('<div />', {

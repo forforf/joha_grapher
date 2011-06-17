@@ -1,3 +1,15 @@
+/* Based on Kuler Theme purple steel */
+  /* Light to Dark */
+    /*
+        #e3dfff - almost white
+        #ccc9e5 - very light gray
+        #aaa7bf - light gray
+        #716f7f - mid gray
+        #393840 - dark gray
+        #3d195e - dark splash dark with hints of purple and blue (subdued splash)
+        #31396a - medium splash
+        #008ce0 - bright splash (very active)
+    */
 
 html, body {
     margin:0;
@@ -28,7 +40,6 @@ html, body {
 	height: 24px;
 	color: White;
 	font-size: 12pt;
-	font-weight: 200;
 	padding: 8px 8px 8px 150px;
   text-align: left;
 }
@@ -38,6 +49,11 @@ html, body {
   position: relative;
   top: 4px;
   vertical-align: middle;
+}
+
+h1 {
+  font-size: 12pt;
+  font-weight: 700;
 }
 
 /* jit2 base.css */
@@ -62,95 +78,24 @@ a {
     color:#23A4FF;
 }
 
-#container {
-    width: 1000px;
-    height: 600px;
-    margin:0 auto;
-    position:relative;
-}
 
-#left-container, 
-#right-container, 
-#center-container {
-    height:600px;
-    position:absolute;
-    top:0;
+.node_forms {
+    border-top-style:solid;
+    background-color: #ccc9e5;
+    margin:5px;
+    padding:5px;
 }
-
-#left-container, #right-container {
-    width:200px;
-    color:#686c70;
-    text-align: left;
-    overflow: auto;
-    background-color:#fff;
-    background-repeat:no-repeat;
-    border-bottom:1px solid #ddd;
-}
-
-#left-container {
-    left:0;
-    background-image:url('col2.png');
-    background-position:center right;
-    border-left:1px solid #ddd;
-    
-}
-
-#right-container {
-    right:0;
-    background-image:url('col1.png');
-    background-position:center left;
-    border-right:1px solid #ddd;
-}
-
-#right-container h4{
-    text-indent:8px;
-}
-
-#center-container {
-    width:600px;
-    left:200px;
-    background-color:#1a1a1a;
-    color:#ccc;
-}
-
 .text {
     margin: 7px;
 }
 
+
+/* Used anymore?*/
 #inner-details {
     font-size:0.8em;
     list-style:none;
     margin:7px;
 }
-
-#log {
-    position:absolute;
-    top:10px;
-    font-size:1.0em;
-    font-weight:bold;
-    color:#23A4FF;
-}
-
-
-#infovis {
-    position:relative;
-    width:600px;
-    height:600px;
-    margin:auto;
-    overflow:hidden;
-}
-
-/* Graph Visualization node class */
-.node:hover { 
-  cursor:pointer; 
-  color: #222; 
-  background-color:white;
-  font-weight:bold;
-  opacity:1;
-  position:absolute;
-  z-index: 2;
-  
-} 
 
 /*TOOLTIPS*/
 .tip {
@@ -203,30 +148,54 @@ textarea#related_tags_edit {
     width:330px;
 }
 
+
+
+/*JSIVT log*/
+#log {
+    position:absolute;
+    top:10px;
+    font-size:1.0em;
+    font-weight:bold;
+    color:#23A4FF;
+}
+
+
+#infovis {
+    position:relative;
+    width:600px;
+    height:600px;
+    margin:auto;
+    overflow:hidden;
+}
+
 #infovis-bkcanvas {
     background-color: #303045;
 }
 
-#container {
-    width: 1400px;
-    height: 700px;
-    margin:0 auto;
-    position:relative;
-}
+
+/* Graph Visualization node class */
+.node:hover { 
+  cursor:pointer; 
+  color: #222; 
+  background-color:white;
+  font-weight:bold;
+  opacity:1;
+  position:absolute;
+  z-index: 2; 
+} 
 
 #left-container, 
 #right-container, 
 #center-container {
-    overflow: auto;
-    width: 500px;
     height:700px;
-    /*
     position:absolute;
     top:0;
-    */
+    overflow: auto;
+    width: 500px;
 }
 
-#left-container,#right-container {
+#left-container, #right-container {
+    width:200px;
     color:#686c70;
     text-align: left;
     overflow: auto;
@@ -236,31 +205,34 @@ textarea#related_tags_edit {
 }
 
 #left-container {
+    background-position: center right;
+    border-left: 1px solid #ddd;
+    left: 0;
     position: relative;
     overflow: visible;
     width: 200px;
-    left: 0;
-    background-position: center right;
-    border-left: 1px solid #ddd;
     z-index: 1;
 }
 
 #right-container {
-    width:400px;
-    right:0;
     background-position:center left;
     border-right:1px solid #ddd;
-}
-
-#right-container h4{
-    text-indent:8px;
+    right:0;    
+    width:400px;
 }
 
 #center-container {
-    width:900px;
-    left: 200px;
-    background-color:#1a1a1a;
+    background-color:#393840;
     color:#ccc;
+    left:200px;
+    width:900px;
+}
+
+#container {
+    width: 1400px;
+    height: 700px;
+    margin:0 auto;
+    position:relative;
 }
 
 #infovis {
@@ -272,12 +244,8 @@ textarea#related_tags_edit {
     overflow:hidden;
 }
 
-
 #edit-node-form, #create-node-form {
-    margin:5px;
-    padding:5px;
-    border-top-style:solid;
-    background-color:#F5F5F5;
+
     /*display:none;*/
 }
 
@@ -333,6 +301,78 @@ a.borg_link_text {
   color:#FDD;
 }
 
+
+
+/* Dynamically Appearing Elements */
+.node_field_data {
+    border: solid 1px;
+    margin: 2px;
+}
+
+.node_field_data  .joha_field_name {
+    color: #393840;
+    font-weight: 700;
+}
+
+
+/* edit classes */
+.joha_orig {
+    color: #686c70;
+    font-weight: normal;
+}
+
+/* remove .edit_updated at some point */
+.edit_updated, .joha_update {
+     color: blue;
+     font-weight: bold;
+}
+
+/*remove .edit_new at some point */
+.edit_new, .joha_add {
+     color: green;
+     font-weight: bold;
+}
+
+
+
+
+/* Data Styling */
+span.fixture_text {
+  color: white;
+  background: #889;
+  font-weight: 400;
+  padding: 2px 3px 2px 1px;
+}
+
+span.static_data {
+    background-color: #3d195e;
+    padding: 0px 10px;
+}
+
+span.edit_text {
+    background-color: #31396a;
+}
+span.edit_text:hover {
+    background-color: #008ce0;
+}
+
+/*File Attachments*/
+#file_attachment_list .delete_controls {
+  float: none;
+}
+#pending_file_attachments{
+  clear: both;
+}
+#pending_file_attachments .delete_controls {
+  float: none;
+}
+
+/*Display Node Id*/
+#node_id_tracker {
+  font-size: 120%;
+  font-weight: 500;
+}
+
 #desc-nodes {
     background-color:#DDDDFF;
 }
@@ -353,39 +393,3 @@ a.borg_link_text {
     border-top-width:1px;
     border-bottom-width:2px;
 }
-
-/* Dynamically Appearing Elements */
-/* edit classes */
-.joha_orig {
-    color: #686c70;
-    font-weight: normal;
-}
-
-/* remove .edit_updated at some point */
-.edit_updated, .joha_update {
-     color: blue;
-     font-weight: bold;
-}
-
-/*remove .edit_new at some point */
-.edit_new, .joha_add {
-     color: green;
-     font-weight: bold;
-}
-
-/*File Attachments*/
-#file_attachment_list .delete_controls {
-  float: none;
-}
-#pending_file_attachments{
-  clear: both;
-}
-#pending_file_attachments .delete_controls {
-  float: none;
-}
-/* Moved to dynform.css and changed to joha_deleted replace delete_show with edit_deleted */
-/*
-.delete_show, .edit_deleted {
-    color: red;
-    text-decoration: line-through;
-} */

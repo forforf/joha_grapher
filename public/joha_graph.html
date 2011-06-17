@@ -34,7 +34,7 @@
 
   <div id="main-header">
     <div id="main-header-wrapper">
-      <div id="main-header-text">Joha  -  Find, Connect, Organize</div>
+      <h1 id="main-header-text">Joha  -  Find, Connect, Organize</h1>
     </div>
   </div>
   <div id="container">
@@ -83,7 +83,7 @@
         <!--End of each accordion item--> 
    
        </div><!--End of accordion parent-->
-      <div id="rotate_test">
+      <div id="rotate_test" class="clickable">
         Rotate Graph 90
       </div>
     </div>
@@ -94,16 +94,16 @@
     </div>
 
     <div id="right-container">
-      <div id="node_id_tracker">
-         Current Node ID: <span id="current_node_id"></span>
-      </div>
       <div id="node-finder">
+        <span class="fixture_text">Find Node</span>
         <input id="node-finder-textbox" name="node-finder-textbox" type="text" />
-        Find Node
       </div>
-      <div id="create-node-form" class="node-forms">
+      <div id="node_id_tracker">
+         <span class="fixture_text">Current Node ID:<span id="current_node_id" class="static_data"></span></span>
+      </div>
+      <div id="create-node-form" class="node_forms">
         <div id="node_creator">
-          Create New Node Form
+          <span class="form_text">Create New Node Form</span>
           <fieldset>
              <legend><small>New Node</small></legend>
             <b>Node ID</b><br/>
@@ -128,11 +128,11 @@
       </div>
 
 
-      <div id="edit-node-form" class="node-forms" style="display:none">
+      <div id="edit-node-form" class="node_forms" style="display:none">
         <div id="node_editor">
           <fieldset>
             <legend>
-              Edit Node: <span id="joha-edit-label--" class="edit"></span>
+              Edit Node: <span id="joha-edit-label--" class="edit static_data"></span>
             </legend>
             <div id="edit-node-data">
               <div id="dynamic_node_data_all">

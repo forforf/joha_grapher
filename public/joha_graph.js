@@ -87,9 +87,11 @@ var johaGraph = {};  //Global graph container
 $j(document).ready(function() {
   //Constants
   JOHA_DATA_DEF = syncJax('/data_definition');
+  //do this to ensure we can't clobber the constant JOHA_DATA_DEF
+  $joha_data_def = function(){ return jQuery.extend(true, {}, JOHA_DATA_DEF); };
   
   //Temporary for Testing
-  JOHA_DATA_DEF['user_data'] = "key_list_ops";
+  $joha_data_def()['user_data'] = "key_list_ops";
     
  
   initializeGraph();
@@ -98,6 +100,8 @@ $j(document).ready(function() {
   
 
 });
+
+
 
 //Initialization Functions  TODO: Change to function form (lowercase underscore)
 //-- Get neccessary server side initialization data
@@ -236,7 +240,6 @@ function set_up_onClicks() {
 
   //Set up editing in place (JQuery plugin Jeditable)
   //-- wrap it in .live so that future elements can use it
-
   //changed 'click' to 'hover' so single click editing works
   $j('.edit').live('hover', function(event) {
 
@@ -499,7 +502,7 @@ function updateJeditElement(el, value, settings){
   
   thisEl.data("johaData__UpdatedValue", value);
 
-  thisEl.addClass('joha_update');
+  thisEl.addClass('joha_update edit_text');
  
   return value;
 }
@@ -696,7 +699,6 @@ function indexData(treeData, indexedSet){
 function setFinder() {
 		var nodes = johaNodeData;
     var names = get_keys(nodes);
-    alert('setting node finder');
     jlog('Node Names', names);
 		$j( "#node-finder-textbox" ).autocomplete({
 			source: names
@@ -893,7 +895,7 @@ function dynamicEditForm(nodeData){
 
   //create a clone of the node data because we are going to be changing it
   //but only for display reasons
-  var nodeCopy = jQuery.extend({}, nodeData);
+  var nodeCopy = jQuery.extend(true, {}, nodeData);
   //Validation not implemented yet 
   //var nodeKeys = get_keys(nodeCopy);
   //if (array_contains_all(nodeKeys, REQUIRED_DATA)) {} else {
@@ -910,16 +912,19 @@ function dynamicEditForm(nodeData){
   $j('#dn_file_data').empty();
   
   var SHOW_EVEN_IF_NULL = [];//["user_data"];  // show this field in the form even if it doesn't exist in the data
-  var someObj = domNodeFactory(nodeCopy, specialTreatment, JOHA_DATA_DEF, SHOW_EVEN_IF_NULL);
+  console.log('node copy', nodeCopy);
+  console.log('Special Treat', specialTreatment);
+  var joha_data_def = $joha_data_def();
+  var someObj = domNodeFactory(nodeCopy, specialTreatment, joha_data_def, SHOW_EVEN_IF_NULL);
   $j('#dn_node_data').append(someObj);
-  jlog('domObj', someObj);
+  console.log('Dynamically creatted node data obj', someObj);
   
   
   //in dynform.js library
 }
 
 function createNewField(newFieldName) {
-  var newType = JOHA_DATA_DEF[newFieldName];
+  var newType = $joha_data_def()[newFieldName];
   
   var dataValue;
   if (newType === "static_ops" || newType === "replace_ops"){
@@ -956,7 +961,7 @@ function createCommon(newFieldName, newType, dataValue) {
  
     
     var nodeId = $j("#current_node_id").text();
-    console.log($j('#dn_node_data_children'));
+    //console.log($j('#dn_node_data_children'));
     var fieldIndex = $j('#dn_node_data_children').children().length;
 
     var fieldDom = domFieldFactory(newType, fieldData, JOHA_ID, johaBuilder, nodeId, fieldIndex)
@@ -980,7 +985,7 @@ function createLinks(){
 //functions dealing with attached files
 function get_current_node_attachment(filename){
   var currentNodeId = $j('#current_node_id').text();
-  alert("Current Node: " + currentNodeId + " Filename: " + filename + ".");
+  //alert("Current Node: " + currentNodeId + " Filename: " + filename + ".");
 }
     
 //Graphing helpers and interactions
@@ -1018,12 +1023,13 @@ function routeClickedNodeDataToElements(nodeStale) {
   node = $jit.json.getSubtree(johaGraph.myGraph.json, nodeStale.id);  //elements to receive node data
 
   //Need this here for parents that are not nodes
+  //TODO: investigate using $jit to avoid duplication
   $j('#current_node_id').text(node.id);
   
 
   //functions to distribute data to 
   show_edit_node_form(node);
-  console.log(node);
+  console.log("Routing CLicked Node", node);
   //TODO: Make this dynamic based on dataset
   add_descendant_data($j('#desc-nodes'), 'label');
   add_descendant_data($j('#desc-files'), 'attached_files');
@@ -1036,7 +1042,7 @@ function routeClickedNodeDataToElements(nodeStale) {
   //var contextEl = $j('#dn-node-data');
   var select = $j('#add_field_combobox');
   //console.log(contextEl)
-  updateComboBoxList(select, JOHA_DATA_DEF);
+  updateComboBoxList(select, $joha_data_def());
   select.combobox({
     selected: function(event, ui) {
 
