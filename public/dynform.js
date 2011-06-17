@@ -619,15 +619,26 @@ function Joha(){
     //Note that the target (first paramenter of addItemControl) is passed
     //as a parameter to this function
     var addOnClick = function(tgt) {
-      tgtChildren = tgt.children('.links_list_item');
+      console.log('tgt', tgt);
+      console.log('children', tgt.children() );
+      tgtChildren = tgt.children(); //('.links_list_item');
+      
+      //console.log('.links_list_item', $j('.links_list_item'));
+      //$j('.links_list_item').show();
       var newLinksListItem = johaSelf.buildLinksListItem("URL?", "link?", tgtChildren.length, linksListId, linksListData);
       newLinksListItem.addClass('joha_add');
+      console.log('newLinksListItem', newLinksListItem);
       //add joha_add class to list items as well
       //really belongs in the the builder functions of the elements
       newLinksListItem.find('.joha_edit').addClass('joha_add');
       
       newLinksListItem.data(linksListData);  //A bit of a hack to get data into the container
-      tgtChildren.last().after(newLinksListItem);
+
+      //console.log('tgt children', tgtChildren);
+      //console.log('tgt pareent', tgt.parent());
+      ctl = tgt.find('.add_linkslistitem_control')
+      ctl.before(newLinksListItem);
+      
     }
     var addCtl = bldr.addLinksListItemControl(linksFieldValueContainer, linksListId, addOnClick)
     linksFieldValueContainer.append(addCtl);
@@ -894,17 +905,18 @@ function domNodeFactory(nodeData, specialTreatment, dataDef, reqDataToShow){
  //(function( $j ) {
 
  function updateComboBoxList(el, list){
-
-  var existingKeys = $j('.joha_field_name', $j('#dn_node_data') ).map(function(){
+  //identifies any existing fields in use by the node
+  var existingKeys = $j('.joha_field_name', $j('#dynamic_node_data_all') ).map(function(){
     return $j(this).text();
   }).get();
   
-  existingKeys.push("attached_files");
-  existingKeys.push("links");
+  existingKeys.push("attached_files");  //Files have to be added differently
   existingKeys.push("label");
   existingKeys.push("id");
-
+  console.log("Existing Editing Keys");
   console.log(existingKeys);
+  
+  //remove existing keys from the list of what can be added
   for (var i=0; i<existingKeys.length; i++){
     //alert(exceptForKeys[i]);
     delete list[existingKeys[i]]

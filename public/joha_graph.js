@@ -633,7 +633,7 @@ var johaSpecialFunctions = {
 
   edit_link_elements: function(links){
       //TODO Refactor to eliminate the need to figure out element id just so we can delete it
-      var baseId = "joha_node";
+      var baseId = JOHA_ID;
       var elId = baseId + "_links";
       $j(elId).remove();
       var myJoha = new Joha;
@@ -917,43 +917,63 @@ function dynamicEditForm(nodeData){
 
 function createNewField(newFieldName) {
   var newType = JOHA_DATA_DEF[newFieldName];
-  var fieldData = {};
+  
   var dataValue;
   if (newType === "static_ops" || newType === "replace_ops"){
-    alert('Text Based');
-    alert(newType);
+    //alert('Text Based');
+    //alert(newType);
     dataValue = " *new* ";
+    createCommon(newFieldName, newType, dataValue);
   } else if (newType === "list_ops"){
-    alert('List Based')
-    alert(dataValue)
+    //alert('List Based')
+    //alert(dataValue)
+    dataValue = [];
+    createCommon(newType, dataValue);
+    
+  //TODO: Fix so links is its own type
+  } else if (newFieldName === "links"){
+    createLinks();
     dataValue = [];
   } else {
+    alert("something else -  " + newType + ":" + newFieldName);
     dataValue = {};
   }
-  fieldData[newFieldName] = dataValue
+}  
+ 
+function createCommon(newFieldName, newType, dataValue) {
+  var fieldData = {};
+  fieldData[newFieldName] = dataValue;
 
   
-    if (newType) {
-      //alert("Val/Type: " + newVal + " / " + newType);
-      //TODO: DRY THIS UP to be identical (not copied) to creating from node data
-      
-      var johaBuilder = new Joha;
-   
-      
-      var nodeId = $j("#current_node_id").text();
-      console.log($j('#dn_node_data_children'));
-      var fieldIndex = $j('#dn_node_data_children').children().length;
+  if (newType) {
+    //alert("Val/Type: " + newVal + " / " + newType);
+    //TODO: DRY THIS UP to be identical (not copied) to creating from node data
+    
+    var johaBuilder = new Joha;
+ 
+    
+    var nodeId = $j("#current_node_id").text();
+    console.log($j('#dn_node_data_children'));
+    var fieldIndex = $j('#dn_node_data_children').children().length;
 
-      var fieldDom = domFieldFactory(newType, fieldData, JOHA_ID, johaBuilder, nodeId, fieldIndex)
-      fieldDom.addClass('new_field');
-      console.log("New Field Created");
-      console.log(fieldDom);
-      $j('#dn_node_data_children').append(fieldDom);
-    } else {
-      alert( "Choose a Type for " + newFieldName );
-    }
+    var fieldDom = domFieldFactory(newType, fieldData, JOHA_ID, johaBuilder, nodeId, fieldIndex)
+    fieldDom.addClass('new_field');
+    console.log("New Field Created");
+    console.log(fieldDom);
+    $j('#dn_node_data_children').append(fieldDom);
+  } else {
+    alert( "Choose a Type for " + newFieldName );
+  }
+  //setTimeout(function(){$j('#add_field_combobox').next().blur();},2);
 }
 
+function createLinks(){
+  var elId = JOHA_ID + "_links";
+  var myJoha = new Joha;
+  var myLinksEl = myJoha.buildLinksList({}, elId, {})
+  console.log(myLinksEl);
+  $j('#dn_link_data').append(myLinksEl);
+}
 //functions dealing with attached files
 function get_current_node_attachment(filename){
   var currentNodeId = $j('#current_node_id').text();
@@ -1019,7 +1039,6 @@ function routeClickedNodeDataToElements(nodeStale) {
       //console.log(event);
       //console.log(ui);
       createNewField(ui.item.text);
-      //alert(ui.item.text);
     }
   });
 } 
