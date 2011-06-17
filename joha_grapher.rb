@@ -20,13 +20,10 @@ helpers do
   end
 
   def authorized?(creds)
-    #@auth ||=  Rack::Auth::Basic::Request.new(request.env)
-    #@auth.provided? && @auth.basic? && @auth.credentials && @auth.credentials == ['admin', 'admin']
     check_auth(creds)
   end
 
   def check_auth(auth)
-    #auth.provided? && auth.basic? && check_credentials(auth.credentials)
     check_credentials(auth)
   end
 
@@ -37,7 +34,7 @@ helpers do
     valid = ok_user1 || ok_user2
   end
   
-  #move to model
+  #TODO: move to model
   def update_node(jm, node_ops)
     node_id = nil
     tk_class = jm.tinkit_class
@@ -51,8 +48,6 @@ helpers do
     new_link_data = {}
     kvlist_data_holder = nil #{:orig_data => {}, :new_data => {}}
     new_kvlist_data = {}
-    #require 'pp'
-    #pp node_op_data
     combined_ops = []
     node_ops.each do |node_op_data|
       op_type = node_op_data[:op_type]
@@ -94,17 +89,6 @@ helpers do
       end
     end
 
-    require 'pp'
-    pp link_data_holder
-    puts
-    pp combined_ops
-    puts
-    #pp node_ops
-    puts "Node Ops Size Going In: #{node_ops.size}"
-    #node_ops.uniq!
-    puts "Node Ops Size Coming Out: #{combined_ops.size}" 
-    #puts
-    #pp node_ops
         
     combined_ops.each do |ops|
     
@@ -116,23 +100,19 @@ helpers do
       orig_data = ops[:orig_data]
       
       op = ops[:op]
-      puts "Op: #{op}"
       case op
         when "add"
-          puts "adding #{new_data} to field: #{field} for node: #{node_id}"
           #jm.add_item(node_id, field, 
           tk_meth = "#{field}_#{op}"
           tk_data = new_data
           tk_node.__send__(tk_meth.to_sym, tk_data)
           
         when "subtract"
-          puts "deleting #{orig_data} of field: #{field} of node: #{node_id}"
           tk_meth = "#{field}_#{op}"
           tk_data = orig_data
           tk_node.__send__(tk_meth.to_sym, tk_data)
         
         when "replace"
-          puts "replacing #{orig_data} with #{new_data} of field: #{field} of node: #{node_id}"
           tk_subtract = "#{field}_subtract"
           tk_subtract_data = orig_data
           tk_node.__send__(tk_subtract.to_sym, tk_subtract_data)
@@ -154,9 +134,9 @@ helpers do
 end
 
 
-#T)s scale just limit the size of this cache
+#To scale just limit the size of this cache
 #its only kept in memory to prevent repeated 
-#u nnecessaryinstantiations
+#unnecessaryinstantiations
 #the data should be in sync with the persistent store
 
 #TestClass = "JohaTestClass"
@@ -219,7 +199,7 @@ get '/user/*/graph/*' do
   joha_class_name = params[:splat][1]
   session[:current_joha_class] = joha_class_name
   token = session[:token]
-  #list avaialbe classes, go to next if only on class
+  #list avaialbe classes, go to next if only one class
   #username = session[:username]
   #@jm = JohaModel.new(TestClass, username)
   @jm = @@session[token][joha_class_name]#TODO or make new 
@@ -295,13 +275,11 @@ post '/create_node' do
   
   
   @jm.create_node(node_data)
-  #top_node_id = node.id
-  
   @jm.refresh
   
   top_node = session[:top_node]
   #TODO: Fix the jsivt grapher and/or model so we don't have this mess
-  #SO ugly my eyes burn
+  #SO ugly my eyes burn (we're changing JSON to ruby to change back to JSON)
   ruby_graph = JSON.parse(@jm.tree_graph(top_node))
   
   ret_val = { :node => node_data,
@@ -313,7 +291,7 @@ post '/create_node' do
   return ret_json
 end
 
-#TODO: Need to figure this out better (is it add, update, all at once, one at a time, etc)
+#TODO: See if this can be simplified
 post '/node_data_update' do
   
   token = session[:token]
@@ -343,7 +321,6 @@ post '/node_data_update' do
     
     pre_field_ops = params[node_id][field][op_list_key]
     op_type = params[node_id][field][op_type_key]
-    #For some reason the JSON array is parsed as a ruby hash
 
     pre_field_ops.each do |op_idx, op|
       actions = op.keys
@@ -364,9 +341,6 @@ post '/node_data_update' do
   new_graph =  update_node(@jm, tinkit_ops)
   content_type :json
   return new_graph
-  #require 'pp'
-  #pp tinkit_ops
-
 end
 
 
@@ -423,13 +397,12 @@ post '/delete_files' do
   jm = @@session[token][joha_class_name]
 
   if delete_files && delete_files.size > 0
-    #TODO: Update Model (jm) rather than pass through directly
+    #TODO: Update Model (jm) rather than pass through to tinkit directly
     tk_class = jm.tinkit_class
     tk_node = tk_class.get(node_id)
     tk_node.files_subtract(delete_files)
   end
   remaining_files = jm.list_attachments(node_id)
-  p remaining_files
   content_type :json
   return remaining_files.to_json
 end
@@ -446,6 +419,4 @@ post '/delete_node' do
   new_graph = jm.tree_graph(top_node)
   content_type :json
   return new_graph
-  #Not sure what to return
-  #Probably a new graph, but that requires a bug fix first
 end
