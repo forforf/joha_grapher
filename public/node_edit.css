@@ -1,0 +1,244 @@
+
+/* TODOs
+  Put field labels in a span so they can be styled to match the field data styling
+  Change controls from img tag to use classes and css (and jquery ui)
+  Add spans for text (add new item) and control for adding new items
+  Fix #dn_file_data div so that it surrounds file data content
+  Add joha_field_value_container to files section
+  Span actionable text
+  Add node actions div
+*/
+
+.ui-icon { /* Fix jquery ui icons so they can display inline */
+  display: inline-block;
+}
+
+body {
+  font-family: Trebuchet MS, Helvetica, Arial, sans-serif;
+}
+
+#current_node_id {
+  border-style: solid solid none solid;
+  border-width: 3px;
+  border-color: 686c70;
+  background-color: #ccc9e5;
+  font-color: #4b4843;
+  font-size: 1.2em;
+  font-weight: 600;
+  padding: 0em 0.25em 0.45em 0.25em;
+}
+
+#node_editor {
+  background-color: #e8e6ed;
+  padding: 0.25em 0em 0em 0em;
+}
+
+.new_field { /* User added fields and data, but not yet saved */
+  background-color: #d7e8f1;
+  border-color: #7292a5;
+  border-style: solid;
+  border-radius: 4px;
+  border-width: 1px;
+  padding: 0.2em 0.3em 0.3em 0.3em;
+}
+
+/* Styling Dynamic Data Types */
+.joha_field_value_container, .joha_edit { /* containers holding dynamic labels, data and controls */
+  background-color: #f3eded;
+  border-color: #8b857c;
+  border-radius: 0px 0.3em 0.3em 0.3em;
+  border-style: solid;
+  border-width: 1px;
+  margin: 0em 0em 0.3em 0em;
+  padding: 0.1em 0.3em;
+}  
+
+.new_field .joha_field_value_container {
+  background-color: #e2f4fe;
+  border-color: #7292a5; 
+}
+
+
+.joha_field_name, .joha_edit, .control_text, #dn_file_data {
+  font-size: 80%;
+}
+
+#dn_file_data {
+  margin: 0.6em 0em 0em 0em;
+}
+
+.joha_field_name {
+  padding: 0.5em 0em 0em 0em;
+}
+
+.node_label {
+  font-size: 100%;
+}
+
+/* TODO  Make joha field name invisible to user
+   and create a more user frienly field label
+   (see #dn_file_data for static implementation) */
+.joha_field_name,
+.node_field_user_label  {
+  background-color: #f3eded;
+  border-color: #8b857c;
+  border-top-left-radius: 0.3em;
+  border-top-right-radius: 0.3em;
+  border-style: solid solid none solid;
+  border-width: 1px;
+  padding: 0em 0.5em 0.1em 0.5em;
+}
+
+.new_field  .joha_field_name {
+  background-color: #e2f4fe;
+}
+
+.links_list {
+  padding: 0.3em 0em 0em 0em;
+}
+
+.links_list  .joha_field_name {
+  background-color: #e3dddd;
+}
+
+.links_list  .joha_field_value_container {
+  background-color: #e3dddd;
+  border-color: #8b857c; 
+}
+
+#dn_file_data  .node_field_user_label  {
+  background-color: #d6b2c2;
+  border-color: #8b857c;
+}
+
+#dn_file_data  .joha_field_value_container {
+  background-color: #d6b2c2;
+  border-color: #8b857c;
+}
+
+/* Specific editable values */
+.joha_edit { 
+  background-color: #f9f5f5;
+  border-radius: 0.3em;
+  display: inline-block;
+  margin: 0em 0em 0.2em 0em;
+  min-width: 0.8em;
+}
+.joha_edit:hover {
+  background-color: #ffffbb;
+}
+
+.list {
+ padding: 0;
+}
+
+.list_item_wrapper {
+  position: relative;
+  background: green;
+  display: inline;
+}
+
+
+.list_item_wrapper>.edit_text {
+  float: left;
+  min-width: 10px;
+}
+
+.list_item_wrapper>.delete_controls {
+  float: left;
+}
+
+.add_item_control {
+}
+
+.add_item_control_ctl, .add_item_control_text {
+  display: inline-block;
+  float: left;
+}
+
+.add_item_control_text {
+  font-size: 80%;
+}
+
+.item_delete_control {
+  float: left;
+  position:relative;
+  left: -0.4em;
+  top: -0.3em;
+}
+
+.node_actions {
+  font-size: 80%;
+}
+
+.float_left {
+  float: left;
+}
+
+.float_right {
+  float: right;
+}
+
+.float_clear {
+  clear: both;
+}
+
+.actionable {
+  display: inline-block;
+  margin: 0.2em 0.2em;
+  padding: 0em 0.5em;
+}
+
+.action_gradient {
+  background-color: #e8e6ed;
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#eeeeff', endColorstr='#d8cec0'); /* for IE */
+  background: -webkit-gradient(linear, left top, left bottom, from(#eeeeff), to(#d8cec0)); /* for webkit browsers */
+  background: -moz-linear-gradient(top,  #ffffff,  #d8cdc0); /*moz browsers*/
+  border-color: #999999;
+  border-style: outset;
+  border-radius: 0.4em;
+}
+
+div .action_gradient:hover {
+  background-color: #c8c6cd;
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#c8c6cd', endColorstr='#ddddee'); /* for IE */
+  background: -webkit-gradient(linear, left top, left bottom, from(#c8c6cd), to(#ddddee)); /* for webkit browsers */
+  background: -moz-linear-gradient(top,  #c8c6cd,  #ddddee); /*moz browsers*/
+  border-color: #999999;
+}
+
+
+.action_gradient_pressed {
+  background-color: #d8cdc0;
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#d8cec0', endColorstr='#eeeeff'); /* for IE */
+  background: -webkit-gradient(linear, left top, left bottom, from(#d8cec0), to(#eeeeff)); /* for webkit browsers */
+  background: -moz-linear-gradient(top,  #d8cec0,  #eeeeff); /*moz browsers*/
+  border-color: #999999;
+  border-style: inset;
+}
+
+/* edit classes */
+.joha_orig {
+    color: #686c70;
+    font-weight: normal;
+}
+
+/* remove .edit_updated at some point */
+.edit_updated, .joha_update {
+     color: blue;
+     background-color: #aaaadd;
+     font-weight: 700;
+}
+
+/*remove .edit_new at some point */
+.edit_new, .joha_add {
+     color: green;
+     background-color: #aaddaa;
+     font-weight: 700;
+}
+
+.joha_delete {
+    color: red;
+    text-decoration: line-through;
+}
+

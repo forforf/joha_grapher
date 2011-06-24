@@ -1,0 +1,6 @@
+<div> Choose the Domain to operate in </div>
+<ul>
+<% @joha_classes.each do |class_name, data|%>
+  <li><%= "<a href=\"#{@base_domain_url}/#{class_name}\">#{class_name}</a> owner: #{data[:owner]}"%></li>
+<% end %>
+</ul>

@@ -245,7 +245,7 @@ function set_up_onClicks() {
 
     event.preventDefault();
 
-    jlog("click event", event);
+    console.log("click event", event);
 
     //call the updateJeditElement function when an item is edited in place
     $j(this).editable( function(value, settings){
@@ -264,7 +264,7 @@ function set_up_onClicks() {
     
     var all_edits = {};
     fieldValueData = $j('.joha_field_value_container').map(function(){ return $j(this).data();}).get();
-    jlog('all field value containers data', fieldValueData);
+    console.log('all field value containers data', fieldValueData);
 
     
     //This is fairly elegant (but belongs somewhere else to be called by here)
@@ -303,8 +303,8 @@ function set_up_onClicks() {
     var currentNodeId = $j('#current_node_id').text();
     saveObj = johaSaveDataFix(currentNodeId, all_edits);
     
-    jlog("Save Clicked", all_edits);
-    jlog("Save Obj", saveObj);
+    console.log("Save Clicked", all_edits);
+    console.log("Save Obj", saveObj);
 
     //post to server for updating
     if (objSize(saveObj) > 0){
@@ -329,7 +329,7 @@ function set_up_onClicks() {
     } 
     
     //revert data to default (by acting like the node is clicked)
-    jlog("Save Clicked", "TODO: Revert updated data to unchanged after node is saved");
+    console.log("Save Clicked", "TODO: Revert updated data to unchanged after node is saved");
     
     
   });
@@ -354,7 +354,7 @@ function set_up_onClicks() {
     
     delData = $j(this).data();
 
-    jlog('delete clicked', delData );
+    console.log('delete clicked', delData );
     toggleDelete(delData.johaData__deleteContainerId);
   });
 
@@ -544,7 +544,7 @@ function readyAttachment(filesToAdd){
      var target = fileWr;
      //johaTgt and johaCtl are available with the event.data parameter by way of controlObj
       var eventActions = {'click': function(event){
-        jlog("Pending deleteControl clicked, Target:", event.data.johaTgt);
+        console.log("Pending deleteControl clicked, Target:", event.data.johaTgt);
         event.data.johaTgt.remove();
         if ($j('.pending_file_wrapper').length == 0) {
           $j('#pending_file_attachments').hide;
@@ -699,7 +699,7 @@ function indexData(treeData, indexedSet){
 function setFinder() {
 		var nodes = johaNodeData;
     var names = get_keys(nodes);
-    jlog('Node Names', names);
+    console.log('Node Names', names);
 		$j( "#node-finder-textbox" ).autocomplete({
 			source: names
 		});
@@ -717,6 +717,9 @@ function johaIndex(graphData){
 }
 
 function figureOutDataOps(rawData, opType, op) {
+  console.log('raw Data', rawData);
+  console.log('opType', opType);
+  console.log('op', op);
   //server operations:
   // for values: add, subtract, replace
   // for keys: subtact_key, add_key
@@ -787,7 +790,8 @@ function figureOutDataOps(rawData, opType, op) {
 //-- Transform data collected from DOM to more suitable for server
 //function johaMake
 function johaSaveDataFix(nodeId, domSaveObj) {
-  var currentRoot = johaGraph.myGraph.json.data.id;
+  //var currentRoot = johaGraph.myGraph.json.data.id;
+  var currentRoot = $j('#current_node_id').text();
   console.log(johaGraph.myGraph.json);
   alert('current root: ' + currentRoot);
   
@@ -909,7 +913,8 @@ function dynamicEditForm(nodeData){
   //having it hard coded in the function.
   $j('#dn_node_data').empty();
   $j('#dn_link_data').empty();
-  $j('#dn_file_data').empty();
+  //TODO: Make #dn_file_data dynamic?
+  //$j('#dn_file_data').empty();
   
   var SHOW_EVEN_IF_NULL = [];//["user_data"];  // show this field in the form even if it doesn't exist in the data
   console.log('node copy', nodeCopy);
@@ -936,7 +941,7 @@ function createNewField(newFieldName) {
     //alert('List Based')
     //alert(dataValue)
     dataValue = [];
-    createCommon(newType, dataValue);
+    createCommon(newFieldName, newType, dataValue);
     
   //TODO: Fix so links is its own type
   } else if (newFieldName === "links"){

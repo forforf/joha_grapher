@@ -1,111 +1,104 @@
-/* Common helper functions for joha functionality */
-
-  //Generic Helper functions
-  //http://stackoverflow.com/questions/208016/how-to-list-the-properties-of-a-javascript-object
-  //for better x-browser support of keys()
-function get_keys(obj){
-   var keys = [];
-   for(var key in obj){
-      keys.push(key);
-   }
-   return keys;
-}
-
-function get_values(obj){
-  var values = [];
-  for(var key in obj){
-    values.push(obj[key]);
-  }
-  return values;
-}
-
-function array_contains(a, obj) {
-  var i = a.length;
-  while (i--) {
-    if (a[i] === obj) {
-      return true;
-    }
-  }
-  return false;
-}
-
-function array_remove_item(a, obj){
-  var i = a.length;
-  //ToDo: Provide return value? if so what?
-  while (i--) {
-    if (a[i] === obj) {
-      a.splice(i,1);
-    }
-  }
-}
-
-function array_contains_all(a, subset){
-  var retVal = true;
-  for (var i in subset){
-    var obj = subset[i]
-    if ( array_contains(a, obj) ){} else { retVal = false;};
-  }
-  return retVal
-}
-
-function obj_key_position(obj, key){
-  var i = 0;
-  for (k in obj) {
-    if (k == key) {
-      return i;
-    }
-    i += 1;
-  }
-  return -1;
-}
-
-function jlog(label, data){
-  console.log("vv " + label + " vv");
-  console.log(data);
-  console.log('^^ ' + label + ' ^^');
-}
-
-//-- to be able to query on .data attribute.
-//-- example: assume data was set as so $('a#someLink').data('ABC', '123');
-//-- usage: $('a[ABC=123]')
-//-- returns the element.
-// Code by James Padolsey, site: http://james.padolsey.com/javascript/a-better-data-selector-for-jquery/
-(function($){
-    var _dataFn = $.fn.data;
-    $.fn.data = function(key, val){
-        if (typeof val !== 'undefined'){ 
-            $.expr.attrHandle[key] = function(elem){
-                return $(elem).attr(key) || $(elem).data(key);
-            };
-        }
-        return _dataFn.apply(this, arguments);
-    };
-})(jQuery);
-
-
-//Detemines if an object is a jQuery object
-function isjQueryObject(obj) {
-  return obj instanceof jQuery;
-}
-
-function makejQueryObj(obj) {
-  if (isjQueryObject(obj)) {
-    return obj;
-  } else {
-    return jQuery(obj);
-  }
-}
-
-function objSize(obj) {
-    var size = 0, key;
+(function() {
+  var __hasProp = Object.prototype.hasOwnProperty;
+  window.get_keys = function(obj) {
+    var key, keys, _results;
+    _results = [];
     for (key in obj) {
-        if (obj.hasOwnProperty(key)) size++;
+      if (!__hasProp.call(obj, key)) continue;
+      _results.push(keys = key);
+    }
+    return _results;
+  };
+  window.get_values = function(obj) {
+    var key, val, _results;
+    _results = [];
+    for (key in obj) {
+      if (!__hasProp.call(obj, key)) continue;
+      val = obj[key];
+      _results.push(obj[key]);
+    }
+    return _results;
+  };
+  window.deep_equiv = function(obj1, obj2) {
+    var str_obj1, str_obj2;
+    str_obj1 = JSON.stringify(obj1);
+    str_obj2 = JSON.stringify(obj2);
+    return str_obj1 === str_obj2;
+  };
+  window.equiv = function(obj1, obj2) {
+    if (obj1 === obj2) {
+      return true;
+    } else {
+      if (deep_equiv(obj1, obj2)) {
+        return true;
+      }
+    }
+    return false;
+  };
+  window.array_contains = function(a, obj) {
+    var item, _i, _len;
+    for (_i = 0, _len = a.length; _i < _len; _i++) {
+      item = a[_i];
+      if (equiv(item, obj)) {
+        return true;
+      }
+    }
+    return false;
+  };
+  window.array_remove_item = function(a, obj) {
+    var idx, item, _i, _len;
+    for (_i = 0, _len = a.length; _i < _len; _i++) {
+      item = a[_i];
+      if (item === obj) {
+        idx = a.indexOf(obj);
+        a.splice(idx, 1);
+      }
+    }
+    return a;
+  };
+  window.array_contains_all = function(a, subset) {
+    var item, retVal, _i, _len;
+    retVal = true;
+    for (_i = 0, _len = subset.length; _i < _len; _i++) {
+      item = subset[_i];
+      if (!array_contains(a, item)) {
+        retVal = false;
+      }
+    }
+    return retVal;
+  };
+  window.obj_key_position = function(obj, key) {
+    var i, k;
+    i = 0;
+    for (k in obj) {
+      if (deep_equiv(k, key)) {
+        return i;
+      }
+      i += 1;
+    }
+  };
+  window.objSize = function(obj) {
+    var key, size;
+    size = 0;
+    for (key in obj) {
+      if (!__hasProp.call(obj, key)) continue;
+      size++;
     }
     return size;
-}
-
-function filterJohaData(jQSelector) {
-  var johaData =  jQuery(jQSelector).map(function() {
+  };
+  window.isjQueryObject = function(obj) {
+    return obj instanceof jQuery;
+  };
+  window.makejQueryObj = function(obj) {
+    if (isjQueryObject(obj)) {
+      return obj;
+    } else {
+      return jQuery(obj);
+    }
+  };
+  window.filterJohaData = function(jQSelector) {
+    var johaData;
+    return johaData = jQuery(jQSelector).map(function() {
     var filterData = {};
     console.log('filtering Joha data');
     console.log(this.id);
@@ -125,7 +118,6 @@ function filterJohaData(jQSelector) {
     };
     
     return filterData;
-  }).get();
-  console.log(johaData);
-  return johaData;
-}
+  }).get();;
+  };
+}).call(this);

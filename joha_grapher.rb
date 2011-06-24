@@ -1,4 +1,11 @@
 require 'sinatra'
+
+use Rack::Session::Cookie
+require 'rack/openid'
+use Rack::OpenID
+
+require 'uuidtools'
+#require 'uri'
 #require 'sinatra/reloader' #if development?
 require 'joha_model'
 require 'erb'
@@ -6,12 +13,32 @@ require 'erb'
 set :root, File.dirname(__FILE__)
 enable :sessions
 
-
+URL_NS = UUIDTools::UUID_URL_NAMESPACE
+@@user_id_lookup = {} #open_id => johaGUID
+@@user_data = {}
 @@authed = {}  #username => auth_token
-@@session = {} #auth_token => joha_class(es) => joha_model instance (or nil)
+@@joha_model_map = {} #fr_id => joha_class(es) => joha_model instance (or nil)
+
+#Test data for login testing
+#After testing migrate to random GUID when persistent store exists
+#me at google
+TEST_GUID = "4c3e5962-f7ed-5ceb-8eb7-8bb191ef757b"
+TEST_OP_ID = "https://www.google.com/accounts/o8/id?id=AItOawkivKh4QX8-Un4VkJ0cFgxYVhkishiBs8k"
+@@user_id_lookup[TEST_OP_ID] = TEST_GUID
+
+uniq_postfix = TEST_OP_ID[-5,5] #last 5 chars
+fname = "dave"
+fid = "#{fname}_#{uniq_postfix}"
+joha_classes = { "JohaTestClass" => {:owner => "joha_test_user"},
+                        "MefiMusicCharts" => {:owner => "me"}
+                      }
+@@user_data[TEST_GUID] = {:friendly_name => fname, 
+                                          :friendly_id => fid,
+                                          :joha_classes => joha_classes}
+
 
 helpers do
-
+=begin
   def protected(creds)!
     unless authorized?(creds)
       response['WWW-Authenticate'] = %(Basic realm="Restricted Area")
@@ -33,9 +60,13 @@ helpers do
     ok_user2 = (creds[:un] == "me" && creds[:pw] == 'mefi1')
     valid = ok_user1 || ok_user2
   end
-  
+=end
+
   #TODO: move to model
   def update_node(jm, node_ops)
+    puts "node ops:"
+    p node_ops
+    
     node_id = nil
     tk_class = jm.tinkit_class
     link_ops = "link_ops"
@@ -55,6 +86,7 @@ helpers do
       case op_type
           
         when link_ops
+          puts "updating link data into holder:"
           link_data_holder ||= {:orig_data => {}, :new_data => {}} 
           if node_op_data[:op] =~ /_key$/
             link_data_holder[:orig_data][:key] = node_op_data[:orig_data]
@@ -66,7 +98,7 @@ helpers do
             link_data_holder[:orig_data][:value] = node_op_data[:orig_data]
             link_data_holder[:new_data][:value] = node_op_data[:new_data]
           end
-          
+          p link_data_holder
         
         when kvlist_ops
           kvlist_data_holder ||= {:orig_data => {}, :new_data => {}} 
@@ -89,7 +121,8 @@ helpers do
       end
     end
 
-        
+    puts "combined ops"
+    p combined_ops
     combined_ops.each do |ops|
     
       node_id = ops[:node_id]
@@ -100,11 +133,22 @@ helpers do
       orig_data = ops[:orig_data]
       
       op = ops[:op]
+      puts "operation:"
+      p op
       case op
         when "add"
           #jm.add_item(node_id, field, 
           tk_meth = "#{field}_#{op}"
           tk_data = new_data
+          tk_node.__send__(tk_meth.to_sym, tk_data)
+          
+        when "add_key"
+          
+          tk_meth = "#{field}_add"
+          #TODO: Figure out if this breaks kvlist_ops
+          #link key value is passed as {"old_key" => "new_value"}
+          new_link_data = {new_data[:key] => new_data[:value].values}
+          tk_data = new_link_data
           tk_node.__send__(tk_meth.to_sym, tk_data)
           
         when "subtract"
@@ -139,11 +183,12 @@ end
 #unnecessaryinstantiations
 #the data should be in sync with the persistent store
 
+=begin
 #TestClass = "JohaTestClass"
 #TestUser = "joha_test_user"
 #TODO: Create Register Page
 #TODO: Change to post '/login'
-get '/login' do
+get '/login_old' do
   username = params['un']
   password = params['pw'] 
   #TODO: Check that username and password exist and hanlde if they don't
@@ -152,8 +197,9 @@ get '/login' do
     #get token
     token = "Testing"
     session[:token] = token
-    session[:username] = username
     @@authed[username] = token
+    session[:username] = username
+    
     #ToDo Assign default joha class  if none exist
     joha_class_name = case username
       when "joha_test_user"
@@ -163,17 +209,95 @@ get '/login' do
       else
         raise "unknown user"
     end
-    #TODO don't clobber existing classes
+    #TODO don't clobber existing classes (i.e. create public vs private)
+    #Private would be classed with a user specific namespace
+    #Public would be in a shared namespace (but still need permissions)
+    #Currently set to public
     @@session[token] = {joha_class_name => JohaModel.new(joha_class_name, username)}
   else
    throw(:halt, [401, "Not authorized\n"])
   end
   redirect "/user/#{username}"
 end
+=end
+
+get '/new_user' do
+  erb :sign_up
+end
+
+get '/login' do
+  redirect "/openid_login.html"
+end
+
+post '/login' do
+  user_id = nil
+  resp = request.env["rack.openid.response"]
+    if resp = request.env["rack.openid.response"]
+
+      if resp.status == :success
+        op_id = resp.identity_url
+        puts "Identity URL #{op_id}"
+        
+        #TODO: Make persistent
+        user_id = @@user_id_lookup[op_id]
+        if user_id
+          puts "Found User: #{user_id}"
+          user_data = @@user_data[user_id]
+          puts "Name: #{user_data[:friendly_name].inspect}"
+          puts "Local ID: #{user_data[:friendly_id].inspect}"
+          puts "Existing Classes: #{user_data[:joha_classes].inspect}"
+        else
+          
+          #ax = OpenID::AX::FetchResponse.from_success_response(resp)
+          #email_address = ax.get_single("http://axschema.org/contact/email")
+          
+          #TODO: Ask if they are a new user (and if not offer the option to merge
+          #assuming we can find who they are)
+          
+          #new user
+          user_id = UUIDTools::UUID.sha1_create(URL_NS, op_id).to_s
+          @@user_id_lookup[op_id] = user_id
+          @@user_data[user_id] = {}
+        
+        puts @@user_id_lookup.inspect
+        end
+      else
+        "Error: #{resp.status}"
+      end
+    else
+      headers 'WWW-Authenticate' => Rack::OpenID.build_header(
+        :identifier => params["openid_identifier"]
+        #:required => ["http://axschema.org/contact/email"]
+      )
+      throw :halt, [401, 'got openid?']
+    end
+    
+    #set session data
+    session[:user_id] = user_id
+    user_data = @@user_data[user_id]
+    session[:friendly_name] =user_data[:friendly_name]
+    friendly_id = user_data[:friendly_id]
+    
+    #TESTING
+    #THIS NEEDS TO BE DELETED AFTER TEST
+    #friendly_id = "joha_test_user"
+    #TODO: create an "owner" field that is used for the joha username
+    #That way other users can us (or copy) the joha model if they know the owner (and have owner permission, etc)
+    #Actually, maybe have the ability to set the owner name and associate it with the class
+    #The default would be friendly_id, but could be overwritten?
+    
+    session[:friendly_id] = friendly_id
+    session[:joha_classes] = user_data[:joha_classes]
+    puts session.inspect
+    
+    
+    
+    redirect "/user/#{friendly_id}"
+end
 
 get "/user/:username" do |username|
-  token = @@authed[username]
-  joha_classes = @@session[token].keys
+  #token = @@authed[username]
+  joha_classes = session[:joha_classes] #@@session[token].keys
   case joha_classes.size
     when 1
       joha_class_name = joha_classes.first
@@ -181,11 +305,17 @@ get "/user/:username" do |username|
     when 0
       raise "Error assigning default joha graph"
     else
-      redirect "/user/#{username}/select_domain"
+      redirect "/user/select_domain/#{username}"
   end
-  
 end 
 
+get "/user/select_domain/:friendly_id" do |fr_id|
+  #return session[:joha_classes].inspect
+  @joha_classes = session[:joha_classes]
+  @base_domain_url = "/user/#{fr_id}/graph"
+  #@base_domain_url = "/user/joha_test_user/graph"
+  erb :choose_domains
+end
 
 get '/redirect_to_graphs' do
   token = session[:token]
@@ -198,11 +328,15 @@ get '/user/*/graph/*' do
   username = params[:splat][0]
   joha_class_name = params[:splat][1]
   session[:current_joha_class] = joha_class_name
-  token = session[:token]
+  class_owner = session[:joha_classes][joha_class_name][:owner]
+  session[:current_owner] = class_owner
+  
   #list avaialbe classes, go to next if only one class
   #username = session[:username]
   #@jm = JohaModel.new(TestClass, username)
-  @jm = @@session[token][joha_class_name]#TODO or make new 
+  @jm = JohaModel.new(joha_class_name, session[:current_owner])
+  #session[:current_jm] = @jm
+  @@joha_model_map[username] = {joha_class_name => @jm}
   @base_graph_url = "/graph/#{username}/#{joha_class_name}"
   @avail_digraphs = @jm.digraphs_with_roots
   erb :avail_digraphs
@@ -215,15 +349,16 @@ get '/graph/*/*/*' do
   session[:top_node] = @top_node
   session[:joha_class_name] = joha_class_name
   token = session[:token]
-  @jm = @@session[token][joha_class_name] #|| create it
+  @jm = @@joha_model_map[username][joha_class_name]  #|| create it
   redirect '/joha_graph.html'
 end
 
 get '/index_nodes' do
   top_node = session[:top_node]
-  token = session[:token]
+  username = session[:friendly_id]
   joha_class_name = session[:joha_class_name]
-  @jm = @@session[token][joha_class_name] #|| create it
+  #@jm = session[:current_jm] #|| create it
+  @jm = @@joha_model_map[username][joha_class_name]
   content_type :json
   ret_json = @jm.tree_graph(top_node)
 end
@@ -239,8 +374,10 @@ end
 post '/desc_data' do
   top_node = session[:top_node]
   token = session[:token]
+  username = session[:friendly_id]
   joha_class_name = session[:joha_class_name]
-  @jm = @@session[token][joha_class_name] #|| create it
+  #@jm = session[:current_jm] #|| create it
+  @jm = @@joha_model_map[username][joha_class_name]
   node_id = params[:node_id]
   field = params[:node_data_type]
   raise "no node id" unless node_id
@@ -258,8 +395,11 @@ end
 post '/create_node' do
   #TODO: Validate against data def
   token = session[:token]
+  username = session[:friendly_id]
   joha_class_name = session[:joha_class_name]
-  @jm = @@session[token][joha_class_name] #|| create it
+  #@jm = @@session[token][joha_class_name] #|| create it
+  #@jm = session[:current_jm]
+  @jm = @@joha_model_map[username][joha_class_name]
 
   
   node_id = params[:node_id]
@@ -295,9 +435,11 @@ end
 post '/node_data_update' do
   
   token = session[:token]
+  username = session[:friendly_id]
   joha_class_name = session[:joha_class_name]
-  @jm = @@session[token][joha_class_name] #|| create it
-
+  #@jm = @@session[token][joha_class_name] #|| create it
+  #@jm = session[:current_jm]
+  @jm = @@joha_model_map[username][joha_class_name] #or create it
   
   #process the data to get the operational data
   #magic names (TODO: move to configuration or something)
@@ -348,8 +490,11 @@ end
 post '/upload_files' do
   puts "Uploaded Files"
   token = session[:token]
+  username = session[:friendly_id]
   joha_class_name = session[:joha_class_name]
-  jm = @@session[token][joha_class_name]
+  #jm = @@session[token][joha_class_name]
+  #jm = session[:current_jm]
+  jm = @@joha_model_map[username][joha_class_name] # or create it
   node_id = params[:node_id]
   tk_class = jm.tinkit_class
   tk_node = tk_class.get(node_id)
@@ -393,8 +538,11 @@ post '/delete_files' do
   node_id = params[:node_id]
   delete_files = params[:del_files]
   token = session[:token]
+  username = session[:friendly_id]
   joha_class_name = session[:joha_class_name]
-  jm = @@session[token][joha_class_name]
+  #jm = @@session[token][joha_class_name]
+  #jm = session[:current_jm]
+  jm = @@joha_model_map[username][joha_class_name] #or create it
 
   if delete_files && delete_files.size > 0
     #TODO: Update Model (jm) rather than pass through to tinkit directly
@@ -411,8 +559,11 @@ post '/delete_node' do
   node_id = params[:node_id]
   delete_files = params[:del_files]
   token = session[:token]
+  username = session[:friendly_id]
   joha_class_name = session[:joha_class_name]
-  jm = @@session[token][joha_class_name]
+  #jm = @@session[token][joha_class_name]
+  #jm = session[:current_jm]
+  jm = @@joha_model_map[username][joha_class_name] #or create it
   jm.destroy_node(node_id)
   jm.refresh
   top_node = session[:top_node]

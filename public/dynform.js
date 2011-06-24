@@ -246,20 +246,36 @@ function Joha(){
       this.addItemControl = function(target, parentId, clickAction){
       
         var newObj = makejQueryObj(newObj);
-        var elId = parentId + "_additemctrl";
-        var elClass = "add_item_control";
-        var elHtml = "<img id=\"" + elId + "\" class=\"" + elClass + "\" src=\"./images/add_normal.png\" alt=\"-\" />"
+        var elId = parentId + "_additem";
+        var elIdCtl = elId + "ctrl";
+        var elIdTxt = elId + "txt";
+        //var elClass = "add_item_control";
+        //var elHtml = "<img id=\"" + elId + "\" class=\"" + elClass + "\" src=\"./images/add_normal.png\" alt=\"-\" />"
+        var ctlText = $j('<span />', {
+          "id": elIdTxt,
+          text: "Add Item"
+        });
+        ctlText.addClass("add_item_control_text");
+        var iconCtl = $j('<span />', {
+          "id": elIdCtl
+        });
+        iconCtl.addClass('add_item_control_ctl ui-icon ui-icon-circle-plus');
+        var iconEl = $j('<span />',{
+          "id": elId
+        });
+        iconEl.append(iconCtl).append(ctlText);
+        iconEl.addClass("add_item_control");
         
         //johaTgt and johaCtl are available with the event.data parameter by way of controlObj
         var eventActions = {'click': function(event){
-            jlog("addItemControl clicked, Target:", event.data.johaTgt);
+            console.log("addItemControl clicked, Target:", event.data.johaTgt);
             var tgt = event.data.johaTgt;
             clickAction(tgt);
             //tgt.append(newObj);
           },
         };
       
-        var addItemCtl = johaPats.controlObj(elHtml, target, eventActions);
+        var addItemCtl = johaPats.controlObj(iconEl, target, eventActions);
         return addItemCtl[0];
       };
       
@@ -274,7 +290,7 @@ function Joha(){
         
         //johaTgt and johaCtl are available with the event.data parameter by way of controlObj
         var eventActions = {'click': function(event){
-            jlog("addKvlistItemControl clicked, Target:", event.data.johaTgt);
+            console.log("addKvlistItemControl clicked, Target:", event.data.johaTgt);
             var tgt = event.data.johaTgt;
             //tgt.addClass('joha_add');
             clickAction(tgt);
@@ -290,13 +306,36 @@ function Joha(){
       this.addLinksListItemControl = function(target, parentId, clickAction){
       
         var newObj = makejQueryObj(newObj);
-        var elId = parentId + "_addlinkslistitemctrl";
-        var elClass = "add_linkslistitem_control";
-        var elHtml = "<img id=\"" + elId + "\" class=\"" + elClass + "\" src=\"./images/add_record.jpg\" alt=\"-\" />"
+        //var elId = parentId + "_addlinkslistitemctrl";
+        //var elClass = "add_linkslistitem_control";
+        //var elHtml = "<img id=\"" + elId + "\" class=\"" + elClass + "\" src=\"./images/add_record.jpg\" alt=\"-\" />"
+
+        var elId = parentId + "_add_linkslistitem";
+        var elIdCtl = elId + "ctrl";
+        var elIdTxt = elId + "txt";
+        //var elClass = "add_item_control";
+        //var elHtml = "<img id=\"" + elId + "\" class=\"" + elClass + "\" src=\"./images/add_normal.png\" alt=\"-\" />"
+        var ctlText = $j('<span />', {
+          "id": elIdTxt,
+          text: "Add Link"
+        });
+        ctlText.addClass("add_item_control_text");
+        var iconCtl = $j('<span />', {
+          "id": elIdCtl
+        });
+        iconCtl.addClass('add_linkslistitem_control_ctl ui-icon ui-icon-circle-plus');
+        var iconEl = $j('<span />',{
+          "id": elId
+        });
+        iconEl.append(iconCtl).append(ctlText);
+        iconEl.addClass("add_linkslistitem_control"); 
+        
+        
+        
         
         //johaTgt and johaCtl are available with the event.data parameter by way of controlObj
         var eventActions = {'click': function(event){
-            jlog("addLinksListItemControl clicked, Target:", event.data.johaTgt);
+            console.log("addLinksListItemControl clicked, Target:", event.data.johaTgt);
             var tgt = event.data.johaTgt;
             //tgt.addClass('joha_add');
             clickAction(tgt);
@@ -304,7 +343,7 @@ function Joha(){
           },
         };
       
-        var addItemCtl = johaPats.controlObj(elHtml, target, eventActions);
+        var addItemCtl = johaPats.controlObj(iconEl, target, eventActions);
         return addItemCtl[0];
       };      
     
@@ -320,11 +359,15 @@ function Joha(){
       
       var elId = parentId + "_delctrl";
       var elClass = "delete_controls";
-      var elHtml = "<img id=\"" + elId + "\" class=\"" + elClass + "\" src=\"./images/delete_normal.png\" alt=\"-\" />"
+      //var elHtml = "<img id=\"" + elId + "\" class=\"" + elClass + "\" src=\"./images/delete_normal.png\" alt=\"-\" />"
       
+      var iconEl = $j('<span />', {
+        "id": elId
+      });
+      iconEl.addClass('item_delete_control ui-icon ui-icon-circle-close');
       //johaTgt and johaCtl are available with the event.data parameter by way of controlObj
       var eventActions = {'click': function(event){
-          jlog("deleteControl clicked, Target:", event.data.johaTgt);
+          console.log("deleteControl clicked, Target:", event.data.johaTgt);
           event.data.johaTgt.toggleClass('joha_delete');
           for(var i in otherEls){
             otherEls[i].toggleClass('joha_delete');
@@ -332,7 +375,7 @@ function Joha(){
         },
       };
       
-      var delCtl = johaPats.controlObj(elHtml, target, eventActions);
+      var delCtl = johaPats.controlObj(iconEl, target, eventActions);
       return delCtl[0];
     };
 
@@ -345,7 +388,7 @@ function Joha(){
       //johaTgt and johaCtl are available with the event.data parameter by way of controlObj
       var eventActions = {'click': function(event){
           var tgt = event.data.johaTgt;
-          jlog("deleteKeyControl clicked, Target:", tgt);
+          console.log("deleteKeyControl clicked, Target:", tgt);
           tgt.toggleClass('joha_delete');
           //A Terrible Hack to deal with sub Elements TODO: Find a better way
           tgt.find('.edit_text.joha_edit').toggleClass('joha_delete');
@@ -360,7 +403,7 @@ function Joha(){
     this.staticValueElement = function(textValue, parentId){
       var elId = parentId + "_static";
       var elClass = "static_text";
-      var elHtml = "<span id=\"" + elId + "\" class=\"" + elClass + "\"/span>";
+      var elHtml = "<span id=\"" + elId + "\" class=\"" + elClass + "\"></span>";
       var statValEl = johaPats.textContentObj(elHtml, textValue);
       return statValEl;
     };
@@ -368,7 +411,7 @@ function Joha(){
     this.editValueElement = function(textValue, parentId, valData){
       var elId = parentId + '_edit_value';
       var elClass = "edit edit_text joha_edit";
-      var elHtml = "<span id=\"" + elId + "\" class=\"" + elClass + "\"/span>";
+      var elHtml = "<span id=\"" + elId + "\" class=\"" + elClass + "\"></span>";
       //Could make editable via passing a custom function, but instead adding in the class to the html
       //var makeEditable = function(el, valData){ $j(el).addClass('edit') };
       //makeEditable function would be added to the functions passed to the element pattern
@@ -398,7 +441,7 @@ function Joha(){
     
     var wrId = parentId + "_" + index + "_listItemWrapper";
     var wrClass = "list_item_wrapper";    
-    var wrHtml = "<li id=\"" + wrId + "\" class=\"" + wrClass + "\"</li>";
+    var wrHtml = "<li id=\"" + wrId + "\" class=\"" + wrClass + "\"></li>";
     var wrEl = $j(wrHtml);
     wrEl.append(listItemElem);
     wrEl.append(delCtrl);
@@ -422,8 +465,7 @@ function Joha(){
       li = this.buildListItem(listItemValues[i], i, listId, newListData );
       listEl.append(li);
     }
-    
-    
+
  
     //Set up control for adding new items to the list
     var bldr = johaSelf.buildSimpleElem;
@@ -432,19 +474,24 @@ function Joha(){
     //as a parameter to this function
     var addOnClick = function(tgt) {
       tgtChildren = listEl.children('li');
-      jlog('Children of list', tgtChildren);
+      console.log('Children of list', tgtChildren);
       newListItem = johaSelf.buildListItem("?", tgtChildren.length, listId, newListData);
       newListItem.children('.edit_text').addClass('joha_add');
-      jlog('add click new list item', newListItem);
+      console.log('add click new list item', newListItem);
       if ( tgtChildren.length > 0 ) {
         tgtChildren.last().after(newListItem);
       } else {
-        listEl.append(newListItem);
+        listEl.prepend(newListItem);
       }
     }
+    
     var addCtl = bldr.addItemControl(listEl, listId, addOnClick);
-
     listEl.append(addCtl);  
+    
+    
+    var float_clear = $j('<div />').addClass('float_clear');
+    listEl.append(float_clear);
+    
     return listEl;
   };
 
@@ -569,10 +616,29 @@ function Joha(){
     editCtlClass = "link_edit_control"
     var editHtml = "<img id=\"" + editCtlId + "\" class=\"" + editCtlClass + "\" src=\"./images/edit.png\" alt=\"-!\" />";
     var editCtl = $j(editHtml);
-    editCtl.click( function(){
+    editCtl.click( function(event){
       
       //TODO: Figure out an elegant way to show if there is a pending editing change
       //Probalby requires refactoring of the underlying controls
+      //In the meantime a quick Hack to keep display in sync with recent edits
+      console.log("link toggled", $j(this).closest('div').find('span').text())
+      var currentVals = $j(this).closest('div').find('span').map(function() {
+        return $j(this).text();
+      }).get();
+      console.log(currentVals);
+
+      if (currentVals.length == 2) {
+        var currentHref = currentVals[0];
+        var currentLabel = currentVals[1];
+        var oldHref = hyperLink.attr("href");
+        var oldLabel= hyperLink.text();
+        if ((currentHref !== oldHref)||(currentLabel !== oldLabel)) {
+          hyperLink.attr("href", currentHref);
+          hyperLink.text(currentLabel);
+          hyperLink.addClass('joha_update');
+          console.log("link changed", hyperLink);
+        };
+      };
       hyperLink.toggle();
       editLinksListItem.toggle();
     });
@@ -694,11 +760,13 @@ function Joha(){
   };
   
   this.buildFieldNameElem = function(fieldName){
-    var fieldNameEl = $j('<div />', {
+    var fieldNameWr = $j('<div />')
+    var fieldNameEl = $j('<span />', {
       text: fieldName,
       'class': "joha_field_name",
     });
-    return fieldNameEl;
+    fieldNameWr.append(fieldNameEl)
+    return fieldNameWr;
   };
   
   this.buildFieldDataDom = function(fieldData, customData){
@@ -763,6 +831,7 @@ var johaPats = new function() {
   //eventActions function action parameter is an object with johaCtl and johaTgt parameters
   //accessible in functions as event.data.johaCtl and event.data.johaTgt
   //Leverage jQuery's live method
+  //Make sure the control element has an id attribute!!
   this.controlObj = function(controlElement, targetElement, eventActions, opts){
   
     var jctl = makejQueryObj(controlElement);
@@ -903,7 +972,7 @@ function domNodeFactory(nodeData, specialTreatment, dataDef, reqDataToShow){
   
   nodeDomObj.append(addNewFieldDom);
   
-  jlog("final nodeDomObj", nodeDomObj);
+  console.log("final nodeDomObj", nodeDomObj);
   return nodeDomObj;
 }
 

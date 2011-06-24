@@ -5,18 +5,20 @@
 <title>Joha -- Find, Connect, Organize</title>
 
 <!-- CSS Files -->
-<link type="text/css" href="./default.css" rel="stylesheet" >
-<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.13/themes/base/jquery-ui.css" id="theme" >
+<link type="text/css" href="./default.css" rel="stylesheet" />
+<!-- <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.13/themes/base/jquery-ui.css" id="theme" > -->
+<link rel="stylesheet" href="./custom-theme/jquery-ui-1.8.13.custom.css" id="theme" />
 <!-- <link type="text/css" href="./jquery-ui-custom.css" rel="stylesheet" > -->
-<link type="text/css" href="./joha_graph.css" rel="stylesheet" >
-<link type="text/css" href="./dynform.css" rel="stylesheet" >
+<link type="text/css" href="./joha_graph.css" rel="stylesheet" />
+<link type="text/css" href="./dynform.css" rel="stylesheet" />
+<link type="text/css" href="./node_edit.css" rel="stylesheet" />
 
 <!--[if IE]><script language="javascript" type="text/javascript" src="../javascripts/jit/Extras/excanvas.js"></script><![endif]-->
 
 <!-- JIT Library File -->
 <script language="javascript" type="application/javascript" src="jit.js"></script>
 <script language="javascript" type="application/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js"></script>
-<script>var $j = jQuery.noConflict();</script>
+<script language="javascript" type="application/javascript"> var $j = jQuery.noConflict();</script>
 <script language="javascript" type="application/javascript" src="//ajax.googleapis.com/ajax/libs/jqueryui/1.8.13/jquery-ui.min.js"></script>
 <script language="javascript" type="application/javascript" src="jquery.jeditable.js"></script>
 <script language="javascript" type="application/javascript" src="joha_helpers.js"></script>
@@ -117,7 +119,7 @@
             <input id="create_node_parents" name="create_node_parents" type="text" />
             </p>
             <!--<p>
-             <b> Add Attachment  -- Not working yet</b><br/>
+             <b> Add Attachment  Not working yet</b><br/>
              <input name="add_attachment" type="file" />
             </p> -->
             <p>
@@ -132,67 +134,69 @@
         <div id="node_editor">
           <fieldset>
             <legend>
-              Edit Node: <span id="joha-edit-label--" class="edit static_data"></span>
+              Edit Node: <span id="joha-edit-label--" class="node_label"></span>
             </legend>
             <div id="edit-node-data">
               <div id="dynamic_node_data_all">
                 <div id="dn_node_data"></div>
                 <div id="dn_link_data"></div>
-                <div id="dn_file_data"></div>
-                  <span id="attachment_label">File Attachments</span>
+                <div id="dn_file_data">
+                  <span id="attachment_label" class="node_field_user_label">File Attachments</span>
                   <div id="file_attachment_key_name" class="joha_field_name" style="display:none">file_attachments</div>
-                  <div id="file_attachment_list" class="attachment_list">No Node Selected</div>
-                  <div id="delete_attach">
-                    <span class="delete_attach_list clickable">Implement Deletions</span>
-                  </div>                  
-                  <div id="add_attach" class="element-list">
-                    <span class="show_add_attach_form clickable">Add new attachments</span>
-                  </div>
-
-                  <form id="add_attach_form" action="/upload_files"  method="post" enctype="multipart/form-data" style="display:none">
-  
-                    <input id="authtok_attach_form" type="hidden" value=" " name="authenticity_token">
-                    <input id="node_id_input_edit" name="node_id" type="hidden" />
-
-                    <div id="att_button_area">
-                      <b>Add Attachments  </b><span class="hide_add_attach_form clickable">hide this again</span> <br />
-                      <input id="add_attach_edit" name="add_files[]" type="file" multiple="multiple"/>
-                      <input class="ready_attachment_button" name="action" value="See Pending Files" type="button"  />
-                      <input class="upload_attachment_button" name="uploadFiles" value="Upload to Node" type="button"  />
+                  <div class="joha_field_value_container">
+                    <div id="file_attachment_list" class="attachment_list">No Node Selected</div>
+                    <div id="delete_attach">
+                      <span class="delete_attach_list clickable">Implement Deletions</span>
+                    </div>                  
+                    <div id="add_attach" class="element-list">
+                      <span class="show_add_attach_form clickable">Add new attachments</span>
                     </div>
 
-                    <iframe id="files_uploaded_iframe" name="files_uploaded_iframe" src="" style="display:none">
-                    </iframe>
+                    <form id="add_attach_form" action="/upload_files"  method="post" enctype="multipart/form-data" style="display:none">
+    
+                      <input id="authtok_attach_form" type="hidden" value=" " name="authenticity_token" />
+                      <input id="node_id_input_edit" name="node_id" type="hidden" />
 
-                  </form>                  
-                  <div id="pending_file_attachments" class="pending_attachment_list"></div>
+                      <div id="att_button_area">
+                        <b>Add Attachments  </b><span class="hide_add_attach_form clickable">hide this again</span> <br />
+                        <input id="add_attach_edit" name="add_files[]" type="file" multiple="multiple"/>
+                        <input class="ready_attachment_button" name="action" value="See Pending Files" type="button"  />
+                        <input class="upload_attachment_button" name="uploadFiles" value="Upload to Node" type="button"  />
+                      </div>
 
+                      <iframe id="files_uploaded_iframe" name="files_uploaded_iframe" src="" style="display:none">
+                      </iframe>
 
+                    </form>                  
+                    <div id="pending_file_attachments" class="pending_attachment_list"></div>
+                  </div>
                 </div>
               </div>
-            </div>
+            </div>         
           </fieldset>
-        <div id="save_node_data">
-          Save
+          <div id="save_node_data" class="float_left">
+            <span class="actionable action_gradient">Save</span>
+          </div>
+          <div id="clear_node_edits" class="float_left">
+            <span class="actionable action_gradient">Clear</span>
+          </div>  
+          <div id="delete_node" class="float_right">
+            <span class="actionable action_gradient">Delete Entire Node</span>
+          </div>     
+          <div class="float_clear"></div>
         </div>
-        <div id="clear_node_edits">
-          Clear
-        </div>  
-        <div id="delete_node">
-          Delete Entire Node
-        </div>        
       </div>
 
 
       <div id="destroy-node-form" style="display:none;">
         <b>Destroy Node</b>
           <p>
-            <b>Node Tag</b><br>
-            <input id="node_cat_destroy" name="node_cat" type="text">
+            <b>Node Tag</b><br />
+            <input id="node_cat_destroy" name="node_cat" type="text" />
           </p>
 
           <p>
-            <input name="commit" value="Submit" type="submit" onclick="javascript:destroy_node_data()">
+            <input name="commit" value="Submit" type="submit" onclick="javascript:destroy_node_data()" />
           </p>
       </div>
 
@@ -220,6 +224,7 @@
 
   </div>
   <div id="log"></div>
-  </div>
+
+
 </body>
 </html>

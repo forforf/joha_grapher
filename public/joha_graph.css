@@ -304,6 +304,7 @@ a.borg_link_text {
 
 
 /* Dynamically Appearing Elements */
+/*
 .node_field_data {
     border: solid 1px;
     margin: 2px;
@@ -313,48 +314,21 @@ a.borg_link_text {
     color: #393840;
     font-weight: 700;
 }
+*/
 
-
-/* edit classes */
-.joha_orig {
-    color: #686c70;
-    font-weight: normal;
-}
-
-/* remove .edit_updated at some point */
-.edit_updated, .joha_update {
-     color: blue;
-     font-weight: bold;
-}
-
-/*remove .edit_new at some point */
-.edit_new, .joha_add {
-     color: green;
-     font-weight: bold;
-}
 
 
 
 
 /* Data Styling */
+/*
 span.fixture_text {
   color: white;
   background: #889;
   font-weight: 400;
   padding: 2px 3px 2px 1px;
 }
-
-span.static_data {
-    background-color: #3d195e;
-    padding: 0px 10px;
-}
-
-span.edit_text {
-    background-color: #31396a;
-}
-span.edit_text:hover {
-    background-color: #008ce0;
-}
+*/
 
 /*File Attachments*/
 #file_attachment_list .delete_controls {

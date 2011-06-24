@@ -116,22 +116,6 @@
   width: 16px;
 }
 
-.list_item_wrapper {
-  position: relative;
-  background: green;
-  display: inline;
-}
-
-.list_item_wrapper>.edit_text {
-  float: left;
-  min-width: 10px;
-  background: yellow;
-}
-
-.list_item_wrapper>.delete_controls {
-  float: left;
-}
-
 .list {
   position: relative;
 }
@@ -160,7 +144,3 @@
 /*GRRRR There's too much coupling
 /* Deletes are handled by dynform, while updates by joha_graph */
 /*Dynamic Classes used by Joha*/
-.joha_delete {
-    color: red;
-    text-decoration: line-through;
-}
