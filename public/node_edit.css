@@ -116,6 +116,16 @@ body {
   border-color: #8b857c;
 }
 
+.attachment_list {
+  background-color: #e6c2d2;
+  margin: 0.1em 1.5em 0.1em 1.5em;
+  padding: 0.2em 0.4em 0.2em 0.4em;
+}
+
+.file_attachment_name {
+
+}
+
 /* Specific editable values */
 .joha_edit { 
   background-color: #f9f5f5;

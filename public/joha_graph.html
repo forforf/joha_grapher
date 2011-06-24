@@ -146,10 +146,10 @@
                   <div class="joha_field_value_container">
                     <div id="file_attachment_list" class="attachment_list">No Node Selected</div>
                     <div id="delete_attach">
-                      <span class="delete_attach_list clickable">Implement Deletions</span>
+                      <span class="delete_attach_list actionable action_gradient">Implement Deletions (permanent)</span>
                     </div>                  
                     <div id="add_attach" class="element-list">
-                      <span class="show_add_attach_form clickable">Add new attachments</span>
+                      <span class="show_add_attach_form actionable action_gradient">Add new attachments</span>
                     </div>
 
                     <form id="add_attach_form" action="/upload_files"  method="post" enctype="multipart/form-data" style="display:none">
@@ -158,7 +158,7 @@
                       <input id="node_id_input_edit" name="node_id" type="hidden" />
 
                       <div id="att_button_area">
-                        <b>Add Attachments  </b><span class="hide_add_attach_form clickable">hide this again</span> <br />
+                        <b>Add Attachments  </b><span class="hide_add_attach_form actionable action_gradient">hide this again</span> <br />
                         <input id="add_attach_edit" name="add_files[]" type="file" multiple="multiple"/>
                         <input class="ready_attachment_button" name="action" value="See Pending Files" type="button"  />
                         <input class="upload_attachment_button" name="uploadFiles" value="Upload to Node" type="button"  />
