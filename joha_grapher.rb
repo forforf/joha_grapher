@@ -28,7 +28,8 @@ TEST_OP_ID = "https://www.google.com/accounts/o8/id?id=AItOawkivKh4QX8-Un4VkJ0cF
 
 uniq_postfix = TEST_OP_ID[-5,5] #last 5 chars
 fname = "dave"
-fid = "#{fname}_#{uniq_postfix}"
+#fid = "#{fname}_#{uniq_postfix}"
+fid = "dave"
 joha_classes = { "JohaTestClass" => {:owner => "joha_test_user"},
                         "MefiMusicCharts" => {:owner => "me"}
                       }
@@ -221,8 +222,33 @@ get '/login_old' do
 end
 =end
 
+
+#TODO: Need to fix bug where if user has a session but hasn't signed up, they will be redirected to the graph as a nil user
 get '/new_user' do
   erb :sign_up
+end
+
+post '/user_sign_up' do
+  p params
+  user_id = session[:user_id]
+  p user_id
+  p @@user_data[user_id]
+  puts "---"
+  #Testing to see if we need uniq friendly ids (I don't think so)
+  #so fid and friendly_name are currently equal
+  default_joha_class = {"JohaTestClass" => {:owner => "joha_test_user"}}
+  fid = params[:fid]
+  @@user_data[user_id] ||= {}
+  @@user_data[user_id][:friendly_id] = params[:fid]
+  @@user_data[user_id][:friendly_name] = params[:fid]
+  @@user_data[user_id][:joha_classes] = default_joha_class
+  session[:joha_classes] = default_joha_class
+  session[:friendly_id] = params[:fid]
+  session[:friendly_name] =params[:fid]
+  p @@user_data[user_id]
+  user_data = @@user_data[user_id]
+  friendly_id = user_data[:friendly_id]
+  redirect "/user/#{friendly_id}"
 end
 
 get '/login' do
@@ -257,9 +283,12 @@ post '/login' do
           #new user
           user_id = UUIDTools::UUID.sha1_create(URL_NS, op_id).to_s
           @@user_id_lookup[op_id] = user_id
+          
+          
           @@user_data[user_id] = {}
         
-        puts @@user_id_lookup.inspect
+          puts @@user_id_lookup.inspect
+          redirect '/new_user'
         end
       else
         "Error: #{resp.status}"
@@ -277,11 +306,8 @@ post '/login' do
     user_data = @@user_data[user_id]
     session[:friendly_name] =user_data[:friendly_name]
     friendly_id = user_data[:friendly_id]
-    
-    #TESTING
-    #THIS NEEDS TO BE DELETED AFTER TEST
-    #friendly_id = "joha_test_user"
-    #TODO: create an "owner" field that is used for the joha username
+
+  #TODO: create an "owner" field that is used for the joha username
     #That way other users can us (or copy) the joha model if they know the owner (and have owner permission, etc)
     #Actually, maybe have the ability to set the owner name and associate it with the class
     #The default would be friendly_id, but could be overwritten?
@@ -289,9 +315,6 @@ post '/login' do
     session[:friendly_id] = friendly_id
     session[:joha_classes] = user_data[:joha_classes]
     puts session.inspect
-    
-    
-    
     redirect "/user/#{friendly_id}"
 end
 
@@ -300,8 +323,12 @@ get "/user/:username" do |username|
   joha_classes = session[:joha_classes] #@@session[token].keys
   case joha_classes.size
     when 1
-      joha_class_name = joha_classes.first
-      redirect "/user/#{username}/graph/#{joha_class_name}"
+      joha_class_name = joha_classes.keys.first
+      session[:joha_class_name] = joha_class_name
+      fid = session[:friendly_id]
+      puts "session data"
+      p session
+      redirect "/user/#{fid}/graph/#{joha_class_name}"
     when 0
       raise "Error assigning default joha graph"
     else
@@ -328,6 +355,8 @@ get '/user/*/graph/*' do
   username = params[:splat][0]
   joha_class_name = params[:splat][1]
   session[:current_joha_class] = joha_class_name
+  puts "joha classes"
+  p session[:joha_classes]
   class_owner = session[:joha_classes][joha_class_name][:owner]
   session[:current_owner] = class_owner
   
@@ -339,7 +368,14 @@ get '/user/*/graph/*' do
   @@joha_model_map[username] = {joha_class_name => @jm}
   @base_graph_url = "/graph/#{username}/#{joha_class_name}"
   @avail_digraphs = @jm.digraphs_with_roots
-  erb :avail_digraphs
+  case @avail_digraphs.size
+    when 0,1
+      #for 0 session[:top_node] should be nil (do this explicitly?)
+      redirect '/joha_graph.html'
+    else
+      erb :avail_digraphs
+  #if no nodes or only one digraph {@base_graph_url}/#{top_node}
+  end
 end
 
 get '/graph/*/*/*' do 
@@ -348,15 +384,41 @@ get '/graph/*/*/*' do
   @top_node = params[:splat][2]
   session[:top_node] = @top_node
   session[:joha_class_name] = joha_class_name
+  
   token = session[:token]
   @jm = @@joha_model_map[username][joha_class_name]  #|| create it
   redirect '/joha_graph.html'
 end
 
+get '/configure_new_graph' do
+  erb :configure_new_graph
+end
+
+post '/create_new_graph' do
+  #TODO: People can overwrite other peoples graphs right now
+  #Note that a new graph will not erase an older one, just use it.
+  joha_class_name = params[:graph_name]
+  joha_class_owner = params[:graph_owner]
+  new_joha_class_data = {joha_class_name => {:owner => joha_class_owner}}
+  puts "new joha class data"
+  p new_joha_class_data
+  user_id = session[:user_id]
+  p user_id
+  @@user_data[user_id][:joha_classes].merge!(new_joha_class_data)
+  puts "User Data"
+  p @@user_data
+  session[:joha_classes] = @@user_data[user_id][:joha_classes]
+  username = session[:friendly_id]
+  redirect "/user/#{username}/graph/#{joha_class_name}"
+end
+
 get '/index_nodes' do
+  puts "Session data @ index nodes"
+  p session
+  p @@joha_model_map
   top_node = session[:top_node]
   username = session[:friendly_id]
-  joha_class_name = session[:joha_class_name]
+  joha_class_name = session[:current_joha_class]
   #@jm = session[:current_jm] #|| create it
   @jm = @@joha_model_map[username][joha_class_name]
   content_type :json
@@ -375,7 +437,7 @@ post '/desc_data' do
   top_node = session[:top_node]
   token = session[:token]
   username = session[:friendly_id]
-  joha_class_name = session[:joha_class_name]
+  joha_class_name = session[:current_joha_class]
   #@jm = session[:current_jm] #|| create it
   @jm = @@joha_model_map[username][joha_class_name]
   node_id = params[:node_id]
@@ -396,10 +458,11 @@ post '/create_node' do
   #TODO: Validate against data def
   token = session[:token]
   username = session[:friendly_id]
-  joha_class_name = session[:joha_class_name]
+  joha_class_name = session[:current_joha_class]
   #@jm = @@session[token][joha_class_name] #|| create it
   #@jm = session[:current_jm]
   @jm = @@joha_model_map[username][joha_class_name]
+
 
   
   node_id = params[:node_id]
@@ -436,7 +499,7 @@ post '/node_data_update' do
   
   token = session[:token]
   username = session[:friendly_id]
-  joha_class_name = session[:joha_class_name]
+  joha_class_name = session[:current_joha_class]
   #@jm = @@session[token][joha_class_name] #|| create it
   #@jm = session[:current_jm]
   @jm = @@joha_model_map[username][joha_class_name] #or create it
@@ -491,7 +554,7 @@ post '/upload_files' do
   puts "Uploaded Files"
   token = session[:token]
   username = session[:friendly_id]
-  joha_class_name = session[:joha_class_name]
+  joha_class_name = session[:current_joha_class]
   #jm = @@session[token][joha_class_name]
   #jm = session[:current_jm]
   jm = @@joha_model_map[username][joha_class_name] # or create it
@@ -524,7 +587,7 @@ post '/upload_files' do
     add_file_data = {:src_filename => new_file_loc}
     tk_node.files_add(add_file_data)
   end
-  
+  jm.refresh
   content_type :json
   return jm.list_attachments(node_id)
 end
@@ -534,7 +597,7 @@ get '/download/*/*' do
   node_id = params[:splat][0]
   attachment_name = params[:splat][1]
   username = session[:friendly_id]
-  joha_class_name = session[:joha_class_name]
+  joha_class_name = session[:current_joha_class]
   puts "download data"
   p node_id
   p attachment_name
@@ -576,7 +639,7 @@ post '/delete_node' do
   delete_files = params[:del_files]
   token = session[:token]
   username = session[:friendly_id]
-  joha_class_name = session[:joha_class_name]
+  joha_class_name = session[:current_joha_class]
   #jm = @@session[token][joha_class_name]
   #jm = session[:current_jm]
   jm = @@joha_model_map[username][joha_class_name] #or create it
