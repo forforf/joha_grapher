@@ -2,7 +2,9 @@
 <div id="desc-info-<%=field%>">
 <h2><%= field %></h2>
   <% node_data.each do |node_id, field_data| %>
-    <a href="javascript:void(0)" onclick="actLikeNodeClicked('<%=node_id%>')"><%= field_data %></a>
-    <span>, </span>
+    <% if node_id %>
+      <% field_data ||= "id: #{node_id}" %>
+      <a href="javascript:void(0)" class="desc desc_node_label" onclick="actLikeNodeClicked('<%=node_id%>')"><%= field_data %></a>
+    <% end %>
   <% end %>
 <% end %>

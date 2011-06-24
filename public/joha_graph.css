@@ -286,7 +286,14 @@ textarea#related_tags_edit {
     margin:0px 0px 0px 15px;
 }
 
-.desc-stuff {
+.desc {
+  border-radius: 0.4em;
+  border-style: solid;
+  border-width: 0.1em;
+  color: #4b4843;
+  display: inline-block;
+  margin: 0.2em;
+  padding: 0.2em;
 }
 
 a.borg_node_text {

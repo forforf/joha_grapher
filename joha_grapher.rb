@@ -501,9 +501,9 @@ post '/upload_files' do
   uploaded_files = params[:add_files]
   puts "#: #{uploaded_files.size}"
   uploaded_files.each do |upload_file|
-    p upload_file[:node_id]
-    p upload_file[:tempfile]
-    p upload_file[:filename]
+    #p upload_file[:node_id]
+    #p upload_file[:tempfile]
+    #p upload_file[:filename]
   
     user_dir = token
     tmp_file = upload_file[:tempfile]
@@ -527,6 +527,22 @@ post '/upload_files' do
   
   content_type :json
   return jm.list_attachments(node_id)
+end
+
+
+get '/download/*/*' do
+  node_id = params[:splat][0]
+  attachment_name = params[:splat][1]
+  username = session[:friendly_id]
+  joha_class_name = session[:joha_class_name]
+  puts "download data"
+  p node_id
+  p attachment_name
+  p username
+  p joha_class_name
+  jm = @@joha_model_map[username][joha_class_name] # or create it
+  content_type 'application/octet-stream'
+  jm.download_attachment(node_id, attachment_name)
 end
 
 post '/post_test' do

@@ -5,10 +5,11 @@
   <% node_data.each do |node_id, field_data| %>
     <% if field_data %>
       <% field_data.each do |url, link_name| %>
+        <% next unless url %>
+        <% link_name ||= url %>
         <% [link_name].flatten.each do |link| %>
-          [<a href="<%=url%>"><%=link%></a>]
+          [<a href="<%=url%>" class="desc desc_links"><%=link%></a>]
         <% end %>
-        <span>, </span>
       <% end %>
     <% end %>
   <% end %>

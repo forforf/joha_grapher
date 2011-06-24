@@ -2,7 +2,9 @@
 <h2>All Attached Files</h2>
 <% @desc_data.each do |field, node_data| %>
   <% node_data.each do |node_id, field_data| %>
-    <a href="javascript:void(0)" onclick="actLikeNodeClicked('<%=node_id%>')"><%= field_data %></a>
-    <span>, </span>
+    <% next unless field_data %>
+    <% field_data.each do |att_name| %>
+      <a href="javascript:void(0)" class="desc desc_attached_files" onclick="downloadAttachment('<%=node_id%>', '<%= att_name %>')"><%= att_name %></a>
+    <% end %>
   <% end %>
 <% end %>

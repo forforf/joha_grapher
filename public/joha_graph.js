@@ -575,6 +575,11 @@ function uploadAttachments(){
 
 };
 
+function downloadAttachment(nodeId, attName) {
+  var downloadUrl = "/download/" + nodeId + "/" + attName
+  window.location.href = downloadUrl;
+}
+
 
 //-- -- data structures 
 var files_element_format = function(filenames, divIdBase, el){
@@ -588,8 +593,13 @@ var files_element_format = function(filenames, divIdBase, el){
       var fileWr = $j("<div />", {
         "id": fileIdBase,
       });
-      var fileLabel = joha.buildSimpleElem.staticValueElement(filenames[i], fileIdBase);
+      var filename = filenames[i];
+      var fileLabel = joha.buildSimpleElem.staticValueElement(filename, fileIdBase);
       fileLabel.addClass('file_attachment_name');
+      fileLabel.click(function() {
+        var node_id = $j('#current_node_id').text();
+        downloadAttachment(node_id, filename);
+      });
       fileWr.append(fileLabel);
       var fileDelCtl = joha.buildSimpleElem.deleteControl(fileLabel, fileIdBase);
       fileWr.append(fileDelCtl);
@@ -987,7 +997,7 @@ function createLinks(){
   console.log(myLinksEl);
   $j('#dn_link_data').append(myLinksEl);
 }
-//functions dealing with attached files
+
 function get_current_node_attachment(filename){
   var currentNodeId = $j('#current_node_id').text();
   //alert("Current Node: " + currentNodeId + " Filename: " + filename + ".");
@@ -996,7 +1006,7 @@ function get_current_node_attachment(filename){
 //Graphing helpers and interactions
 function insertNodesIntoGraph(aGraph, nodeLoc){
 
-  jQuery.get(nodeLoc,
+  $j.get(nodeLoc,
     function(graph_data) {
       console.log(graph_data);
       johaIndex(graph_data);
@@ -1009,10 +1019,7 @@ function insertNodesIntoGraph(aGraph, nodeLoc){
   
 }
 
-//TODO: Refactor this so it is no longer assigned by a view
-// that is pulled with the /desc_data ajax query.
-//Change so that only data is exchanged with server, so that any bindings
-//can be done locally
+
 function actLikeNodeClicked(node_id) {
   var visnode = johaGraph.myGraph.graph.getNode(node_id);
   johaGraph.myGraph.onClick(visnode.id);
