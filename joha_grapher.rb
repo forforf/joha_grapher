@@ -130,15 +130,26 @@ helpers do
       #op_type = ops[:op_type]  
       tk_node = tk_class.get(node_id)
       field = ops[:field_name]
+      
+        
       new_data = ops[:new_data]
       orig_data = ops[:orig_data]
+      
+      #TODO: Fix tinkit so that keys defined in the data definiton can be created when initially defined
+      #Hack to get around tinkit bug
+      existing_keys = tk_node._user_data.keys
+      unless existing_keys.include?(field)
+        p tk_node._user_data.keys
+        p field
+        tk_node.__set_userdata_key(field.to_sym, nil)
+      end
+      #end hack
       
       op = ops[:op]
       puts "operation:"
       p op
       case op
         when "add"
-          #jm.add_item(node_id, field, 
           tk_meth = "#{field}_#{op}"
           tk_data = new_data
           tk_node.__send__(tk_meth.to_sym, tk_data)
