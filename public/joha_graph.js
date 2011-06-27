@@ -381,13 +381,21 @@ function newNodeCreated(data){
   for (var i=0;i<parentsIds.length;i++) {
     var parentId = parentsIds[i];
     node_in_graph = johaGraph.myGraph.graph.getNode(parentId);
-    if (node_in_graph) {
+    console.log(node_in_graph);
+    console.log(johaGraph.myGraph.toJSON());
+    var topNodeId = johaGraph.myGraph.toJSON().id;
+    console.log(topNodeId);
+    
+    if ( (node_in_graph) ) {
       johaIndex(graphData);
       johaGraph.myGraph.loadJSON(graphData); 
       johaGraph.myGraph.refresh();
       actLikeNodeClicked(nodeId);
-    } else {
-      
+    } else if (topNodeId===undefined) { 
+      //topNodeId doesn't exist, redirect (i.e. a brand new graph)
+      alert(topNodeId);
+      window.location = "redirect_to_graphs";
+    } else {  
         var msg = "The new node (" + nodeId + ") is not linked to this graph.  "
         msg += "You can stay on this graph, or go to the graph select screen to select the graph with the new node";
         var unlinkedNodeDialog = $j('<div />')
