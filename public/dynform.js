@@ -21,7 +21,6 @@
   JohaBuilder - Build specific Dom Elements
     deleteControl: 
     
-   
   Element Types:  JohaElems.<element type>(<args>) to call
     Main Container
       nodeContainer:         Main conatainer and is a container for the entire node, holds all node fields (aka keys) and(related data)
