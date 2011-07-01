@@ -427,7 +427,9 @@ get '/index_nodes' do
   puts "Session data @ index nodes"
   p session
   p @@joha_model_map
-  top_node = session[:top_node]
+  #TODO: Figure out elegant fix to missing top nodes
+  #like when creating a new graph
+  top_node = session[:top_node]||"none"
   username = session[:friendly_id]
   joha_class_name = session[:current_joha_class]
   #@jm = session[:current_jm] #|| create it
@@ -490,8 +492,8 @@ post '/create_node' do
   
   @jm.create_node(node_data)
   @jm.refresh
-  
-  top_node = session[:top_node]
+  #TODO: Find elegant way of handling mising top nodes 
+  top_node = session[:top_node]||"none"
   #TODO: Fix the jsivt grapher and/or model so we don't have this mess
   #SO ugly my eyes burn (we're changing JSON to ruby to change back to JSON)
   ruby_graph = JSON.parse(@jm.tree_graph(top_node))
