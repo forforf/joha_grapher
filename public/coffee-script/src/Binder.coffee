@@ -1,12 +1,19 @@
-#$j.ajax '/some_json',
-#    type: 'GET'  #or POST
-#    dataType: 'json', #or 'html'
-#    error: (xhr, status, error) ->
-#        console.error(xhr, status, error)
-#    success: (data, status, xhr) ->
-#        console.log(data)
-
 root = exports ? this
+
+#put in a common coffeescript library?
+#code from http://forrst.com/posts/Deep_Extend_an_Object_in_CoffeeScript-DWu
+
+deepExtend = (object, extenders...) ->
+  return {} if not object?
+  for other in extenders
+    for own key, val of other
+      if not object[key]? or typeof val isnt "object"
+        object[key] = val
+      else
+        object[key] = deepExtend object[key], val
+
+  object
+
 
 #Singleton code from here: https://gist.github.com/979402
 class Singleton
@@ -26,31 +33,40 @@ class Singleton
     console.log "#{name} initialized"
     
 
-
+#This approach requires two labels to be defined at instantiation
+#An alternate
 class Binder extends Singleton
   
-  constructor: (@labelA, @labelB) ->
-  [initA, initB] = [{},{}]
+  constructor:  ->
+  binderData = {}
+  #[initA, initB] = [{},{}]
   
-  dataA: initA
-  dataB: initB
+  #dataA: initA
+  #dataB: initB
 
-  addA: (aKey, aVal) -> 
-    @dataA[aKey] = aVal
-  addB: (bKey, bVal) -> 
-    @dataB[bKey] = bVal
+  #addA: (aKey, aVal) -> 
+  #  @dataA[aKey] = aVal
+  #addB: (bKey, bVal) -> 
+  #  @dataB[bKey] = bVal
+  add: (bindKey, label, val) ->
+    addData = {}
+    addData[label] = val
+    bindData = binderData[bindKey]||{}
+    binderData[bindKey] = deepExtend(bindData, addData)
 
-  getBindings: (keyData) ->
-    result = {}
-    a = @dataA[keyData]
-    b = @dataB[keyData]
-    result[@labelA] = a
-    result[@labelB] = b
-    result
+  getBindings: (commonKey) ->
+    #result = {}
+    #newResult = binderData
+    #a = @dataA[keyData]
+    #b = @dataB[keyData]
+    #result[@labelA] = a
+    #result[@labelB] = b
+    #result['new'] = binderData
+    binderData[commonKey]
 
-  getLabels: ->
-    [@labelA, @labelB]
-
+  getLabels: (commonKey) ->
+    binderObj = binderData[commonKey]
+    labels = (labels for labels of binderObj)
 
 #test
 #x = new Binder('aa', 'bb')

@@ -1,6 +1,6 @@
 (function() {
-  var Binder, Singleton, root;
-  var __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
+  var Binder, Singleton, deepExtend, root;
+  var __slice = Array.prototype.slice, __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
     for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
     function ctor() { this.constructor = child; }
     ctor.prototype = parent.prototype;
@@ -9,6 +9,26 @@
     return child;
   };
   root = typeof exports !== "undefined" && exports !== null ? exports : this;
+  deepExtend = function() {
+    var extenders, key, object, other, val, _i, _len;
+    object = arguments[0], extenders = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
+    if (!(object != null)) {
+      return {};
+    }
+    for (_i = 0, _len = extenders.length; _i < _len; _i++) {
+      other = extenders[_i];
+      for (key in other) {
+        if (!__hasProp.call(other, key)) continue;
+        val = other[key];
+        if (!(object[key] != null) || typeof val !== "object") {
+          object[key] = val;
+        } else {
+          object[key] = deepExtend(object[key], val);
+        }
+      }
+    }
+    return object;
+  };
   Singleton = (function() {
     var instance;
     function Singleton() {}
@@ -29,32 +49,31 @@
     return Singleton;
   })();
   Binder = (function() {
-    var initA, initB, _ref;
+    var binderData;
     __extends(Binder, Singleton);
-    function Binder(labelA, labelB) {
-      this.labelA = labelA;
-      this.labelB = labelB;
-    }
-    _ref = [{}, {}], initA = _ref[0], initB = _ref[1];
-    Binder.prototype.dataA = initA;
-    Binder.prototype.dataB = initB;
-    Binder.prototype.addA = function(aKey, aVal) {
-      return this.dataA[aKey] = aVal;
+    function Binder() {}
+    binderData = {};
+    Binder.prototype.add = function(bindKey, label, val) {
+      var addData, bindData;
+      addData = {};
+      addData[label] = val;
+      bindData = binderData[bindKey] || {};
+      return binderData[bindKey] = deepExtend(bindData, addData);
     };
-    Binder.prototype.addB = function(bKey, bVal) {
-      return this.dataB[bKey] = bVal;
+    Binder.prototype.getBindings = function(commonKey) {
+      return binderData[commonKey];
     };
-    Binder.prototype.getBindings = function(keyData) {
-      var a, b, result;
-      result = {};
-      a = this.dataA[keyData];
-      b = this.dataB[keyData];
-      result[this.labelA] = a;
-      result[this.labelB] = b;
-      return result;
-    };
-    Binder.prototype.getLabels = function() {
-      return [this.labelA, this.labelB];
+    Binder.prototype.getLabels = function(commonKey) {
+      var binderObj, labels;
+      binderObj = binderData[commonKey];
+      return labels = (function() {
+        var _results;
+        _results = [];
+        for (labels in binderObj) {
+          _results.push(labels);
+        }
+        return _results;
+      })();
     };
     return Binder;
   })();
