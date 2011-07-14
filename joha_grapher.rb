@@ -663,3 +663,10 @@ post '/delete_node' do
   content_type :json
   return new_graph
 end
+
+##For Testing
+get '/some_json' do
+  some_data = {:a => 'A', :b => 'B'}
+  content_type :json
+  return some_data.to_json
+end
