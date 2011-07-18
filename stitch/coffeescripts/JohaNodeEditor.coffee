@@ -1,0 +1,1 @@
+../../public/coffee-script/src/JohaNodeEditor.coffee

@@ -1,4 +1,5 @@
 require 'sinatra'
+require 'stitch-rb'
 
 use Rack::Session::Cookie
 require 'rack/openid'
@@ -233,6 +234,12 @@ get '/login_old' do
 end
 =end
 
+#Dynamically load in coffee script modules (commonJS format)
+get '/application.js' do
+  #compiles on the fly for development,  move to config.ru for static compiling for staging
+  content_type 'text/javascript'
+  Stitch::Package.new(:paths => ["stitch/coffeescripts"], :dependencies => []).compile
+end
 
 #TODO: Need to fix bug where if user has a session but hasn't signed up, they will be redirected to the graph as a nil user
 get '/new_user' do

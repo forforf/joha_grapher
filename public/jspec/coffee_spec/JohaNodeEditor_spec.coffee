@@ -1,5 +1,15 @@
 describe 'JohaNodeEditor', ->
+  JNEd = require "JohaNodeEditor"
+  JohaNodeEditor = JNEd.JohaNodeEditor
+  forfLib = require 'forf'
+  getKeys = forfLib.getKeys
 
+  describe 'Importing', ->
+    it 'should be loaded and defined and instantiable', ->
+      @instance = new JohaNodeEditor({})
+      expect(@instance).toBeDefined()
+      expect( @instance.currentNodeId() ).toBeDefined()
+    
   describe  'Initialization with proper data', ->
     @nodeData = {}
     @nodeEd = null
@@ -27,9 +37,24 @@ describe 'JohaNodeEditor', ->
       expect( @nodeData.id ).toEqual 'id-test'
       expect( @nodeEd.currentNodeId() ).toEqual @nodeData.id
 
+    #it 'accepts options', ->
+       
+    it 'creates joha field objects properly', ->
+      #testKeys = getKeys(@nodeData)
+      johaFields = @nodeEd.nodeFields()
+      expect(johaFields.id.fieldName).toEqual "id"
+      expect(johaFields.id.fieldValue).toEqual @nodeData.id
+      expect(johaFields.label.fieldName).toEqual "label"
+      expect(johaFields.label.fieldValue).toEqual @nodeData.label
+      expect(johaFields.links.fieldName).toEqual "links"
+      expect(johaFields.links.fieldValue).toEqual @nodeData.links
+      expect(johaFields.a_string.fieldName).toEqual "a_string"
+      expect(johaFields.a_string.fieldValue).toEqual @nodeData.a_string
 
+    it 'builds Dom', ->
+      expect( @nodeEd.buildDom() ).toEqual 'foo'
 
-  describe  'Initialization with impproper data', ->
+  describe  'Initialization with improper data', ->
      
     it 'provides a node id if one does not exist', ->
       nodeData = {} 

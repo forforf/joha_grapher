@@ -1,0 +1,3 @@
+coffee -o ~/my_apps/joha_grapher/public/coffee-script/js/ -c ~/my_apps/joha_grapher/public/coffee-script/src/JohaNodeEditor.coffee
+
+coffee -o ~/my_apps/joha_grapher/public/jspec/ -c ~/my_apps/joha_grapher/public/jspec/coffee_spec/JohaNodeEditor_spec.coffee
