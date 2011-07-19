@@ -2,12 +2,11 @@ root = exports ? this
 
 #Libraries
 #coffeescript ibraries are found in stitch/coffeescripts
-forfLib = require 'forf'
-#getKeys = forfLib.getKeys
-idTrackerLib = require 'IdTrackerSingleton'
-idTracker = idTrackerLib.IdBinder
-johaFields = require 'JohaNodeFields'
-nodeFieldFactory = johaFields.nodeFieldFactory
+IdBinder = require('IdTrackerSingleton').IdBinder
+IdTracker = IdBinder #TODO: Pick a name and stick with it
+nodeFieldFactory = require('JohaNodeFields').nodeFieldFactory
+#extend = require('extend').extend
+#jQueryContext = require('onDomReady').$jjq
 
 class JohaNodeEditor
   ni = 'not implemented'
@@ -17,7 +16,10 @@ class JohaNodeEditor
     @nodeData.label = "node:" + @nodeData.id if not @nodeData.label
 
   buildDom: ->
-    return ni #idTracker
+    idTracker = IdTracker.get('johaNode')
+    idTracker.assignId('dummy')
+    console.log idTracker.ids
+    idTracker.ids
 
   clearNodeEdits: ->
     return ni
@@ -31,11 +33,11 @@ class JohaNodeEditor
   deleteNodeData: ->
     return ni
 
-  nodeFields: -> 
-     _dummy = {}
+  nodeFields: ->
+     _objContainer = {}
      for fieldName, fieldValue of @nodeData
-       _dummy[fieldName] = nodeFieldFactory(fieldName, fieldValue)
-     _dummy
+       _objContainer[fieldName] = nodeFieldFactory(fieldName, fieldValue)
+     _objContainer
      
 
   makeGUID: ->
@@ -50,5 +52,8 @@ class JohaNodeEditor
 
   saveNodeData: ->
     return ni
+
+  view: ->
+    @buildDom
 
 root.JohaNodeEditor = JohaNodeEditor

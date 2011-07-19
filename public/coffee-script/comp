@@ -4,7 +4,7 @@ OUTLIB="$HOME/my_apps/joha_grapher/public/coffee-script/js"
 SRCSPEC="$HOME/my_apps/joha_grapher/public/jspec/coffee_spec"
 OUTSPEC="$HOME/my_apps/joha_grapher/public/jspec" 
 
-coffee -o $OUTLIB -c $SRCLIB/JohaNodeEditor.coffee
+#coffee -o $OUTLIB -c $SRCLIB/JohaNodeEditor.coffee
 coffee -o $OUTSPEC -c $SRCSPEC/JohaNodeEditor_spec.coffee
 coffee -o $OUTSPEC -c $SRCSPEC/JohaNodeFields_spec.coffee
-#coffee -o $OUTLIB -c $SRCLIB/onDomReady.coffee
+coffee -o $OUTLIB -c $SRCLIB/onDomReady.coffee

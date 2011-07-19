@@ -1,0 +1,3 @@
+For Dev, these javascripts are not used.
+Stitch is used to compile directly from coffee and to create
+a concatenated js file.

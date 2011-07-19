@@ -1,10 +1,18 @@
 root = exports ? this
+#Libraries
+#coffeescript ibraries are found in stitch/coffeescripts
+RootValueContainer = require('dynJsonContainers').RootValueContainer
+
+console.log(RootValueContainer)
 
 class NodeField
   ni = 'Not Implemented'
   constructor: (@fieldName, @fieldValue) ->
 
 class NodeJsonField extends NodeField
+  constructor: (@fieldName, @fieldValue) ->
+    @className = 'NodeJsonField'
+    @jsonContainer = new RootValueContainer @fieldValue
 
 class NodeIdField extends NodeField
 

@@ -1,3 +1,4 @@
+###
 #--- Singleton for Keeping Track of Value Container Entities ---
 #
 # http://stackoverflow.com/questions/4214731/coffeescript-global-variables
@@ -28,6 +29,14 @@ class _SingletonBinder
   echo: ->
     @args
 #---------------------------------------------------------------
+###
+
+#Libraries
+#coffeescript ibraries are found in stitch/coffeescripts
+root = exports ? this
+
+IdBinder = require('IdTrackerSingleton').IdBinder
+
 
 valueContainerFactory = (value) ->
     basicTypes = ['string', 'number', 'boolean', 'undefined', 'null']
@@ -51,7 +60,7 @@ class ValueContainerBase
     #@curValue is used for calculating the correct @currentValue
     @curValue = @value
     @origValue = @value
-    idBinder = root.IdBinder.get()
+    idBinder = IdBinder.get()
     @domId = idBinder.assignId(@)
 
   jsonType: ->
@@ -145,6 +154,7 @@ class ObjectValueContainer extends ValueContainerBase
 class RootValueContainer
   constructor: (@value, options) ->
     options or= {}
+    #ToDo: Use extend to set overwrite default options
     @injectInto = options['injectInto'] || 'data' 
     console.log 'root value:', @value
     @valueContainer = valueContainerFactory(@value)
@@ -162,7 +172,6 @@ class RootValueContainer
     @valueContainer.currentValue()
 
 root.RootValueContainer = RootValueContainer
-console.log('dynJsonContainerssss parsed')
 ###
 $ ->
   console.log('Doc Ready')

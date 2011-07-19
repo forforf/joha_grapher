@@ -1,13 +1,29 @@
 root = exports ? this
+
+JohaNodeEditor = require('JohaNodeEditor').JohaNodeEditor
+
+root.$jjq = $
+
+$ ->
+  console.log('JohaNode Doc Ready')
+  nodeData = {akv: ['a', {x: 'X'}, ['aa', 'bb']]}
+  newNode = new JohaNodeEditor nodeData
+  console.log( 'NewNode:', newNode.view() )
+  
+###
+#Working with dynJsonContainers
 dynJson = require 'dynJsonContainers'
 root.RootValueContainer = dynJson.RootValueContainer
-#console.log('onDomReady parsed')
+root.$j = $
+
+#JNE = require 'JohaNodeEditor'
+
 $ ->
+  console.log($)
+  #JohaNodeEditor = JNE.JohaNodeEditor
   console.log('Doc Ready')
-  console.log  root
-  x = new RootValueContainer {akv: ['a', {x: 'X'}, ['aa', 'bb']]} 
-  #x = new RootValueContainer 'a'
-  console.log x.valueContainer  
+  x = new RootValueContainer {akv: ['a', {x: 'X'}, ['aa', 'bb']]}
+  console.log x.valueContainer
   console.log x.origValue
   x.view()
   calcBtnHtml = "<button type='button'>Current Value</button>"
@@ -17,14 +33,3 @@ $ ->
     console.log cv
     alert JSON.stringify(cv)
   $('body').append(calcBtnDom)
-###  
-  domId = 'johaIdBinder-0'
-  idBinder = root.IdBinder.get()
-  valCont = idBinder.getBoundById(domId)
-  valCont.modify('b')
-  #x.valueContainer.modify('b')
-  console.log 'Orig', x.valueContainer.origValue
-  console.log 'Cur', x.valueContainer.curValue
-  console.log 'Current', x.valueContainer.currentValue()
-  x.view()
-
