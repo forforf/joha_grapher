@@ -67,9 +67,7 @@
         expect(johaFields.a_string.fieldName).toEqual("a_string");
         return expect(johaFields.a_string.fieldValue).toEqual(this.nodeData.a_string);
       });
-      return it('builds Dom', function() {
-        return expect(this.nodeEd.buildDom()).toEqual('foo');
-      });
+      return it('builds Dom', function() {});
     });
     return describe('Initialization with improper data', function() {
       it('provides a node id if one does not exist', function() {

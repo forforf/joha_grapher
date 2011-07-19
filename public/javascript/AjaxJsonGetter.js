@@ -1,1 +1,0 @@
-../coffee-script/js/AjaxJsonGetter.js

@@ -1,81 +1,11 @@
 (function() {
-  var JohaNodeEditor, NodeField, NodeFileAttachments, NodeFilesField, NodeIdField, NodeJsonField, NodeLabelField, NodeLinks, NodeLinksField, forfLib, idTracker, idTrackerLib, nodeFieldFactory, root;
-  var __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
-    for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
-    function ctor() { this.constructor = child; }
-    ctor.prototype = parent.prototype;
-    child.prototype = new ctor;
-    child.__super__ = parent.prototype;
-    return child;
-  };
+  var JohaNodeEditor, forfLib, idTracker, idTrackerLib, johaFields, nodeFieldFactory, root;
   root = typeof exports !== "undefined" && exports !== null ? exports : this;
   forfLib = require('forf');
   idTrackerLib = require('IdTrackerSingleton');
   idTracker = idTrackerLib.IdBinder;
-  NodeFileAttachments = (function() {
-    function NodeFileAttachments() {}
-    return NodeFileAttachments;
-  })();
-  NodeLinks = (function() {
-    function NodeLinks() {}
-    return NodeLinks;
-  })();
-  NodeField = (function() {
-    function NodeField(fieldName, fieldValue) {
-      this.fieldName = fieldName;
-      this.fieldValue = fieldValue;
-    }
-    return NodeField;
-  })();
-  NodeJsonField = (function() {
-    __extends(NodeJsonField, NodeField);
-    function NodeJsonField() {
-      NodeJsonField.__super__.constructor.apply(this, arguments);
-    }
-    return NodeJsonField;
-  })();
-  NodeIdField = (function() {
-    __extends(NodeIdField, NodeField);
-    function NodeIdField() {
-      NodeIdField.__super__.constructor.apply(this, arguments);
-    }
-    return NodeIdField;
-  })();
-  NodeLabelField = (function() {
-    __extends(NodeLabelField, NodeField);
-    function NodeLabelField() {
-      NodeLabelField.__super__.constructor.apply(this, arguments);
-    }
-    return NodeLabelField;
-  })();
-  NodeFilesField = (function() {
-    __extends(NodeFilesField, NodeField);
-    function NodeFilesField() {
-      NodeFilesField.__super__.constructor.apply(this, arguments);
-    }
-    return NodeFilesField;
-  })();
-  NodeLinksField = (function() {
-    __extends(NodeLinksField, NodeField);
-    function NodeLinksField() {
-      NodeLinksField.__super__.constructor.apply(this, arguments);
-    }
-    return NodeLinksField;
-  })();
-  nodeFieldFactory = function(fieldName, fieldValue) {
-    switch (fieldName) {
-      case 'id':
-        return new NodeIdField(fieldName, fieldValue);
-      case 'label':
-        return new NodeLabelField(fieldName, fieldValue);
-      case 'attached_files':
-        return new NodeFilesField(fieldName, fieldValue);
-      case 'links':
-        return new NodeLinksField(fieldName, fieldValue);
-      default:
-        return new NodeJsonField(fieldName, fieldValue);
-    }
-  };
+  johaFields = require('JohaNodeFields');
+  nodeFieldFactory = johaFields.nodeFieldFactory;
   JohaNodeEditor = (function() {
     var ni;
     ni = 'not implemented';
@@ -89,7 +19,7 @@
       }
     }
     JohaNodeEditor.prototype.buildDom = function() {
-      return idTracker;
+      return ni;
     };
     JohaNodeEditor.prototype.clearNodeEdits = function() {
       return ni;

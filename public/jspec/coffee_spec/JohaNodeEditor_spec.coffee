@@ -52,7 +52,7 @@ describe 'JohaNodeEditor', ->
       expect(johaFields.a_string.fieldValue).toEqual @nodeData.a_string
 
     it 'builds Dom', ->
-      expect( @nodeEd.buildDom() ).toEqual 'foo'
+      #expect( @nodeEd.buildDom() ).toEqual 'foo'
 
   describe  'Initialization with improper data', ->
      
