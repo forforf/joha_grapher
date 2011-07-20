@@ -3,8 +3,6 @@ root = exports ? this
 #coffeescript ibraries are found in stitch/coffeescripts
 RootValueContainer = require('dynJsonContainers').RootValueContainer
 
-console.log(RootValueContainer)
-
 class NodeField
   ni = 'Not Implemented'
   constructor: (@fieldName, @fieldValue) ->

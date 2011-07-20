@@ -19,9 +19,18 @@ describe 'JohaNodeFields', ->
       @complexObjValue = {a: ['aa', 'ab'], b: { ba: ['baa', 'bab'], bb: {bba: 'bbc'}}}
       @complexJsonFieldObj = nodeFieldFactory(complexFieldName, @complexObjValue)
 
-    it 'creates a container for the value', ->
-      expect( @complexJsonFieldObj.className ).toEqual 'NodeJsonField'
-      jsonContainer = @complexJsonFieldObj.jsonContainer
-      expect( jsonContainer.currentValue() ).toEqual @complexObjValue
-      expect(jsonContainer.origValue).toEqual @complexObjValue
+    describe 'creates a container for the value', ->
+      it 'is a NodeJsonField object', ->
+        expect( @complexJsonFieldObj.className ).toEqual 'NodeJsonField'
+
+      it 'has the data value represented', ->
+        expect( @complexJsonFieldObj.fieldValue ).toEqual @complexObjValue
+
+      it 'correctly sets the original value', ->
+        jsonContainer = @complexJsonFieldObj.jsonContainer
+        expect(jsonContainer.origValue).toEqual @complexObjValue            
+
+      it 'calculates the current value from the dom correctly', ->
+        jsonContainer = @complexJsonFieldObj.jsonContainer
+        expect( jsonContainer.currentValue() ).toEqual @complexObjValue
 

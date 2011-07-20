@@ -1,0 +1,9 @@
+SRCLIB="$HOME/my_apps/joha_grapher/public/coffee-script/src"
+OUTLIB="$HOME/my_apps/joha_grapher/public/coffee-script/js"
+
+SRCSPEC="$HOME/my_apps/joha_grapher/public/jspec/coffee_spec"
+OUTSPEC="$HOME/my_apps/joha_grapher/public/jspec" 
+
+coffee -o $OUTSPEC -c $SRCSPEC/JohaNodeEditor_spec.coffee
+coffee -o $OUTSPEC -c $SRCSPEC/JohaNodeFields_spec.coffee
+coffee -o $OUTSPEC -c $SRCSPEC/dynJsonContainers_spec.coffee

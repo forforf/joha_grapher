@@ -1,61 +1,47 @@
-###
-#--- Singleton for Keeping Track of Value Container Entities ---
-#
-# http://stackoverflow.com/questions/4214731/coffeescript-global-variables
-root = exports ? this 
-# The publicly accessible Singleton fetcher
-class root.IdBinder
-  _instance = undefined # Must be declared here to force the closure on the class
-  @get: (args) -> # Must be a static method
-    _instance ?= new _SingletonBinder args
-
-# The actual Singleton class
-class _SingletonBinder
-  constructor: (@args) ->
-    @ids = {}
-    @nextId = 0
-    @idPrefix = 'johaIdBinder-'
-
-  assignId: (boundToThis) ->
-    boundId = @idPrefix + @nextId 
-    @nextId++
-    @ids[boundId] = boundToThis
-    boundId
-
-  getBoundById: (id) ->
-     @ids[id]
-
-
-  echo: ->
-    @args
-#---------------------------------------------------------------
-###
-
 #Libraries
 #coffeescript ibraries are found in stitch/coffeescripts
 root = exports ? this
 
+#Libraries
+#Libraries are in stitch/coffeescripts
 IdBinder = require('IdTrackerSingleton').IdBinder
+getType = require('forf').getType
+extend = require('forf').extend
 
 
 valueContainerFactory = (value) ->
-    basicTypes = ['string', 'number', 'boolean', 'undefined', 'null']
-    complexTypes = ['array', 'object']
+  console.log 'starting valueContainerFactory'
 
-    valType = typeof value
-    console.log 'Factory', value, valType
-    for basicType in basicTypes
-      if valType is basicType
-        return new BasicValueContainer(value, 'basic')
-    if valType is 'object' and value instanceof Array
-      return new ArrayValueContainer(value, 'array')
-    if valType is 'object' #any other conditions
-      return new ObjectValueContainer(value, 'object')
-    return 'valType: ' + valType + 'is unknown'
-      
+  containerFromSimpleType = {
+    '[object Null]':  BasicValueContainer #(value, 'basic')
+    '[object String]':BasicValueContainer #(value, 'basic')
+    '[object Number]': BasicValueContainer #(value, 'basic')
+    '[object Boolean]': BasicValueContainer #(value, 'basic')
+    '[object Array]': ArrayValueContainer #(value, 'array')
+    '[object Object]': ObjectValueContainer #(value, 'object')
+    }
+  
+  containerFromValue = (value) ->
+    console.log 'entered containerFromValue'
+    type = getType(value)
+    containerClass = containerFromSimpleType[type]
+    objContainer = new containerClass(value)
+    return objContainer #if objContainer
+    #special cases
+    #ToDo: Determine how to best handle HTML types, eg.
+    #'[object HTMLDocument'], '[object HTMLDivElement]'
+    #'[object HTMLScriptElement]', etc
+    #ToDo: How to handle unexecuted functions?
+    #'[object Function]'  (can't execute with parameters
+    #and if execution was desired then it could have been executed
+    #as the initial value i.e. valueContainerFactory( fn() )
+
+  container = containerFromValue(value)
+  console.log 'Container Factory, container: ', container   
+  return container   
 
 class ValueContainerBase
-  constructor: (@value, @containerType) ->
+  constructor: (@value) ->
     #@currentValue() is the public API
     #@curValue is used for calculating the correct @currentValue
     @curValue = @value
@@ -67,6 +53,7 @@ class ValueContainerBase
     typeof @value
       
 class BasicValueContainer extends ValueContainerBase
+  @containerType = 'basic'
   modify: (newVal) =>
     @curValue = newVal
 
@@ -87,11 +74,13 @@ class BasicValueContainer extends ValueContainerBase
     div.append edit
     
 class ArrayValueContainer extends ValueContainerBase
-  constructor: (@value, @containerType) ->
+  constructor: (@value) ->
     #we know @value is an array
     @children = for val in @value
       valueContainerFactory(val)
     super @value
+
+  @containerType = 'array'
 
   view: =>
     av = $('<div>Arrays</div>')
@@ -127,28 +116,41 @@ class KeyValue extends ValueContainerBase
   currentValue: =>
     kvVal = {}
     kvVal[@keyContainer.currentValue()] = @valContainer.currentValue()
+    console.log('KVContainer CurVal: ', kvVal)
     kvVal
         
 class ObjectValueContainer extends ValueContainerBase
-  constructor: (@objValue, @containerType) ->
-    #we know @value is an object
+  constructor: (@objValue) ->
+    #we know @objValue is an object
+    
     @kvChildren = for own key, val of @objValue
       kv = {}
       kv[key] = val
       new KeyValue(key, val)
     super @objValue
 
+  @containerType = 'object'
+
   view: =>
     obj = $('<div>Object</div>')
+    #running for side effect
     for kvChild in @kvChildren
       obj.append(kvChild.view())
       null
-    obj  
+    obj
+ 
 
   currentValue: =>
+    console.log('KVChildren: ', @kvChildren)
+    _curVal = {}
     cv = for kvChild in @kvChildren
-      kvChild.currentValue()
+      console.log('EachKVChild :', kvChild.currentValue(), JSON.stringify(kvChild.currentValue()))
+      extend _curVal, kvChild.currentValue()
       
+    console.log 'ObjectContainer CurVal: ', _curVal
+    #cv
+    _curVal
+    
  # #has ability to add new (currently just basic values though?)
  
 class RootValueContainer
@@ -158,6 +160,7 @@ class RootValueContainer
     @injectInto = options['injectInto'] || 'data' 
     console.log 'root value:', @value
     @valueContainer = valueContainerFactory(@value)
+    console.log 'RV got container: ', @valueContainer
     @origValue = @valueContainer.origValue
 
   view: ->

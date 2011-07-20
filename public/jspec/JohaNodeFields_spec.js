@@ -40,12 +40,23 @@
         };
         return this.complexJsonFieldObj = nodeFieldFactory(complexFieldName, this.complexObjValue);
       });
-      return it('creates a container for the value', function() {
-        var jsonContainer;
-        expect(this.complexJsonFieldObj.className).toEqual('NodeJsonField');
-        jsonContainer = this.complexJsonFieldObj.jsonContainer;
-        expect(jsonContainer.currentValue()).toEqual(this.complexObjValue);
-        return expect(jsonContainer.origValue).toEqual(this.complexObjValue);
+      return describe('creates a container for the value', function() {
+        it('is a NodeJsonField object', function() {
+          return expect(this.complexJsonFieldObj.className).toEqual('NodeJsonField');
+        });
+        it('has the data value represented', function() {
+          return expect(this.complexJsonFieldObj.fieldValue).toEqual(this.complexObjValue);
+        });
+        it('correctly sets the original value', function() {
+          var jsonContainer;
+          jsonContainer = this.complexJsonFieldObj.jsonContainer;
+          return expect(jsonContainer.origValue).toEqual(this.complexObjValue);
+        });
+        return it('calculates the current value from the dom correctly', function() {
+          var jsonContainer;
+          jsonContainer = this.complexJsonFieldObj.jsonContainer;
+          return expect(jsonContainer.currentValue()).toEqual(this.complexObjValue);
+        });
       });
     });
   });
