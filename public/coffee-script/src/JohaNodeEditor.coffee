@@ -16,10 +16,12 @@ class JohaNodeEditor
     @nodeData.label = "node:" + @nodeData.id if not @nodeData.label
 
   buildDom: ->
+    #making sure idTracker is singleton, remove when not needed
+    #if it maintains singleton across anonymous functions
+    #great!, else pass it on to them explicitly
     idTracker = IdTracker.get('johaNode')
     idTracker.assignId('dummy')
-    console.log idTracker.ids
-    idTracker.ids
+    
 
   clearNodeEdits: ->
     return ni
@@ -54,6 +56,6 @@ class JohaNodeEditor
     return ni
 
   view: ->
-    @buildDom
+    @buildDom()
 
 root.JohaNodeEditor = JohaNodeEditor

@@ -1,14 +1,14 @@
 root = exports ? this
-
+console.log 'onDomReady Script Loaded'
 JohaNodeEditor = require('JohaNodeEditor').JohaNodeEditor
 
-root.$jjq = $
-
+#root.$jjq = $
 $ ->
   console.log('JohaNode Doc Ready')
   nodeData = {akv: ['a', {x: 'X'}, ['aa', 'bb']]}
   newNode = new JohaNodeEditor nodeData
-  console.log( 'NewNode:', newNode.view() )
+  domData = newNode.view()
+  console.log( 'domData:', domData )
   
 ###
 #Working with dynJsonContainers

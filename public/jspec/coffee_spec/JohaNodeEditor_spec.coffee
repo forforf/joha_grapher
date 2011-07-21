@@ -40,7 +40,6 @@ describe 'JohaNodeEditor', ->
     #it 'accepts options', ->
        
     it 'creates joha field objects properly', ->
-      #testKeys = getKeys(@nodeData)
       johaFields = @nodeEd.nodeFields()
       expect(johaFields.id.fieldName).toEqual "id"
       expect(johaFields.id.fieldValue).toEqual @nodeData.id
@@ -52,7 +51,7 @@ describe 'JohaNodeEditor', ->
       expect(johaFields.a_string.fieldValue).toEqual @nodeData.a_string
 
     it 'builds Dom', ->
-      #expect( @nodeEd.buildDom() ).toEqual 'foo'
+      expect( @nodeEd.view() ).toEqual 'foo'
 
   describe  'Initialization with improper data', ->
      

@@ -7,8 +7,16 @@
 <!-- <script language="javascript" type="application/javascript"> var $j = jQuery.noConflict();</script> -->
 
 <script language="javascript" type="application/javascript" src="/application.js"></script>
+<!--
 <script language="javascript" type="application/javascript" src="/coffee-script/js/onDomReady.js"></script>
-
+-->
+<script language="javascript" type="application/javascript">
+(function() {
+  var root;
+  root = typeof exports !== "undefined" && exports !== null ? exports : this;
+  require('onDomReady');
+  }());
+</script>
 <title>Manual Inspection</title>
 </head>
 <body>
@@ -16,3 +24,4 @@
     <div id="data">
     </div>
 </body>
+</html>
