@@ -31,12 +31,29 @@
         fieldObj = nodeFieldFactory(fieldName, idValue);
         return expect(fieldObj.className).toEqual('id-field');
       });
-      return it('creates NodeIdField', function() {
+      it('creates NodeIdField', function() {
         var fieldName, fieldObj, labelValue;
         fieldName = 'label';
         labelValue = 'My Label';
         fieldObj = nodeFieldFactory(fieldName, labelValue);
         return expect(fieldObj.className).toEqual('label-field');
+      });
+      it('creates NodeFilesField', function() {
+        var fieldName, fieldObj, filesValue;
+        fieldName = 'attached_files';
+        filesValue = ['file1.txt', 'file2', 'file3.html'];
+        fieldObj = nodeFieldFactory(fieldName, filesValue);
+        return expect(fieldObj.className).toEqual('files-field');
+      });
+      return it('creates NodeLinksField', function() {
+        var fieldName, fieldObj, linksValue;
+        fieldName = 'links';
+        linksValue = {
+          'http://www.google.com': 'Google',
+          'http://www.yahoo.com': 'Yahoo'
+        };
+        fieldObj = nodeFieldFactory(fieldName, linksValue);
+        return expect(fieldObj.className).toEqual('links-field');
       });
     });
     describe('NodeJsonField', function() {
@@ -113,7 +130,7 @@
         });
       });
     });
-    return describe('NodeLabelField', function() {
+    describe('NodeLabelField', function() {
       beforeEach(function() {
         var labelFieldName;
         labelFieldName = 'label';
@@ -121,7 +138,7 @@
         return this.labelFieldObj = nodeFieldFactory(labelFieldName, this.labelObjValue);
       });
       return describe('creates a container for the value', function() {
-        it('is a labelJsonField object', function() {
+        it('is a NodeLabelField object', function() {
           return expect(this.labelFieldObj.className).toEqual('label-field');
         });
         it('has the data value represented', function() {
@@ -140,6 +157,74 @@
           valueContainers = objjQ.find('.basic-vc');
           expect(valueContainers.length).toEqual(1);
           return expect(valueContainers.text()).toEqual('Label: My Label');
+        });
+      });
+    });
+    describe('NodeFilesField', function() {
+      beforeEach(function() {
+        var filesFieldName;
+        filesFieldName = 'attached_files';
+        this.filesValue = ['simple.txt', 'simple', 'simple.html'];
+        return this.filesFieldObj = nodeFieldFactory(filesFieldName, this.filesValue);
+      });
+      return describe('creates a container for the value', function() {
+        it('is a NodeFilesField object', function() {
+          return expect(this.filesFieldObj.className).toEqual('files-field');
+        });
+        it('has the data value represented', function() {
+          return expect(this.filesFieldObj.fieldValue).toEqual(this.filesValue);
+        });
+        it('correctly sets the original value', function() {
+          return expect(this.filesFieldObj.origValue).toEqual(this.filesValue);
+        });
+        it('calculates the current value from the dom correctly', function() {
+          return expect(this.filesFieldObj.currentValue()).toEqual(this.filesValue);
+        });
+        return it('generates the correct dom', function() {
+          var filesContainer, filesListContainer, objjQ, _root;
+          _root = $('<div />');
+          objjQ = _root.append(this.filesFieldObj.view());
+          filesContainer = objjQ.find('.joha-files');
+          expect(filesContainer.length).toEqual(1);
+          filesListContainer = objjQ.find('.joha-filename');
+          expect(filesListContainer.length).toEqual(3);
+          return expect(filesListContainer.text()).toEqual(this.filesValue.join(''));
+        });
+      });
+    });
+    return describe('NodeLinksField', function() {
+      beforeEach(function() {
+        var linksFieldName;
+        linksFieldName = 'links';
+        this.linksValue = {
+          'http://www.google.com': 'Google',
+          'http://www.yahoo.com': 'Yahoo'
+        };
+        return this.linksFieldObj = nodeFieldFactory(linksFieldName, this.linksValue);
+      });
+      return describe('creates a container for the value', function() {
+        it('is a NodeLinksField object', function() {
+          return expect(this.linksFieldObj.className).toEqual('links-field');
+        });
+        it('has the data value represented', function() {
+          return expect(this.linksFieldObj.fieldValue).toEqual(this.linksValue);
+        });
+        it('correctly sets the original value', function() {
+          return expect(this.linksFieldObj.origValue).toEqual(this.linksValue);
+        });
+        it('calculates the current value from the dom correctly', function() {
+          return expect(this.linksFieldObj.currentValue()).toEqual(this.linksValue);
+        });
+        return it('generates the correct dom', function() {
+          var linkEdits, linkLabels, objjQ, _root;
+          _root = $('<div />');
+          objjQ = _root.append(this.linksFieldObj.view());
+          linkLabels = objjQ.find('.link-view');
+          expect(linkLabels.length).toEqual(1);
+          expect(linkLabels.text()).toEqual('GoogleYahoo');
+          linkEdits = objjQ.find('.link-edit');
+          expect(linkEdits.length).toEqual(1);
+          return expect(linkEdits.text()).toEqual('http://www.google.comGooglehttp://www.yahoo.comYahoo');
         });
       });
     });

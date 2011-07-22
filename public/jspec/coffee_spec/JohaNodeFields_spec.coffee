@@ -19,11 +19,23 @@ describe 'JohaNodeFields', ->
       fieldObj = nodeFieldFactory(fieldName, idValue)
       expect( fieldObj.className ).toEqual 'id-field'
 
-     it 'creates NodeIdField', ->
+    it 'creates NodeIdField', ->
       fieldName = 'label' #ToDo: Support custom label field names
       labelValue = 'My Label'
       fieldObj = nodeFieldFactory(fieldName, labelValue)
       expect( fieldObj.className ).toEqual 'label-field'
+
+    it 'creates NodeFilesField', ->
+      fieldName = 'attached_files'
+      filesValue = ['file1.txt', 'file2', 'file3.html']
+      fieldObj = nodeFieldFactory(fieldName, filesValue)
+      expect( fieldObj.className ).toEqual 'files-field'
+      
+     it 'creates NodeLinksField', ->
+      fieldName = 'links'
+      linksValue = {'http://www.google.com': 'Google', 'http://www.yahoo.com': 'Yahoo'}
+      fieldObj = nodeFieldFactory(fieldName, linksValue)
+      expect( fieldObj.className ).toEqual 'links-field'
 
   describe 'NodeJsonField', ->
     beforeEach ->
@@ -95,7 +107,7 @@ describe 'JohaNodeFields', ->
       @labelFieldObj = nodeFieldFactory(labelFieldName, @labelObjValue)
 
     describe 'creates a container for the value', ->
-      it 'is a labelJsonField object', ->
+      it 'is a NodeLabelField object', ->
         expect( @labelFieldObj.className ).toEqual 'label-field'
 
       it 'has the data value represented', ->
@@ -115,3 +127,63 @@ describe 'JohaNodeFields', ->
         expect(valueContainers.length).toEqual 1
         #this is a bit of a cheat and doesn't verify structure
         expect( valueContainers.text() ).toEqual 'Label: My Label'
+
+  describe 'NodeFilesField', ->
+    beforeEach ->
+      filesFieldName = 'attached_files'
+      @filesValue =  ['simple.txt', 'simple', 'simple.html']
+      @filesFieldObj = nodeFieldFactory(filesFieldName, @filesValue)
+
+    describe 'creates a container for the value', ->
+      it 'is a NodeFilesField object', ->
+        expect( @filesFieldObj.className ).toEqual 'files-field'
+
+      it 'has the data value represented', ->
+        expect( @filesFieldObj.fieldValue ).toEqual @filesValue
+
+      it 'correctly sets the original value', ->
+        expect(@filesFieldObj.origValue).toEqual @filesValue
+        
+      it 'calculates the current value from the dom correctly', ->
+        expect( @filesFieldObj.currentValue() ).toEqual @filesValue
+
+      it 'generates the correct dom', ->
+        #ToDo: test for the proper label wrapper
+        _root = $('<div />')
+        objjQ = _root.append( @filesFieldObj.view() )
+        filesContainer = objjQ.find '.joha-files'
+        expect(filesContainer.length).toEqual 1
+        filesListContainer = objjQ.find '.joha-filename'
+        expect(filesListContainer.length).toEqual 3
+        #this is a bit of a cheat and doesn't verify structure
+        expect( filesListContainer.text() ).toEqual @filesValue.join('')
+
+  describe 'NodeLinksField', ->
+    beforeEach ->
+      linksFieldName = 'links'
+      @linksValue = {'http://www.google.com': 'Google', 'http://www.yahoo.com': 'Yahoo'}
+      @linksFieldObj = nodeFieldFactory(linksFieldName, @linksValue)
+
+    describe 'creates a container for the value', ->
+      it 'is a NodeLinksField object', ->
+        expect( @linksFieldObj.className ).toEqual 'links-field'
+
+      it 'has the data value represented', ->
+        expect( @linksFieldObj.fieldValue ).toEqual @linksValue
+
+      it 'correctly sets the original value', ->
+        expect(@linksFieldObj.origValue).toEqual @linksValue
+        
+      it 'calculates the current value from the dom correctly', ->
+        expect( @linksFieldObj.currentValue() ).toEqual @linksValue
+
+      it 'generates the correct dom', ->
+        #ToDo: test for the proper label wrapper
+        _root = $('<div />')
+        objjQ = _root.append( @linksFieldObj.view() )
+        linkLabels = objjQ.find '.link-view'
+        expect(linkLabels.length).toEqual 1
+        expect( linkLabels.text() ).toEqual 'GoogleYahoo'
+        linkEdits = objjQ.find '.link-edit'
+        expect(linkEdits.length).toEqual 1
+        expect( linkEdits.text() ).toEqual 'http://www.google.comGooglehttp://www.yahoo.comYahoo'

@@ -2,6 +2,9 @@ root = exports ? this
 #Libraries
 #coffeescript ibraries are found in stitch/coffeescripts
 RootValueContainer = require('dynJsonContainers').RootValueContainer
+FilesContainer =     require('dynJsonContainers').FilesContainer
+LinksContainer =     require('dynJsonContainers').LinksContainer
+getType = require('forf').getType
 
 class NodeField
   ni = 'Not Implemented'
@@ -53,9 +56,44 @@ class NodeLabelField extends NodeField
     #label wrapper
     @labelContainer.view()
 
-:class NodeFilesField extends NodeField
+class NodeFilesField extends NodeField
+  constructor: (@fieldName, @fieldValue) ->
+    @className = 'files-field'
+    #files are an array of file names (without path info)
+    #at least for now.
+    #ToDo: Robust type checking invalid @fieldValue as
+    #well as invalid array items
+    valType = getType(@fieldValue)
+    @files = if valType is '[object Array]' then @fieldValue else [@fieldValue]
+    @filesContainer = new FilesContainer @files
+    @origValue = @fieldValue
+
+  currentValue: ->
+    @filesContainer.currentValue()
+
+    
+  view: ->
+    #ToDo: Add File wrapper
+    @filesContainer.view()
 
 class NodeLinksField extends NodeField
+  constructor: (@fieldName, @fieldValue) ->
+    @className = 'links-field'
+    #links are an object of url keys with text values
+    #ToDo: Robust type checking invalid @fieldValue as
+    #well as invalid array items
+    valType = getType(@fieldValue)
+    @links = if valType is '[object Object]' then @fieldValue else {}
+    @linksContainer = new LinksContainer @links
+    @origValue = @fieldValue
+
+  currentValue: ->
+    @linksContainer.currentValue()
+    
+  view: ->
+    #ToDo: Add Link wrapper
+    @linksContainer.view()
+
 
 nodeFieldFactory = (fieldName, fieldValue) ->
   switch fieldName

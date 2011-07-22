@@ -156,22 +156,87 @@ class RootValueContainer
   currentValue: =>
     @valueContainer.currentValue()
 
+#ToDo: Add to specs
+#Where to keep origValue?
+#Should it be here or the parent container?
+class FilesContainer
+  constructor: (@files, options) ->
+    @fileClassName = 'joha-filename'
+    @filesClassName = 'joha-files'
+
+  view: ->
+    dom = $('<div />')
+    fileSepEl = 'span'
+    sepStart = '<' + fileSepEl + '>'
+    sepEnd = '</' + fileSepEl + '>'
+    @files.forEach (filename) ->
+      fileDom = $(sepStart + filename + sepEnd)
+      dom.append fileDom
+      null
+ 
+    dom.find(fileSepEl).addClass @fileClassName
+    dom.addClass @filesClassName
+    dom
+   
+  _curVal: ->
+    undefined
+
+  currentValue: =>
+    calcVal = @_curVal()
+    calcVal || @files
+
+#ToDo Add to specs
+class LinksContainer
+  constructor: (@links, options) ->
+    @linksClassName = 'joha-urllinks'
+    @linkClassName = 'joha-link'
+
+  view: ->
+    linkViewClass = 'link-view'
+    linkEditClass = 'link-edit'
+    dom = $('<div />')
+    dom.addClass @linksClassName
+
+    domLinkView = $('<div />')
+    domLinkView.addClass linkViewClass
+    @linkViewAppend(domLinkView, @links)
+
+    domLinkEdit = $('<div />')
+    domLinkEdit.addClass linkEditClass
+    @linkEditAppend(domLinkEdit, @links)
+    
+    dom.append domLinkView
+    dom.append domLinkEdit
+    dom
+
+  linkViewAppend: (parentDom, links) ->
+    linkViewSepEl = 'div'
+    sepStart = '<' + linkViewSepEl + '>'
+    sepEnd = '</' + linkViewSepEl + '>'
+    for own url, label of links
+      linkViewDom = $(sepStart + label + sepEnd)
+      parentDom.append linkViewDom
+      null
+
+  linkEditAppend: (parentDom, links) ->
+    linkEditSepEl = 'div'
+    sepStart = '<' + linkEditSepEl + '>'
+    sepEnd = '</' + linkEditSepEl + '>'
+    for own url, label of links
+      editHtml = '<span>' + url + '</span><span>' + label + '</span>'
+      linkEditDom = $(sepStart + editHtml + sepEnd)
+      parentDom.append linkEditDom
+      null
+
+  _curVal: ->
+    undefined
+
+  currentValue: => 
+    calcVal = @_curVal()
+    calcVal || @links
+    
+
 root.RootValueContainer = RootValueContainer
-###
-$ ->
-  console.log('Doc Ready')
-  x = new RootValueContainer {akv: ['a', {x: 'X'}, ['aa', 'bb']]} 
-  #x = new RootValueContainer 'a'
-  
-console.log x.valueContainer  
-  console.log x.origValue
-  x.view()
-  calcBtnHtml = "<button type='button'>Current Value</button>"
-  calcBtnDom = $(calcBtnHtml)
-  calcBtnDom.click ->
-    cv = x.currentValue()
-    console.log cv
-    alert JSON.stringify(cv)
-  $('body').append(calcBtnDom)
-###  
+root.FilesContainer = FilesContainer
+root.LinksContainer = LinksContainer
 
