@@ -5,10 +5,26 @@ JohaNodeEditor = require('JohaNodeEditor').JohaNodeEditor
 #root.$jjq = $
 $ ->
   console.log('JohaNode Doc Ready')
-  nodeData = {akv: ['a', {x: 'X'}, ['aa', 'bb']]}
+  #nodeData = {akv: ['a', {x: 'X'}, ['aa', 'bb']]}
+  
+  nodeData =  {
+                   id: 'id-test',
+                   label: 'label-test',
+                   links: {
+                     'http://www.google.com': 'google',
+                     'http://www.yahoo.com': 'yahoo'},
+                   a_string: 'abc',
+                   a_number: 42,
+                   a_simple_array: ['A', 'B', 'C'],
+                   a_simple_obj: { a: 'AA', b: 'BB', c: 'CC' },
+                   a_complex_array: ['d', ['e', 'f'], {g: 'G'} ],
+                   a_complex_obj: {h: {hh: ['i', 'j', {k: 'K'}] } }
+                  }
+
   newNode = new JohaNodeEditor nodeData
   domData = newNode.view()
   console.log( 'domData:', domData )
+  $('#data').append(domData)
   
 ###
 #Working with dynJsonContainers

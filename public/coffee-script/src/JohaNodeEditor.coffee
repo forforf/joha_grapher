@@ -5,22 +5,78 @@ root = exports ? this
 IdBinder = require('IdTrackerSingleton').IdBinder
 IdTracker = IdBinder #TODO: Pick a name and stick with it
 nodeFieldFactory = require('JohaNodeFields').nodeFieldFactory
-#extend = require('extend').extend
+extend = require('extend').extend
+forfLib = require('forf')
+arrayRemoveSet = forfLib.arrayRemoveSet
+arrayRemoveItem = forfLib.arrayRemoveItem
+arrayContains = forfLib.arrayContains
+getKeys = forfLib.getKeys
+
 #jQueryContext = require('onDomReady').$jjq
 
 class JohaNodeEditor
   ni = 'not implemented'
   constructor: (@nodeData, options) ->
+    #set prefix for IdTracker
+    IdTracker.get(prefix: 'joha-node-edit-')
+    @id = 'id'
+    @label = 'label'
+    @links = 'links'
+    @files = 'attached_files'
+    
     #ToDo: Accept custom fields for id and label, etc
-    @nodeData.id = @makeGUID() if not @nodeData.id?
-    @nodeData.label = "node:" + @nodeData.id if not @nodeData.label
+    options = extend( {}, options)
 
-  buildDom: ->
-    #making sure idTracker is singleton, remove when not needed
-    #if it maintains singleton across anonymous functions
-    #great!, else pass it on to them explicitly
-    idTracker = IdTracker.get('johaNode')
-    idTracker.assignId('dummy')
+    requiredUserFields = options['requiredFields'] || []
+    #determine required fields (note id and label are removed if 
+    #included in the required fields, since they will be created if
+    #they don't exist
+    @requiredFields = arrayRemoveSet( requiredUserFields, [@id, @label] )
+    #adds the fields to the nodeData object
+    for field in @requiredFields
+      @nodeData[field] = null
+      null
+
+    @availFields =  options['availableFields'] || []
+    
+    @nodeData.id = @makeGUID() if not @nodeData[@id]
+    @nodeData.label = "node:" + @nodeData[@id] if not @nodeData[@label]
+
+  buildFieldDropDown: =>
+    $('<div>Dropdown Goes Here</div>')
+
+  buildDom: =>
+    #idTracker is a singleton that gives us the
+    #next sequential id.
+    idTracker = IdTracker.get()
+    johaFields = @nodeFields()
+    #assign Root Dom Id (see function)
+    nodeDom = $('<div />')
+    fieldNames = getKeys @nodeData
+
+    idDom = johaFields[@id].view()
+    labelDom = johaFields[@label].view()
+    linksDom = johaFields[@links].view() if arrayContains(fieldNames, @links) 
+    filesDom = johaFields[@files].view() if arrayContains(fieldNames, @files)
+    remainingFieldNames = arrayRemoveSet(fieldNames, [@id, @label, @links, @files])
+    dropDown = @buildFieldDropDown()
+    #building the node Dom
+    nodeDom.append idDom
+    nodeDom.append labelDom
+    nodeDom.append dropDown
+    #required fields
+    for reqField in @requiredFields
+      nodeDom.append johaFields[reqField].view()
+      arrayRemoveItem(remainingFieldNames, reqField)
+      null
+    #remaining fields
+    for remField in remainingFieldNames
+      nodeDom.append johaFields[remField].view()
+      null
+    #links and files
+    nodeDom.append linksDom
+    nodeDom.append filesDom
+    nodeDom
     
 
   clearNodeEdits: ->
@@ -37,7 +93,7 @@ class JohaNodeEditor
 
   nodeFields: ->
      _objContainer = {}
-     for fieldName, fieldValue of @nodeData
+     for own fieldName, fieldValue of @nodeData
        _objContainer[fieldName] = nodeFieldFactory(fieldName, fieldValue)
      _objContainer
      

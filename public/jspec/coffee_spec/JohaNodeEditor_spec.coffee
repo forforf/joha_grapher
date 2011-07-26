@@ -36,8 +36,6 @@ describe 'JohaNodeEditor', ->
     it 'provides the node id', ->
       expect( @nodeData.id ).toEqual 'id-test'
       expect( @nodeEd.currentNodeId() ).toEqual @nodeData.id
-
-    #it 'accepts options', ->
        
     it 'creates joha field objects properly', ->
       johaFields = @nodeEd.nodeFields()
@@ -53,6 +51,41 @@ describe 'JohaNodeEditor', ->
     it 'builds Dom', ->
       expect( @nodeEd.view() ).toEqual 'foo'
 
+  describe  'Initialization with options', ->
+    @nodeData = {}
+    @nodeEd = null
+
+    beforeEach ->
+      @options = {
+                 requiredFields: ['id', 'label', 'a_simple_array', 'a_complex_obj', 'missing_obj'],
+                 availableFields: [ 'attached_files', 'links', 'avail_field' ] 
+                 }
+      @nodeData =  {
+                   id: 'id-test',
+                   label: 'label-test',
+                   links: { 
+                     'http://www.google.com': 'google',
+                     'http://www.yahoo.com': 'yahoo'},
+                   a_string: 'abc',
+                   a_number: 42,
+                   a_simple_array: ['A', 'B', 'C'],
+                   a_simple_obj: { a: 'AA', b: 'BB', c: 'CC' },
+                   a_complex_array: ['d', ['e', 'f'], {g: 'G'} ],
+                   a_complex_obj: {h: {hh: ['i', 'j', {k: 'K'}] } }
+                  }
+      @nodeEd = new JohaNodeEditor(@nodeData, @options)
+
+    it 'has option for user defined fields that must be required', ->
+      expect(@nodeEd.requiredFields).toEqual ['a_simple_array', 'a_complex_obj', 'missing_obj' ]
+      expect( @nodeEd['missing_obj'] ).toBeDefined
+      expect( @nodeEd['missing_obj'] ).toEqual null
+    
+    it 'has option for available fields', ->
+      expect(@nodeEd.availFields).toEqual  [ 'attached_files', 'links', 'avail_field']
+
+
+
+  
   describe  'Initialization with improper data', ->
      
     it 'provides a node id if one does not exist', ->
