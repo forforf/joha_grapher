@@ -49,7 +49,10 @@ describe 'JohaNodeEditor', ->
       expect(johaFields.a_string.fieldValue).toEqual @nodeData.a_string
 
     it 'builds Dom', ->
-      expect( @nodeEd.view() ).toEqual 'foo'
+      nodeDom = @nodeEd.view()
+      expect( nodeDom.get(0).tagName ).toEqual 'DIV'
+      nodeDomLv1 = nodeDom.children()
+      expect( nodeDomLv1.size() ).toEqual 10
 
   describe  'Initialization with options', ->
     @nodeData = {}

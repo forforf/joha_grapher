@@ -5,9 +5,11 @@ root = exports ? this
 #Libraries
 #Libraries are in stitch/coffeescripts
 IdBinder = require('IdTrackerSingleton').IdBinder
-getType = require('forf').getType
-extend = require('forf').extend
-
+forf = require('forf')
+getType = forf.getType
+extend = forf.extend
+#johaComp = require('johaComponents')
+#johaEditBtn = johaComp.editBtnBase
 
 valueContainerFactory = (value) ->
 
@@ -46,26 +48,51 @@ class BasicValueContainer extends ValueContainerBase
     @containerType = 'basic-vc'
     super @value
 
-  modify: (newVal) =>
+  modify: (newVal) ->
     @curValue = newVal
 
   currentValue: =>
+    console.log 'basevalcont this', @, @domId
     @curValue
 
-  view: =>
-    divHtml = "<div id='" + @domId + "-div'>" + @curValue + "</div>"
+  view: ->
+    divHtml = "<div id='" + @domId + "-div'></div>"
+    div = $(divHtml)
+    valHtml = "<span>" + @curValue + "</span>"
+    val = $(valHtml)
+    div.append val
     editHtml = "<input type'text' id='" + @domId + "' value='" + @curValue + "'/>"
     edit = $(editHtml)
-    edit.change =>
-      console.log 'CCB', @curValue
-      newVal = $('#' + @domId).val()
-      @modify(newVal)
-      console.log 'CCB', @curValue
+    #hide the editing element initially
+    edit.hide()
       
-    div = $(divHtml)
     contClass = @containerType
     div.addClass contClass
+    #Removed edit button, instead click on value.
+    #Did this because of possible confusion with the delete button
+    ##edit button should show/hide edit field
+    ##change class of the edit button to differentiate between showing/hiding?
+    #editBtn = johaEditBtn("")
     div.append edit
+    #div.append editBtn
+
+    #controls
+    #editBtn.click =>
+    val.addClass 'clickable'
+    val.click =>
+      edit.toggle()
+      edit.focus() if val.is ":visible"
+
+    edit.change =>
+      console.log 'CCB', @currentValue()
+      newVal = $('#' + @domId).val()
+      @modify(newVal)
+      console.log 'CCB', @currentValue()
+      val.text(newVal)
+      edit.hide()
+
+    #return dom 
+    div
     
 class ArrayValueContainer extends ValueContainerBase
   constructor: (@value) ->
@@ -146,11 +173,11 @@ class RootValueContainer
     options or= {}
     @containerType = 'root-vc'
     #ToDo: Use extend to set overwrite default options
-    console.log 'root value:', @value
     @valueContainer = valueContainerFactory(@value)
     @origValue = @valueContainer.origValue
 
   view: ->
+    console.log 'root view value', @currentValue()
     @valueContainer.view()
 
   currentValue: =>

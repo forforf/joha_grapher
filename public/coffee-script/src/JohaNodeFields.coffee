@@ -16,7 +16,7 @@ class NodeJsonField extends NodeField
     @jsonContainer = new RootValueContainer @fieldValue
     @origValue = @jsonContainer.origValue
 
-  currentValue: ->
+  currentValue: =>
     @jsonContainer.currentValue()
 
   view: ->
@@ -49,7 +49,7 @@ class NodeLabelField extends NodeField
     #Since value is a string, container will be string container
     @labelContainer = new RootValueContainer @fieldValue
   
-  currentValue: -> 
+  currentValue: => 
     @labelContainer.currentValue()
 
   view: ->
@@ -68,7 +68,7 @@ class NodeFilesField extends NodeField
     @filesContainer = new FilesContainer @files
     @origValue = @fieldValue
 
-  currentValue: ->
+  currentValue: =>
     @filesContainer.currentValue()
 
     
@@ -90,9 +90,10 @@ class NodeLinksField extends NodeField
   currentValue: ->
     @linksContainer.currentValue()
     
-  view: ->
+  view: =>
     #ToDo: Add Link wrapper
     @linksContainer.view()
+
 
 
 nodeFieldFactory = (fieldName, fieldValue) ->

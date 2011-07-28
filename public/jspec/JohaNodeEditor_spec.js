@@ -68,7 +68,11 @@
         return expect(johaFields.a_string.fieldValue).toEqual(this.nodeData.a_string);
       });
       return it('builds Dom', function() {
-        return expect(this.nodeEd.view()).toEqual('foo');
+        var nodeDom, nodeDomLv1;
+        nodeDom = this.nodeEd.view();
+        expect(nodeDom.get(0).tagName).toEqual('DIV');
+        nodeDomLv1 = nodeDom.children();
+        return expect(nodeDomLv1.size()).toEqual(10);
       });
     });
     describe('Initialization with options', function() {

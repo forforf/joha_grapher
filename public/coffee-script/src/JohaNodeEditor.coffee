@@ -41,6 +41,7 @@ class JohaNodeEditor
     
     @nodeData.id = @makeGUID() if not @nodeData[@id]
     @nodeData.label = "node:" + @nodeData[@id] if not @nodeData[@label]
+    @nodeFields = @buildNodeFields()
 
   buildFieldDropDown: =>
     $('<div>Dropdown Goes Here</div>')
@@ -49,7 +50,7 @@ class JohaNodeEditor
     #idTracker is a singleton that gives us the
     #next sequential id.
     idTracker = IdTracker.get()
-    johaFields = @nodeFields()
+    johaFields = @nodeFields
     #assign Root Dom Id (see function)
     nodeDom = $('<div />')
     fieldNames = getKeys @nodeData
@@ -78,6 +79,25 @@ class JohaNodeEditor
     nodeDom.append filesDom
     nodeDom
     
+    #for testing
+    curValLabel = 'Current Value:'
+    curValCalc = JSON.stringify @currentValue()
+    curValLabelHtml = '<span>' + curValLabel + '</span>'
+    curValCalcHtml = '<span>' + curValCalc +  '</span>'
+    curValLabelDom = $(curValLabelHtml)
+    curValCalcDom = $(curValCalcHtml)
+    curValDom = $('<div />')
+    curValDom.append curValLabelDom
+    curValDom.append curValCalcDom
+    nodeDom.append curValDom
+    nodeDom.change => 
+      console.log "nodeDom Change"
+      console.log 'this', @
+      newDomValue = JSON.stringify @currentValue()
+      alert newDomValue
+      curValCalcDom.text(newDomValue)
+    nodeDom
+
 
   clearNodeEdits: ->
     return ni
@@ -88,10 +108,22 @@ class JohaNodeEditor
   currentNodeId: ->
     return @nodeData.id
 
+  currentValue: =>
+    curThis = this
+    curVal = {}
+    console.log 'before @nodeFields'
+    fields = @nodeFields
+    console.log 'JNE cv', @, this, curThis
+    for own fieldName, fieldObj of fields
+      curVal[fieldName] = fieldObj.currentValue()
+      null
+    console.log 'JNE cV', this, curThis, curVal
+    curVal
+
   deleteNodeData: ->
     return ni
 
-  nodeFields: ->
+  buildNodeFields: ->
      _objContainer = {}
      for own fieldName, fieldValue of @nodeData
        _objContainer[fieldName] = nodeFieldFactory(fieldName, fieldValue)
