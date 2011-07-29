@@ -94,7 +94,6 @@ class JohaNodeEditor
       console.log "nodeDom Change"
       console.log 'this', @
       newDomValue = JSON.stringify @currentValue()
-      alert newDomValue
       curValCalcDom.text(newDomValue)
     nodeDom
 
