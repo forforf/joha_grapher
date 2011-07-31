@@ -30,7 +30,7 @@ valueContainerFactory = (value) ->
     return objContainer #if objContainer
 
   container = containerFromValue(value)
-  return container   
+  return container
 
 class ValueContainerBase
   constructor: (@value) ->
@@ -43,13 +43,12 @@ class ValueContainerBase
     @contId = @domId + "-cont"
     @selContId = '#' + @contId
     delArgs = @makeDelArgs()
-    @delBtn = new DeleteButtonBase(delArgs)   
+    @delBtn = new DeleteButtonBase(delArgs)
 
   jsonType: ->
     typeof @value
 
   appendDelBtn: (contDom) =>
-    console.log 'appendDelBtn', this
     delBtn = @delBtn.get()
     contDom.append delBtn
     contDom
@@ -167,7 +166,6 @@ class ArrayValueContainer extends ValueContainerBase
     super @value
 
   makeDelArgs: =>
-    console.log 'avc makdDelArs', this
     targetId = @contId
     delFn = (targetId) =>
       targetDom = $('#'+targetId)
@@ -211,18 +209,6 @@ class KeyValue extends ValueContainerBase
     delArgs = @makeDelArgs()
     @delBtn = new DeleteButtonBase(delArgs)
 
-  makeDelArgs: =>
-    console.log 'kvvc makdDelArs', this
-    targetId = @contId
-    delFn = (targetId) =>
-      targetDom = $('#'+targetId)
-      targetDom.toggleClass 'joha-delete'
-      targetDom.change()
-    args = {
-           targetId: targetId
-           delFn: delFn
-           }
-
   view: =>
     kv = $('<div>Key-Value</div>')
     kv.attr("id", @contId)
@@ -234,6 +220,8 @@ class KeyValue extends ValueContainerBase
     kv.append(v)
     v.append(@valContainer.view())
     @appendDelBtn kv
+    console.log 'kvc', kv
+    kv
 
   currentValue: =>
     retVal = if $(@selContId).hasClass 'joha-delete'
@@ -243,6 +231,18 @@ class KeyValue extends ValueContainerBase
       kvVal[@keyContainer.currentValue()] = @valContainer.currentValue()
       kvVal
     retVal
+
+  makeDelArgs: =>
+    targetId = @contId
+    delFn = (targetId) =>
+      targetDom = $('#'+targetId)
+      targetDom.toggleClass 'joha-delete'
+      targetDom.change()
+    args = {
+           targetId: targetId
+           delFn: delFn
+           }
+
         
 class ObjectValueContainer extends ValueContainerBase
   constructor: (@objValue) ->
@@ -256,21 +256,37 @@ class ObjectValueContainer extends ValueContainerBase
 
   view: =>
     obj = $('<div>Object</div>')
+    obj.attr("id", @contId)
     obj.addClass @containerType
     #running for side effect
     for kvChild in @kvChildren
       obj.append(kvChild.view())
       null
+    @appendDelBtn obj
     obj
  
 
   currentValue: =>
-    _curVal = {}
-    cv = for kvChild in @kvChildren
-      extend _curVal, kvChild.currentValue()
+    retVal = if $(@selContId).hasClass 'joha-delete'
+      null
+    else
+      _curVal = {}
+      cv = for kvChild in @kvChildren
+        extend _curVal, kvChild.currentValue()
+      _curVal
+    retVal
+ 
+  makeDelArgs: =>
+    targetId = @contId
+    delFn = (targetId) =>
+      targetDom = $('#'+targetId)
+      targetDom.toggleClass 'joha-delete'
+      targetDom.change()
+    args = {
+           targetId: targetId
+           delFn: delFn
+           }
 
-    return _curVal
-    
  # #has ability to add new (currently just basic values though?)
  
 class RootValueContainer
@@ -282,7 +298,6 @@ class RootValueContainer
     @origValue = @valueContainer.origValue
 
   view: ->
-    console.log 'root view value', @currentValue()
     @valueContainer.view()
 
   currentValue: =>
