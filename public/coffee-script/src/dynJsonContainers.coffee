@@ -1,6 +1,38 @@
 #Libraries
 #coffeescript ibraries are found in stitch/coffeescripts
 root = exports ? this
+#### Overview
+
+# dynJsonContainers convets a JSON object into an editiable
+# (jQuery) representation of that object in a browser
+#
+#     jsonVal = {akv: ['a', {x: 'X'}, ['aa', 'bb']]}
+#     jsonObj = new RootValueContainer jsonVal
+#     jsonDom = jsonObj.view()
+#     $('body').append jsonDom
+#
+# Containers Types
+#   BasicValueContainer -- Wrapper for string, boolean, number, and null
+#   ArrayValueContainer -- Wrapper for arrays, contents can be any container type
+#   ObjectValueContaier -- Wrapper for Objects, keys are strings (BasicValueContainer), values are any container type
+#
+# Referencing Containers and their contents by class property
+#   BasicValueContainer class = 'basic-vc'
+#   ArrayValueContainer class = 'array-vc'
+#     Array contents can be of any type
+#   ObjectValueContainer class = ' object-vc'
+#     KeyValue pair Container class = 'keyvalue-vc'
+#     Key Container class = 'basic-vc' (specifically a string)
+#     Value contents can be of any type
+#
+
+#  Note to self - bundle external dependencies to make
+#  an external, self-contained library
+
+#  Note to self2 - this library currently contains
+#  Links and File Containers, that are not constructed
+#  via the Factory
+
 
 #Libraries
 #Libraries are in stitch/coffeescripts
@@ -9,18 +41,23 @@ forf = require('forf')
 getType = forf.getType
 extend = forf.extend
 johaComp = require('johaComponents')
+wrapHtml = johaComp.wrapHtml
 DeleteButtonBase = johaComp.DeleteButtonBase
+ArrayDataEntryForm = johaComp.ArrayDataEntryForm
+ObjectDataEntryForm = johaComp.ObjectDataEntryForm
 softParseJSON = require('jsonHelper').softParseJSON
 
+
+#Makes the specific JSON containers
 valueContainerFactory = (value) ->
 
   containerFromSimpleType = {
-    '[object Null]':  BasicValueContainer #(value, 'basic')
-    '[object String]':BasicValueContainer #(value, 'basic')
-    '[object Number]': BasicValueContainer #(value, 'basic')
-    '[object Boolean]': BasicValueContainer #(value, 'basic')
-    '[object Array]': ArrayValueContainer #(value, 'array')
-    '[object Object]': ObjectValueContainer #(value, 'object')
+    '[object Null]':  BasicValueContainer
+    '[object String]':BasicValueContainer
+    '[object Number]': BasicValueContainer
+    '[object Boolean]': BasicValueContainer
+    '[object Array]': ArrayValueContainer
+    '[object Object]': ObjectValueContainer
     }
   
   containerFromValue = (value) ->
@@ -32,10 +69,18 @@ valueContainerFactory = (value) ->
   container = containerFromValue(value)
   return container
 
+#The base container that most other containers
+#can inherit from
 class ValueContainerBase
+
   constructor: (@value) ->
     #@currentValue() is the public API
     #@curValue is used for calculating the correct @currentValue
+    #more specifically:
+    # @currentValue reflects the result when user edits are applied 
+    # @curVal reflects the current internal value ignoring user edits
+    #@currentValue shows what the resut would look like when 'saved'
+    #@curVal doesn't change until edits are 'saved'
     @curValue = @value
     @origValue = @value
     idBinder = IdBinder.get()
@@ -54,14 +99,13 @@ class ValueContainerBase
     contDom
 
   makeDelArgs: =>
-    alert 'subclasses should make the arguments for the delete function'
     #Default
     targetId = @contId
     delFn = (targetId) =>
-      alert 'default delete fn clicked'
-      targetDom = $('#'+targetId)
-      targetDom.toggleClass 'joha-delete'
-      targetDom.change()
+      alert 'No container specific delete fn created'
+      #targetDom = $('#'+targetId)
+      #targetDom.toggleClass 'joha-delete'
+      #targetDom.change()
     args = {
            targetID: targetId
            delFn: delFn
@@ -71,14 +115,6 @@ class BasicValueContainer extends ValueContainerBase
   constructor: (@value) ->
     @containerType = 'basic-vc'
     super @value
-    #delFn = (targetId) =>
-    #  targetDom = $('#'+targetId)
-    #  targetDom.toggleClass 'joha-delete'
-    #  targetDom.change()
-    #@delBtn = new DeleteButtonBase(@contId, delFn)
-
-  #modify: (newVal) ->
-    #@curValue = newVal
 
   currentValue: =>
     #IMPORTANT
@@ -88,7 +124,7 @@ class BasicValueContainer extends ValueContainerBase
     #@curVal matches the current dom Values,
     #and returns items marked for deletion
     #console.log 'basevalcont this', @, @domId
-    retVal = if $(@selContId).hasClass 'joha-delete' 
+    retVal = if $(@selContId).hasClass 'joha-delete'
       null
     else
       @curValue  #IMPORTANT: Note that @curValue does not reflect user editing
@@ -106,14 +142,24 @@ class BasicValueContainer extends ValueContainerBase
            }
 
   view: ->
-    divHtml = "<div />"
-    div = $(divHtml)
+    #Value
+    inTag = 'span'
+    inVal = @curValue
+    inHtml = wrapHtml(inTag, inVal)
+    #Outer Div Wrapper
+    outerTag = 'div'
+    outerHtml = wrapHtml(outerTag)
+    div = $(outerHtml)
     div.attr("id", @contId)
-    valHtml = "<span>" + @curValue + "</span>"
-    val = $(valHtml)
+    val = $( inHtml )
     div.append val
-    editHtml = "<input type'text' id='" + @domId + "' value='" + @curValue + "'/>"
+    #edit field for value
+    editTag = 'input'
+    editType = "type='text'"
+    editHtml = wrapHtml(editTag,'',editType)
     edit = $(editHtml)
+    attrs = { id:@domId, value:@curValue }
+    edit.attr(attrs)
     #hide the editing element initially
     edit.hide()
       
@@ -125,11 +171,6 @@ class BasicValueContainer extends ValueContainerBase
     ##change class of the edit button to differentiate between showing/hiding?
     #editBtn = johaEditBtn("")
     div.append edit
-#    delBtn = @delBtn.get()
-    #console.log 'delBtn', delBtn
-    #ToDo: The joha-delete classis set by the delete button class
-    #The class should be set explictly (from here probably)
-#    div.append delBtn
     div = @appendDelBtn div 
 
     #controls
@@ -140,10 +181,7 @@ class BasicValueContainer extends ValueContainerBase
       edit.focus() if val.is ":visible"
 
     edit.change =>
-      #console.log 'CCB', @currentValue()
       newVal = $('#' + @domId).val()
-      #@modify(newVal)
-      #console.log 'CCB', @currentValue()
       val.text(newVal)
       @curValue = newVal
       thisContDom = $(@selContId)
@@ -165,6 +203,21 @@ class ArrayValueContainer extends ValueContainerBase
       valueContainerFactory(val)
     super @value
 
+  addNewItem = (me, newVal) =>
+    newJsonVal = softParseJSON newVal
+    newChild = new RootValueContainer(newJsonVal)
+    me.children.push newChild
+    #Add new child to Dom
+    thisDom = $(me.selContId)
+    #append to end of array items
+    lastArrayItemDom = thisDom.find('.joha-array-item').last()
+    lastArrayItemDom.after( newChild.view() )
+    newChildDom = $(newChild.valueContainer.selContId)
+    newChildDom.addClass 'joha-create'
+    #TODO: Determine if this is the right way to update things
+    #I'm guessing no.
+    newChildDom.change()
+
   makeDelArgs: =>
     targetId = @contId
     delFn = (targetId) =>
@@ -177,13 +230,21 @@ class ArrayValueContainer extends ValueContainerBase
            }
 
   view: =>
-    av = $('<div>Arrays</div>')
+    tag = 'div'
+    val = 'Arrays'
+    avHtml = wrapHtml(tag, val)
+    av = $(avHtml)
     av.attr("id", @contId)
     av.addClass @containerType
     for child in @children
-      av.append child.view()
+      childDom = child.view()
+      childDom.addClass 'joha-array-item'
+      av.append childDom
       null
     av = @appendDelBtn av
+    
+    addNew = new ArrayDataEntryForm(this, addNewItem)
+    av.append addNew.get()
     av
 
   currentValue: =>
@@ -193,8 +254,6 @@ class ArrayValueContainer extends ValueContainerBase
       cv = for child in @children
         child.currentValue()
     retVal
-    
- #has ability to add new (currently just basic values though?)
 
 class KeyValue extends ValueContainerBase
   constructor: (@key, @val) ->
@@ -210,17 +269,27 @@ class KeyValue extends ValueContainerBase
     @delBtn = new DeleteButtonBase(delArgs)
 
   view: =>
-    kv = $('<div>Key-Value</div>')
+    #Set up jQuery objects
+    kvtag = 'div'
+    kvlabel = 'Key-Value'
+    kvHtml = wrapHtml( kvtag, kvlabel )
+    kv = $(kvHtml)
+    ktag = 'div'
+    klabel = 'Key'
+    kHtml = wrapHtml( ktag, klabel)
+    k = $(kHtml)
+    vtag = 'div'
+    vlabel = 'Value'
+    vHtml = wrapHtml( vtag, vlabel)
+    v = $(vHtml)
+    #manipulate Dom structure
     kv.attr("id", @contId)
     kv.addClass @containerType
-    k = $('<div>Key</div>')
     kv.append(k)
     k.append(@keyContainer.view())
-    v = $('<div>Val</div>')
     kv.append(v)
     v.append(@valContainer.view())
     @appendDelBtn kv
-    console.log 'kvc', kv
     kv
 
   currentValue: =>
@@ -254,17 +323,48 @@ class ObjectValueContainer extends ValueContainerBase
       new KeyValue(key, val)
     super @objValue
 
+
+  addNewItem = (me, newObj) =>
+    newKey = newObj["key"]
+    newVal = newObj["val"]
+    newKeyStr = String newKey
+    newJsonVal = softParseJSON newVal
+    #newCleanObj = {}
+    #newCleanObj["key"] = newKeyStr
+    #newCleanObj["val"] = newJsonVal
+    newChild = new KeyValue(newKeyStr, newJsonVal)
+    console.log "Obj Cont", me
+    console.log "Obj Add New", newChild
+    me.kvChildren.push newChild
+    #Add new child to Dom
+    thisDom = $(me.selContId)
+    #append to end of obj items
+    lastObjItemDom = thisDom.find('.joha-object-item').last()
+    lastObjItemDom.after( newChild.view() )
+    newChildDom = $(newChild.selContId)
+    newChildDom.addClass 'joha-create'
+    #TODO: Determine if this is the right way to update things
+    #I'm guessing no.
+    newChildDom.change()
+
   view: =>
-    obj = $('<div>Object</div>')
+    tag = 'div'
+    val = 'Object'
+    objHtml = wrapHtml(tag, val)
+    obj = $(objHtml)
     obj.attr("id", @contId)
     obj.addClass @containerType
     #running for side effect
     for kvChild in @kvChildren
-      obj.append(kvChild.view())
+      kvChildDom = kvChild.view()
+      kvChildDom.addClass 'joha-object-item'
+      obj.append kvChildDom
       null
     @appendDelBtn obj
+
+    addNew = new ObjectDataEntryForm(this, addNewItem)
+    obj.append addNew.get()
     obj
- 
 
   currentValue: =>
     retVal = if $(@selContId).hasClass 'joha-delete'
