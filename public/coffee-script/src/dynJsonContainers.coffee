@@ -42,10 +42,21 @@ getType = forf.getType
 extend = forf.extend
 johaComp = require('johaComponents')
 wrapHtml = johaComp.wrapHtml
+EditButtonBase = johaComp.EditButtonBase
 DeleteButtonBase = johaComp.DeleteButtonBase
 ArrayDataEntryForm = johaComp.ArrayDataEntryForm
 ObjectDataEntryForm = johaComp.ObjectDataEntryForm
 softParseJSON = require('jsonHelper').softParseJSON
+
+#Constants
+johaEditClass = {
+                 "update": "joha-update"
+                 "delete": "joha-delete"
+                 "create": "joha-create"
+                }
+johaChangeTrigger = "joha-recalculate"
+
+root.johaEditClass = johaEditClass
 
 
 #Makes the specific JSON containers
@@ -85,10 +96,13 @@ class ValueContainerBase
     @origValue = @value
     idBinder = IdBinder.get()
     @domId = idBinder.assignId(@)
-    @contId = @domId + "-cont"
-    @selContId = '#' + @contId
+    @selDomId = '#' + @domId
     delArgs = @makeDelArgs()
     @delBtn = new DeleteButtonBase(delArgs)
+    @updateClass = root.johaEditClass["update"]
+    @deleteClass = root.johaEditClass["delete"]
+    @createClass = root.johaEditClass["create"]
+    @recalcTrigger = root.johaChangeTrigger
 
   jsonType: ->
     typeof @value
@@ -100,11 +114,11 @@ class ValueContainerBase
 
   makeDelArgs: =>
     #Default
-    targetId = @contId
+    targetId = @domId
     delFn = (targetId) =>
       alert 'No container specific delete fn created'
       #targetDom = $('#'+targetId)
-      #targetDom.toggleClass 'joha-delete'
+      #targetDom.toggleClass @deleteClass
       #targetDom.change()
     args = {
            targetID: targetId
@@ -115,6 +129,10 @@ class BasicValueContainer extends ValueContainerBase
   constructor: (@value) ->
     @containerType = 'basic-vc'
     super @value
+    @valId = @domId + '-val'
+    @editValId = @domId + '-edit'
+    @deleteClass = root.johaEditClass["delete"]
+    #@recalcTrigger = root.johaEditClass["changed"]
 
   currentValue: =>
     #IMPORTANT
@@ -123,23 +141,51 @@ class BasicValueContainer extends ValueContainerBase
     #HOWEVER
     #@curVal matches the current dom Values,
     #and returns items marked for deletion
-    #console.log 'basevalcont this', @, @domId
-    retVal = if $(@selContId).hasClass 'joha-delete'
+    retVal = if $(@selDomId).hasClass @deleteClass
       null
     else
       @curValue  #IMPORTANT: Note that @curValue does not reflect user editing
     retVal
 
   makeDelArgs: =>
-    targetId = @contId
+    targetId = @domId
     delFn = (targetId) =>
       targetDom = $('#'+targetId)
-      targetDom.toggleClass 'joha-delete'
-      targetDom.change()
+      targetDom.toggleClass @deleteClass
+      #targetDom.change()
+      targetDom.trigger(@recalcTrigger)
     args = {
            targetId: targetId
            delFn: delFn
            }
+
+  updateEditBoxVal: (contDom) ->
+    domId = contDom.attr("id")
+    valId = domId + '-val'
+    editValId = domId + '-edit'
+    editBoxValDom = $('#'+editValId)
+    valDom = $('#'+valId)
+    newVal = editBoxValDom.val()
+    valDom.text(newVal)
+    newVal
+
+  updateContAfterEdit: (domId) =>
+    contDom = $('#'+domId)
+    @curValue = @updateEditBoxVal(contDom)
+    #parses as a JSON string, but returns
+    #original object if its not a valid JSON string
+    #ToDo: What if we don't want to evaluate JSON?
+    jsonVal = softParseJSON @curValue
+
+    #Side Effect that updates the container's edit class
+    #updateClass = root.johaEditClass["update"]
+    if jsonVal is @origValue
+      contDom.removeClass @updateClass
+    else
+      contDom.addClass @updateClass
+
+    return @curValue  #return value not currently used
+    
 
   view: ->
     #Value
@@ -150,80 +196,84 @@ class BasicValueContainer extends ValueContainerBase
     outerTag = 'div'
     outerHtml = wrapHtml(outerTag)
     div = $(outerHtml)
-    div.attr("id", @contId)
-    val = $( inHtml )
-    div.append val
+    div.attr("id", @domId)
+    valDom = $( inHtml )
+    valDom.attr("id", @valId)
+    div.append valDom
     #edit field for value
     editTag = 'input'
     editType = "type='text'"
     editHtml = wrapHtml(editTag,'',editType)
     edit = $(editHtml)
-    attrs = { id:@domId, value:@curValue }
+    attrs = { id:@editValId, value:@curValue }
     edit.attr(attrs)
     #hide the editing element initially
     edit.hide()
       
     contClass = @containerType
     div.addClass contClass
-    #Removed edit button, instead click on value.
-    #Did this because of possible confusion with the delete button
-    ##edit button should show/hide edit field
-    ##change class of the edit button to differentiate between showing/hiding?
-    #editBtn = johaEditBtn("")
     div.append edit
     div = @appendDelBtn div 
 
     #controls
-    #Val is the Value Element
-    val.addClass 'clickable-label'
-    val.click =>
+    #val is the Value Element jQueried
+    valDom.addClass 'clickable-label'
+    valDom.click =>
       edit.toggle()
-      edit.focus() if val.is ":visible"
+      edit.focus() if valDom.is ":visible"
+
 
     edit.change =>
-      newVal = $('#' + @domId).val()
-      val.text(newVal)
-      @curValue = newVal
-      thisContDom = $(@selContId)
-      jcurVal = softParseJSON @curValue
-      jorigVal = @origValue
-      if jcurVal is jorigVal
-        thisContDom.removeClass 'joha-update'
-      else
-        thisContDom.addClass 'joha-update'
+      alert @recalcTrigger
+      div.trigger(@recalcTrigger)
+      #@updateContAfterEdit( @domId ) 
       edit.hide()
+
+    #let external entities trigger updates
+    recalcFn = (event) =>
+      console.log "Recalc", event.target.id, event
+      @updateContAfterEdit( event.target.id )
+     
+    div.bind(@recalcTrigger, recalcFn) 
+
     #return dom 
     return div
     
 class ArrayValueContainer extends ValueContainerBase
   constructor: (@value) ->
     @containerType = 'array-vc'
+    @itemClass = 'joha-array-item'
     #we know @value is an array
     @children = for val in @value
       valueContainerFactory(val)
     super @value
+
 
   addNewItem = (me, newVal) =>
     newJsonVal = softParseJSON newVal
     newChild = new RootValueContainer(newJsonVal)
     me.children.push newChild
     #Add new child to Dom
-    thisDom = $(me.selContId)
+    thisDom = $(me.selDomId)
     #append to end of array items
-    lastArrayItemDom = thisDom.find('.joha-array-item').last()
+    jItemClass = '.' + me.itemClass
+    lastArrayItemDom = thisDom.find(jItemClass).last()
     lastArrayItemDom.after( newChild.view() )
-    newChildDom = $(newChild.valueContainer.selContId)
-    newChildDom.addClass 'joha-create'
+    newChildDom = $(newChild.valueContainer.selDomId)
+    newChildDom.addClass me.createClass
     #TODO: Determine if this is the right way to update things
     #I'm guessing no.
-    newChildDom.change()
+    console.log 'AVC', newChildDom
+    newChildDom.trigger(me.recalcTrigger)
+    #newChildDom.change()
 
   makeDelArgs: =>
-    targetId = @contId
+    targetId = @domId
     delFn = (targetId) =>
       targetDom = $('#'+targetId)
-      targetDom.toggleClass 'joha-delete'
-      targetDom.change()
+      targetDom.toggleClass @deleteClass 
+      #targetDom.change()
+      targetDom.trigger(@recalcTrigger)
     args = {
            targetId: targetId
            delFn: delFn
@@ -234,11 +284,11 @@ class ArrayValueContainer extends ValueContainerBase
     val = 'Arrays'
     avHtml = wrapHtml(tag, val)
     av = $(avHtml)
-    av.attr("id", @contId)
+    av.attr("id", @domId)
     av.addClass @containerType
     for child in @children
       childDom = child.view()
-      childDom.addClass 'joha-array-item'
+      childDom.addClass @itemClass
       av.append childDom
       null
     av = @appendDelBtn av
@@ -248,7 +298,7 @@ class ArrayValueContainer extends ValueContainerBase
     av
 
   currentValue: =>
-    retVal = if $(@selContId).hasClass 'joha-delete'
+    retVal = if $(@selDomId).hasClass @deleteClass
       null
     else
       cv = for child in @children
@@ -257,14 +307,15 @@ class ArrayValueContainer extends ValueContainerBase
 
 class KeyValue extends ValueContainerBase
   constructor: (@key, @val) ->
+    super()
     @containerType = 'keyvalue-vc'
     #keyContainer should always be basic type (string)
     @keyContainer = valueContainerFactory(@key)
     @valContainer = valueContainerFactory(@val)
     idBinder = IdBinder.get()
     @domId = idBinder.assignId(@)
-    @contId = @domId + "-cont"
-    @selContId = '#' + @contId
+    #@domId = @domId #+ "-cont"
+    @selDomId = '#' + @domId
     delArgs = @makeDelArgs()
     @delBtn = new DeleteButtonBase(delArgs)
 
@@ -283,7 +334,7 @@ class KeyValue extends ValueContainerBase
     vHtml = wrapHtml( vtag, vlabel)
     v = $(vHtml)
     #manipulate Dom structure
-    kv.attr("id", @contId)
+    kv.attr("id", @domId)
     kv.addClass @containerType
     kv.append(k)
     k.append(@keyContainer.view())
@@ -293,7 +344,7 @@ class KeyValue extends ValueContainerBase
     kv
 
   currentValue: =>
-    retVal = if $(@selContId).hasClass 'joha-delete'
+    retVal = if $(@selDomId).hasClass @deleteClass
       null
     else
       kvVal = {}
@@ -302,11 +353,12 @@ class KeyValue extends ValueContainerBase
     retVal
 
   makeDelArgs: =>
-    targetId = @contId
+    targetId = @domId
     delFn = (targetId) =>
       targetDom = $('#'+targetId)
-      targetDom.toggleClass 'joha-delete'
-      targetDom.change()
+      targetDom.toggleClass @deleteClass
+      targetDom.trigger(@recalcTrigger)
+      #targetDom.change()
     args = {
            targetId: targetId
            delFn: delFn
@@ -316,6 +368,7 @@ class KeyValue extends ValueContainerBase
 class ObjectValueContainer extends ValueContainerBase
   constructor: (@objValue) ->
     @containerType = 'object-vc'
+    @itemClass = 'joha-object-item'
     #we know @objValue is an object
     @kvChildren = for own key, val of @objValue
       kv = {}
@@ -337,27 +390,27 @@ class ObjectValueContainer extends ValueContainerBase
     console.log "Obj Add New", newChild
     me.kvChildren.push newChild
     #Add new child to Dom
-    thisDom = $(me.selContId)
+    thisDom = $(me.selDomId)
     #append to end of obj items
-    lastObjItemDom = thisDom.find('.joha-object-item').last()
+    jItemClass = '.' + me.itemClass
+    lastObjItemDom = thisDom.find(jItemClass).last()
     lastObjItemDom.after( newChild.view() )
-    newChildDom = $(newChild.selContId)
-    newChildDom.addClass 'joha-create'
-    #TODO: Determine if this is the right way to update things
-    #I'm guessing no.
-    newChildDom.change()
+    newChildDom = $(newChild.selDomId)
+    newChildDom.addClass me.createClass
+    newChildDom.trigger(me.recalcTrigger)
+    #newChildDom.change()
 
   view: =>
     tag = 'div'
     val = 'Object'
     objHtml = wrapHtml(tag, val)
     obj = $(objHtml)
-    obj.attr("id", @contId)
+    obj.attr("id", @domId)
     obj.addClass @containerType
     #running for side effect
     for kvChild in @kvChildren
       kvChildDom = kvChild.view()
-      kvChildDom.addClass 'joha-object-item'
+      kvChildDom.addClass @itemClass
       obj.append kvChildDom
       null
     @appendDelBtn obj
@@ -367,7 +420,7 @@ class ObjectValueContainer extends ValueContainerBase
     obj
 
   currentValue: =>
-    retVal = if $(@selContId).hasClass 'joha-delete'
+    retVal = if $(@selDomId).hasClass @deleteClass
       null
     else
       _curVal = {}
@@ -377,18 +430,19 @@ class ObjectValueContainer extends ValueContainerBase
     retVal
  
   makeDelArgs: =>
-    targetId = @contId
+    targetId = @domId
     delFn = (targetId) =>
       targetDom = $('#'+targetId)
-      targetDom.toggleClass 'joha-delete'
-      targetDom.change()
+      targetDom.toggleClass @deleteClass
+      targetDom.trigger(@recalcTrigger)
+      #targetDom.change()
     args = {
            targetId: targetId
            delFn: delFn
            }
 
- # #has ability to add new (currently just basic values though?)
- 
+#ToDo:Provide option to force @value to be a certain type
+#ToDo:Provide option that prevents adding/deleting, and one for read only (no edits allowed) 
 class RootValueContainer
   constructor: (@value, options) ->
     options or= {}
@@ -435,45 +489,129 @@ class FilesContainer
 #ToDo Add to specs
 class LinksContainer
   constructor: (@links, options) ->
+    idBinder = IdBinder.get()
+    @domId = idBinder.assignId(@)
+    #@domId = @domId #+ "-cont"
+    @selDomId = '#' + @domId
     @linksClassName = 'joha-urllinks'
     @linkClassName = 'joha-link'
 
+  domShowHide: (domList) ->
+    for own dom, state of domList
+      switch state
+        when "show"
+          dom.show()
+        when "hide"
+          dom.hide()
+        when "toggle"
+          dom.toggle()
+
   view: ->
+    #if class is 'joha-link-edit-active' the edit view is shown
+    #else the normal view is shown
+    
     linkViewClass = 'link-view'
-    linkEditClass = 'link-edit'
+    #linkEditClass = 'link-edit'
     dom = $('<div />')
+    dom.attr("id", @domId)
     dom.addClass @linksClassName
 
-    domLinkView = $('<div />')
-    domLinkView.addClass linkViewClass
-    @linkViewAppend(domLinkView, @links)
+    #domLinkView = $('<div />')
+    #domLinkView.addClass linkViewClass
+    #@linkViewAppend(domLinkView, @links)
+    linksViewDom = @linksView(@links)
+    linksEditDom = @linksEdit(@links)
+    if dom.hasClass 'joha-link-edit-active'
+      linksViewDom.hide()
+      linksEditDom.show()
+    else
+      linksViewDom.show()
+      linksEditDom.hide()
 
-    domLinkEdit = $('<div />')
-    domLinkEdit.addClass linkEditClass
-    @linkEditAppend(domLinkEdit, @links)
+    dom.append linksViewDom
+    dom.append linksEditDom
     
-    dom.append domLinkView
-    dom.append domLinkEdit
-    dom
+    editFn = (targetId) =>
+      console.log 'edit fn', targetId, $('#'+targetId)
+      targetDom = $('#'+targetId)
+      targetDom.toggleClass('joha-link-edit-active')
+      #Fix hardcoding
+      targetDom.trigger("joha-recalculate")
+      #targetDom.change()
 
-  linkViewAppend: (parentDom, links) ->
-    linkViewSepEl = 'div'
-    sepStart = '<' + linkViewSepEl + '>'
-    sepEnd = '</' + linkViewSepEl + '>'
-    for own url, label of links
-      linkViewDom = $(sepStart + label + sepEnd)
-      parentDom.append linkViewDom
-      null
+    editBtnArgs = {targetId: @domId , editFn: editFn}
+    editBtn = new EditButtonBase(editBtnArgs)
+    dom.append editBtn.get()
 
-  linkEditAppend: (parentDom, links) ->
-    linkEditSepEl = 'div'
-    sepStart = '<' + linkEditSepEl + '>'
-    sepEnd = '</' + linkEditSepEl + '>'
+    #dom.change =>
+    toggleViewOrEditFn = =>
+      if dom.hasClass 'joha-link-edit-active'
+        dom.find('.link-view').hide()
+        dom.find('.link-edit').show()
+      else
+        dom.find('.link-view').show()
+        dom.find('.link-edit').hide()
+
+    #TODO: Fix why this has to be hardcoded
+    alert johaChangeTrigger
+    alert root.johaChangeTrigger
+
+    dom.bind("joha-recalculate", toggleViewOrEditFn)
+
+
+    #domLinkEdit = $('<div />')
+    #domLinkEdit.addClass linkEditClass
+    #@linkEditAppend(domLinkEdit, @links)
+    
+    #dom.append domLinkView
+    #dom.append domLinkEdit
+    #dom
+
+  linkViewDom: (url, label) ->
+    attrs = "href='" + url + "'"
+    linkHtml = wrapHtml('a', label, attrs)
+    linkDom = $(linkHtml)
+    linkDom.addClass 'joha-link-item'
+    linkDom
+
+  linksView:  (links) ->
+    linksViewOuterHtml = wrapHtml('div')
+    linksViewOuterDom = $(linksViewOuterHtml)
+    linksViewOuterDom.addClass 'link-view'
     for own url, label of links
-      editHtml = '<span>' + url + '</span><span>' + label + '</span>'
-      linkEditDom = $(sepStart + editHtml + sepEnd)
-      parentDom.append linkEditDom
+      linkViewDom = @linkViewDom(url, label)
+      linksViewOuterDom.append linkViewDom
       null
+    linksViewOuterDom
+
+  linkEditDom: (url, label) ->
+    objHtml = wrapHtml('div')
+    urlHtml = wrapHtml('span', url)
+    labelHtml = wrapHtml('span', label)
+    objDom = $(objHtml)
+    urlDom = $(urlHtml)
+    labelDom = $(labelHtml)
+    objDom.append urlDom
+    objDom.append labelDom
+
+  linksEdit: (links) ->
+    linksEditDom  = $('<div />')
+    linksEditDom.addClass 'link-edit'
+    for own url, label of links
+      linkEditDom = @linkEditDom(url, label)
+      linksEditDom.append linkEditDom
+      null
+    linksEditDom
+
+  #linkEditAppend: (parentDom, links) ->
+  #  linkEditSepEl = 'div'
+  #  sepStart = '<' + linkEditSepEl + '>'
+  #  sepEnd = '</' + linkEditSepEl + '>'
+  #  for own url, label of links
+  #    editHtml = '<span>' + url + '</span><span>' + label + '</span>'
+  #    linkEditDom = $(sepStart + editHtml + sepEnd)
+  #    parentDom.append linkEditDom
+  #    null
 
   _curVal: ->
     undefined
@@ -486,4 +624,5 @@ class LinksContainer
 root.RootValueContainer = RootValueContainer
 root.FilesContainer = FilesContainer
 root.LinksContainer = LinksContainer
+root.johaChangeTrigger = johaChangeTrigger
 

@@ -1,9 +1,10 @@
 root = exports ? this
 #Libraries
 #coffeescript ibraries are found in stitch/coffeescripts
-RootValueContainer = require('dynJsonContainers').RootValueContainer
-FilesContainer =     require('dynJsonContainers').FilesContainer
-LinksContainer =     require('dynJsonContainers').LinksContainer
+dynJc = require('dynJsonContainers')
+RootValueContainer = dynJc.RootValueContainer
+FilesContainer =     dynJc.FilesContainer
+LinksContainer =     dynJc.LinksContainer
 getType = require('forf').getType
 
 class NodeField

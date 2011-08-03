@@ -90,11 +90,13 @@ class JohaNodeEditor
     curValDom.append curValLabelDom
     curValDom.append curValCalcDom
     nodeDom.append curValDom
-    nodeDom.change => 
-      console.log "nodeDom Change"
+    testFn = (event) =>
+      console.log "JNE Testing nodeDom Change"
       console.log 'this', @
       newDomValue = JSON.stringify @currentValue()
       curValCalcDom.text(newDomValue)
+
+    nodeDom.bind("joha-recalculate", testFn)
     nodeDom
 
 
@@ -112,11 +114,11 @@ class JohaNodeEditor
     curVal = {}
     console.log 'before @nodeFields'
     fields = @nodeFields
-    console.log 'JNE cv', @, this, curThis
+    console.log 'JNE cv1', @, this, curThis
     for own fieldName, fieldObj of fields
       curVal[fieldName] = fieldObj.currentValue()
       null
-    console.log 'JNE cV', this, curThis, curVal
+    console.log 'JNE cV2', this, curThis, curVal
     curVal
 
   deleteNodeData: ->
