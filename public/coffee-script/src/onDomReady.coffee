@@ -25,8 +25,13 @@ $ ->
                id: 'id-test2',
 	       label: 'short basic data test',
 	       a_string: 'abc',
-	       a_number: 42,
-	       a_boolean: true
+	       #a_number: 42,
+	       #a_simple_array: ['A', 'B', 'C'],
+	       a_simple_obj: { a: 'AA' }, #, b: 'BB', c: 'CC' },
+	       links: {
+                     'http://www.google.com': 'google',
+                     'http://www.yahoo.com': 'yahoo'},
+	       a_complex_obj: {h: {hh: ['i', 'j', {k: 'K'}] } }
 	     }
 
   newNode = new JohaNodeEditor nodeData

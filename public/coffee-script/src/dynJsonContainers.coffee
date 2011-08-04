@@ -29,10 +29,6 @@ root = exports ? this
 #  Note to self - bundle external dependencies to make
 #  an external, self-contained library
 
-#  Note to self2 - this library currently contains
-#  Links and File Containers, that are not constructed
-#  via the Factory
-
 
 #Libraries
 #Libraries are in stitch/coffeescripts
@@ -93,6 +89,27 @@ class ContainerBase
     @curValue = @value
     @origValue = @value
     @selDomId = '#' + @domId
+    @recalcTrigger = root.johaChangeTrigger
+    @updateClass = root.johaEditClass["update"]
+    @deleteClass = root.johaEditClass["delete"]
+    @createClass = root.johaEditClass["create"]
+    @commonMethods =
+      setValId: (domId) ->
+        domId + '-val'
+
+      setEditValId: (domId) ->
+        domId + '-edit'
+
+      makeDelBtn: (domId, triggerName, deleteClass) ->
+        delFn = (domId) =>
+          targetDom = $('#'+domId)
+          targetDom.toggleClass deleteClass
+          targetDom.trigger(triggerName)
+        args =
+          targetId: domId
+          delFn: delFn
+        delBtnObj = new DeleteButtonBase(args)
+        delBtn = delBtnObj.get()
 
 class ValueContainerBase extends ContainerBase
   constructor: (@value) ->
@@ -104,29 +121,18 @@ class ValueContainerBase extends ContainerBase
     # @curVal reflects the current internal value ignoring user edits
     #@currentValue shows what the resut would look like when 'saved'
     #@curVal doesn't change until edits are 'saved'
-    #@curValue = @value
-    #@origValue = @value
-    #idBinder = IdBinder.get()
-    #@domId = idBinder.assignId(@)
-    #@selDomId = '#' + @domId
-    #delArgs = @makeDelArgs()
-    #@delBtn = new DeleteButtonBase(delArgs)
-      
-    @updateClass = root.johaEditClass["update"]
-    @deleteClass = root.johaEditClass["delete"]
-    @createClass = root.johaEditClass["create"]
-    @recalcTrigger = root.johaChangeTrigger
-    @commonMethods =
-      setValId: (domId) ->
-        domId + '-val'
+    #@recalcTrigger = root.johaChangeTrigger
+    valContBaseMethods =
+      #setValId: (domId) ->
+      #  domId + '-val'
 
-      setEditValId: (domId) ->
-        domId + '-edit'
+      #setEditValId: (domId) ->
+      #  domId + '-edit'
 
-      appendDelBtn: (contDom) =>
-        delBtn = @delBtn.get()
-        contDom.append delBtn
-        contDom
+      #appendDelBtn: (contDom) =>
+      #  delBtn = @delBtn.get()
+      #  contDom.append delBtn
+      #  contDom
 
       updateEditBoxVal: (contDom) ->
         domId = contDom.attr("id")
@@ -193,13 +199,11 @@ class ValueContainerBase extends ContainerBase
         domListener.trigger(triggerName)
         editDom.hide()
 
+    @commonMethods = extend(@commonMethods, valContBaseMethods)
+    
   jsonType: ->
     typeof @value
 
-  #appendDelBtn: (contDom) =>
-  #  delBtn = @delBtn.get()
-  #  contDom.append delBtn
-  #  contDom
 
   #ToDo: Remove this?
   makeDelArgs: =>
@@ -260,16 +264,8 @@ class BasicValueContainer extends ValueContainerBase
     super @value
     @valId = @commonMethods["setValId"](@domId)
     @editValId = @commonMethods["setEditValId"](@domId) 
-    #@valId = @domId + '-val'
-    #@editValId = @domId + '-edit'
-    @deleteClass = root.johaEditClass["delete"]
-    delArgs = @makeDelArgs()
-    @delBtn = new DeleteButtonBase(delArgs)
-    #@recalcTrigger = root.johaEditClass["changed"]
-
-  appendDelBtn: (contDom) =>
-    @commonMethods["appendDelBtn"](contDom)
-
+    @delBtn = @commonMethods["makeDelBtn"](@domId, 
+                                              @recalcTrigger,@deleteClass)
   currentValue: =>
     #IMPORTANT
     #the currentValue function should return values
@@ -282,18 +278,6 @@ class BasicValueContainer extends ValueContainerBase
     else
       softParseJSON(@curValue)  #IMPORTANT: Note that @curValue does not reflect user editing
     retVal
-
-  makeDelArgs: =>
-    targetId = @domId
-    delFn = (targetId) =>
-      targetDom = $('#'+targetId)
-      targetDom.toggleClass @deleteClass
-      #targetDom.change()
-      targetDom.trigger(@recalcTrigger)
-    args = {
-           targetId: targetId
-           delFn: delFn
-           }
 
   updateEditBoxVal: (contDom) =>
     @commonMethods["updateEditBoxVal"](contDom)
@@ -309,28 +293,23 @@ class BasicValueContainer extends ValueContainerBase
     #edit field for value
     edit = @commonMethods["editView"](@curValue, @editValId)
     div.append edit
-    div = @appendDelBtn div 
+    div.append @delBtn
 
     #controls
     @commonMethods["editControl"](valDom, edit, 'clickable-label')
     edit.change =>
       @commonMethods["editChange"](edit, div, @recalcTrigger)
-    #edit.change =>
-    #  alert @recalcTrigger
-    #  div.trigger(@recalcTrigger)
-    #  edit.hide()
 
     #let external entities trigger updates
     recalcFn = (event) =>
       console.log "Recalc", event.target.id, event
       @updateContAfterEdit( event.target.id )
      
-    #div.bind(@recalcTrigger, recalcFn) 
     @commonMethods["onTrigger"](@recalcTrigger, div, recalcFn)
     #return dom 
     return div
-    
-class ArrayValueContainer extends ValueContainerBase
+ 
+class ArrayValueContainer extends ContainerBase
   constructor: (@value) ->
     @containerType = 'array-vc'
     @itemClass = 'joha-array-item'
@@ -338,6 +317,8 @@ class ArrayValueContainer extends ValueContainerBase
     @children = for val in @value
       valueContainerFactory(val)
     super @value
+    @delBtn = @commonMethods["makeDelBtn"](@domId,
+                                           @recalcTrigger,@deleteClass)
 
 
   addNewItem = (me, newVal) =>
@@ -352,23 +333,7 @@ class ArrayValueContainer extends ValueContainerBase
     lastArrayItemDom.after( newChild.view() )
     newChildDom = $(newChild.valueContainer.selDomId)
     newChildDom.addClass me.createClass
-    #TODO: Determine if this is the right way to update things
-    #I'm guessing no.
-    console.log 'AVC', newChildDom
     newChildDom.trigger(me.recalcTrigger)
-    #newChildDom.change()
-
-  makeDelArgs: =>
-    targetId = @domId
-    delFn = (targetId) =>
-      targetDom = $('#'+targetId)
-      targetDom.toggleClass @deleteClass 
-      #targetDom.change()
-      targetDom.trigger(@recalcTrigger)
-    args = {
-           targetId: targetId
-           delFn: delFn
-           }
 
   view: =>
     tag = 'div'
@@ -382,7 +347,8 @@ class ArrayValueContainer extends ValueContainerBase
       childDom.addClass @itemClass
       av.append childDom
       null
-    av = @appendDelBtn av
+    #av = @appendDelBtn av
+    av.append @delBtn
     
     addNew = new ArrayDataEntryForm(this, addNewItem)
     av.append addNew.get()
@@ -396,76 +362,95 @@ class ArrayValueContainer extends ValueContainerBase
         child.currentValue()
     retVal
 
-class KeyValue extends ValueContainerBase
+class KeyValueBase extends ContainerBase
   constructor: (@key, @val) ->
     super()
+    kvBaseMethods = 
+      basicView: (kvCont, keyCont, valCont) ->
+        domId = kvCont.domId
+        contType = kvCont.containerType
+        kvLabel = kvCont.kvLabel #Fix
+        kLabel = kvCont.kLabel #Fix
+        vLabel = kvCont.vLabel
+        kvTag = 'div'
+        kvHtml = wrapHtml( kvTag, kvLabel)
+        kv = $(kvHtml)
+        kTag = 'div'
+        kHtml = wrapHtml( kTag, kLabel )
+        k = $(kHtml)
+        vTag = 'div'
+        vHtml = wrapHtml(vTag, vLabel)
+        v = $(vHtml)
+        kv.attr("id", domId)
+        kv.addClass(contType)
+        kv.append k
+        k.append keyCont.view()
+        kv.append v
+        v.append valCont.view()
+        kv
+      currentValue: (domId, kCont, vCont, deleteClass) ->
+        retVal = if $('#'+domId).hasClass deleteClass
+          null
+        else
+          kvVal = {}
+          kvVal[kCont.currentValue()] = vCont.currentValue()
+          kvVal
+        retVal
+    @commonMethods = extend(@commonMethods, kvBaseMethods)
+
+class KeyValue extends KeyValueBase
+  constructor: (@key, @val) ->
+    super(@key, @val)
     @containerType = 'keyvalue-vc'
     #keyContainer should always be basic type (string)
     @keyContainer = valueContainerFactory(@key)
     @valContainer = valueContainerFactory(@val)
-    idBinder = IdBinder.get()
-    @domId = idBinder.assignId(@)
-    #@domId = @domId #+ "-cont"
-    @selDomId = '#' + @domId
-    delArgs = @makeDelArgs()
-    @delBtn = new DeleteButtonBase(delArgs)
+    @kvLabel = "Key-Value"
+    @kLabel = "Key"
+    @vLabel = "Value"
+    @delBtn = @commonMethods["makeDelBtn"](@domId,
+                                           @recalcTrigger,@deleteClass)
 
   view: =>
-    #Set up jQuery objects
-    kvtag = 'div'
-    kvlabel = 'Key-Value'
-    kvHtml = wrapHtml( kvtag, kvlabel )
-    kv = $(kvHtml)
-    ktag = 'div'
-    klabel = 'Key'
-    kHtml = wrapHtml( ktag, klabel)
-    k = $(kHtml)
-    vtag = 'div'
-    vlabel = 'Value'
-    vHtml = wrapHtml( vtag, vlabel)
-    v = $(vHtml)
-    #manipulate Dom structure
-    kv.attr("id", @domId)
-    kv.addClass @containerType
-    kv.append(k)
-    k.append(@keyContainer.view())
-    kv.append(v)
-    v.append(@valContainer.view())
-    @appendDelBtn kv
-    kv
+    kv = @commonMethods["basicView"](this, @keyContainer, @valContainer)
+    kv.append @delBtn
+    #kv
 
   currentValue: =>
-    retVal = if $(@selDomId).hasClass @deleteClass
-      null
-    else
-      kvVal = {}
-      kvVal[@keyContainer.currentValue()] = @valContainer.currentValue()
-      kvVal
-    retVal
+    @commonMethods["currentValue"](@domId, @keyContainer,
+                                   @valContainer, @deleteClass)
+class ObjectBase extends ContainerBase
+  constructor: (@objValue) ->
+    super @objValue
+    objBaseMethods =
+      basicObjView: (objCont) ->
+        tag = 'div'
+        label = objCont.objLabel
+        objHtml = wrapHtml(tag, label)
+        obj = $(objHtml)
+        obj.attr("id", objCont.domId)
+        obj.addClass objCont.containerType
+        #running for side effect
+        for child in objCont.kvChildren
+          childDom = child.view()
+          childDom.addClass objCont.itemClass
+          obj.append childDom
+          null
+        obj
 
-  makeDelArgs: =>
-    targetId = @domId
-    delFn = (targetId) =>
-      targetDom = $('#'+targetId)
-      targetDom.toggleClass @deleteClass
-      targetDom.trigger(@recalcTrigger)
-      #targetDom.change()
-    args = {
-           targetId: targetId
-           delFn: delFn
-           }
+     @commonMethods = extend(@commonMethods, objBaseMethods)
 
-        
-class ObjectValueContainer extends ValueContainerBase
+class ObjectValueContainer extends ObjectBase
   constructor: (@objValue) ->
     @containerType = 'object-vc'
     @itemClass = 'joha-object-item'
+    @objLabel = 'Object'
     #we know @objValue is an object
     @kvChildren = for own key, val of @objValue
-      kv = {}
-      kv[key] = val
       new KeyValue(key, val)
     super @objValue
+    @delBtn = @commonMethods["makeDelBtn"](@domId,
+                                           @recalcTrigger,@deleteClass)
 
 
   addNewItem = (me, newObj) =>
@@ -492,19 +477,20 @@ class ObjectValueContainer extends ValueContainerBase
     #newChildDom.change()
 
   view: =>
-    tag = 'div'
-    val = 'Object'
-    objHtml = wrapHtml(tag, val)
-    obj = $(objHtml)
-    obj.attr("id", @domId)
-    obj.addClass @containerType
+    obj = @commonMethods["basicObjView"](this)
+    #tag = 'div'
+    #val = 'Object'
+    #objHtml = wrapHtml(tag, val)
+    #obj = $(objHtml)
+    #obj.attr("id", @domId)
+    #obj.addClass @containerType
     #running for side effect
-    for kvChild in @kvChildren
-      kvChildDom = kvChild.view()
-      kvChildDom.addClass @itemClass
-      obj.append kvChildDom
-      null
-    @appendDelBtn obj
+    #for kvChild in @kvChildren
+    #  kvChildDom = kvChild.view()
+    #  kvChildDom.addClass @itemClass
+    #  obj.append kvChildDom
+    #  null
+    obj.append @delBtn
 
     addNew = new ObjectDataEntryForm(this, addNewItem)
     obj.append addNew.get()
@@ -520,17 +506,17 @@ class ObjectValueContainer extends ValueContainerBase
       _curVal
     retVal
  
-  makeDelArgs: =>
-    targetId = @domId
-    delFn = (targetId) =>
-      targetDom = $('#'+targetId)
-      targetDom.toggleClass @deleteClass
-      targetDom.trigger(@recalcTrigger)
-      #targetDom.change()
-    args = {
-           targetId: targetId
-           delFn: delFn
-           }
+  #makeDelArgs: =>
+  #  targetId = @domId
+  #  delFn = (targetId) =>
+  #    targetDom = $('#'+targetId)
+  #    targetDom.toggleClass @deleteClass
+  #    targetDom.trigger(@recalcTrigger)
+  #    #targetDom.change()
+  #  args = {
+  #         targetId: targetId
+  #         delFn: delFn
+  #         }
 
 #ToDo:Provide option to force @value to be a certain type
 #ToDo:Provide option that prevents adding/deleting, and one for read only (no edits allowed) 
@@ -577,16 +563,50 @@ class FilesContainer
     calcVal = @_curVal()
     calcVal || @files
 
-#ToDo Add to specs
-class LinksContainer
-  constructor: (@links, options) ->
-    idBinder = IdBinder.get()
-    @domId = idBinder.assignId(@)
-    #@domId = @domId #+ "-cont"
-    @selDomId = '#' + @domId
-    @linksClassName = 'joha-urllinks'
-    @linkClassName = 'joha-link'
+class LinksKeyValue extends KeyValueBase
+  constructor: (@key, @val)->
+    super(@key, @val)
+    @containerType = 'linkskv-vc'
+    @keyContainer = new BasicValueContainerNoDel(@key)
+    @valContainer = new BasicValueContainerNoDel(@val)
+    @kvLabel = "---"
+    @kLabel = "URL"
+    @vLabel = "Label Name"
+    @delBtn = @commonMethods["makeDelBtn"](@domId,
+                                           @recalcTrigger,@deleteClass)
+  
+  view: =>
+    linkskv = @commonMethods["basicView"](this, @keyContainer, @valContainer)
+    linkskv.append @delBtn
+ 
+  currentValue: =>
+    console.log "LinksKeyValueConts", @keyContainer, @valContainer
+    @commonMethods["currentValue"](@domId, @keyContainer,
+                                   @valContainer, @deleteClass)
 
+#ToDo Add to specs
+class LinksContainer extends ObjectBase
+  constructor: (links, options) ->
+    @objValue = links
+    #idBinder = IdBinder.get()
+    #@domId = idBinder.assignId(@)
+    #@domId = @domId #+ "-cont"
+    #@selDomId = '#' + @domId
+    #@linksClassName = 'joha-urllinks'
+    #@linkClassName = 'joha-link'
+    @containerType = 'links'
+    @itemClass = 'joha-links-item'
+    @objLabel = "Links"
+    @showEditClass = 'joha-link-edit-active'
+    @viewClass = 'joha-link-view'
+    @editClass = 'joha-link-edit'
+    @linksChildren = for own key, val of @objValue
+      new LinksKeyValue(key, val)
+    @kvChildren = @linksChildren #ToDo: refactor to single name
+    super @objValue
+    @delBtn = @commonMethods["makeDelBtn"](@domId,
+                                           @recalcTrigger,@deleteClass)
+  
   domShowHide: (domList) ->
     for own dom, state of domList
       switch state
@@ -597,6 +617,46 @@ class LinksContainer
         when "toggle"
           dom.toggle()
 
+
+  view: =>
+    linksDom = $('<div />')
+    linkEditDom = @commonMethods["basicObjView"](this)
+    linkViewDom = @linksView @currentValue() 
+    linkEditDom.addClass @editClass
+    linkViewDom.addClass @viewClass
+ 
+    if linksDom.hasClass @showEditClass
+      linkEditDom.show()
+      linkViewDom.hide()
+    else
+      linkEditDom.hide()
+      linkViewDom.show()
+
+    linksDom.append linkEditDom
+    linksDom.append linkViewDom
+
+    #ToDo: Rushed this, refactor?
+    editFn = (targetId) =>
+      console.log 'edit fn', targetId, $('#'+targetId)
+      targetDom = $('#'+targetId)
+      targetDom.toggleClass @showEditClass
+      targetDom.trigger(johaChangeTrigger) 
+
+    editBtnArgs = {targetId: @domId , editFn: editFn}
+    editBtn = new EditButtonBase(editBtnArgs)
+    linksDom.append editBtn.get()
+
+    toggleViewOrEditFn = =>
+      if linksDom.hasClass @showEditClass
+        linksDom.find('.'+@viewClass).hide()
+        linksDom.find('.'+@editClass).show()
+      else
+        linksDom.find('.'+@viewClass).show()
+        linksDom.find('.'+@editClass).hide()  
+
+    linksDom.bind(johaChangeTrigger, toggleViewOrEditFn)
+
+  ###
   view: ->
     #if class is 'joha-link-edit-active' the edit view is shown
     #else the normal view is shown
@@ -621,47 +681,36 @@ class LinksContainer
 
     dom.append linksViewDom
     dom.append linksEditDom
-    
+     
+    #ToDo: Rushed this, refactor anything? 
     editFn = (targetId) =>
       console.log 'edit fn', targetId, $('#'+targetId)
       targetDom = $('#'+targetId)
-      targetDom.toggleClass('joha-link-edit-active')
+      targetDom.toggleClass @showEditClass
       targetDom.trigger(johaChangeTrigger) 
-      #targetDom.change()
 
     editBtnArgs = {targetId: @domId , editFn: editFn}
     editBtn = new EditButtonBase(editBtnArgs)
-    dom.append editBtn.get()
-
-    #dom.change =>
-    toggleViewOrEditFn = =>
-      if dom.hasClass 'joha-link-edit-active'
-        dom.find('.link-view').hide()
-        dom.find('.link-edit').show()
-      else
-        dom.find('.link-view').show()
-        dom.find('.link-edit').hide()
-
-    dom.bind(johaChangeTrigger, toggleViewOrEditFn)
-
+    linksDom.append editBtn.get()
+  ###
 
   linkViewDom: (url, label) ->
     attrs = "href='" + url + "'"
     linkHtml = wrapHtml('a', label, attrs)
     linkDom = $(linkHtml)
-    linkDom.addClass 'joha-link-item'
+    linkDom.addClass @itemClass
     linkDom
 
   linksView:  (links) ->
     linksViewOuterHtml = wrapHtml('div')
     linksViewOuterDom = $(linksViewOuterHtml)
-    linksViewOuterDom.addClass 'link-view'
-    #for own url, label of links
-    #  linkViewDom = @linkViewDom(url, label)
-    #  linksViewOuterDom.append linkViewDom
-    #  null
-    objCont = new ObjectValueContainer(links)
-    linksViewOuterDom.append objCont.view()
+    #linksViewOuterDom.addClass 'link-view'
+    for own url, label of links
+      linkViewDom = @linkViewDom(url, label)
+      linksViewOuterDom.append linkViewDom
+      null
+    #objCont = new ObjectValueContainer(links)
+    #linksViewOuterDom.append objCont.view()
     linksViewOuterDom
 
   linkEditDom: (url, label) ->
@@ -695,9 +744,12 @@ class LinksContainer
     undefined
 
   currentValue: => 
-    calcVal = @_curVal()
-    calcVal || @links
-    
+    #calcVal = @_curVal()
+    #calcVal || @objValue
+    _curVal = {}
+    cv = for kvChild in @kvChildren
+      extend _curVal, kvChild.currentValue()
+    _curVal
 
 root.RootValueContainer = RootValueContainer
 root.BasicValueContainerNoDel = BasicValueContainerNoDel
