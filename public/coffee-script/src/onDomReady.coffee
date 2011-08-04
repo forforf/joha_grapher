@@ -21,6 +21,14 @@ $ ->
                    a_complex_obj: {h: {hh: ['i', 'j', {k: 'K'}] } }
                   }
 
+  nodeData = {
+               id: 'id-test2',
+	       label: 'short basic data test',
+	       a_string: 'abc',
+	       a_number: 42,
+	       a_boolean: true
+	     }
+
   newNode = new JohaNodeEditor nodeData
   domData = newNode.view()
   console.log( 'domData:', domData )

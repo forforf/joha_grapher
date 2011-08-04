@@ -3,6 +3,7 @@ root = exports ? this
 #coffeescript ibraries are found in stitch/coffeescripts
 dynJc = require('dynJsonContainers')
 RootValueContainer = dynJc.RootValueContainer
+BasicValueContainerNoDel = dynJc.BasicValueContainerNoDel
 FilesContainer =     dynJc.FilesContainer
 LinksContainer =     dynJc.LinksContainer
 getType = require('forf').getType
@@ -48,7 +49,7 @@ class NodeLabelField extends NodeField
     @labelFieldValue = String(@fieldValue)
     @origValue = @labelFieldValue
     #Since value is a string, container will be string container
-    @labelContainer = new RootValueContainer @fieldValue
+    @labelContainer = new BasicValueContainerNoDel @fieldValue
   
   currentValue: => 
     @labelContainer.currentValue()

@@ -59,7 +59,7 @@ johaChangeTrigger = "joha-recalculate"
 root.johaEditClass = johaEditClass
 
 
-#Makes the specific JSON containers
+#Makes containers based on JSON values
 valueContainerFactory = (value) ->
 
   containerFromSimpleType = {
@@ -84,13 +84,19 @@ valueContainerFactory = (value) ->
 #can inherit from
 class ContainerBase
   constructor: (@value) ->
-    nothing yet
+    idBinder = IdBinder.get()
+    #assigns ID and this object can be referenced by
+    #idBinder.getBoundById - or anywhere by IdBinder.get().getBoundById(domId)
+    #ToDo: Evaluate code to see if this can be leveraged
+    #I don't think its being used.
+    @domId = idBinder.assignId(this)
+    @curValue = @value
+    @origValue = @value
+    @selDomId = '#' + @domId
 
-#The base container for holding values
 class ValueContainerBase extends ContainerBase
-
   constructor: (@value) ->
-    #super(@value)
+    super(@value)
     #@currentValue() is the public API
     #@curValue is used for calculating the correct @currentValue
     #more specifically:
@@ -98,26 +104,104 @@ class ValueContainerBase extends ContainerBase
     # @curVal reflects the current internal value ignoring user edits
     #@currentValue shows what the resut would look like when 'saved'
     #@curVal doesn't change until edits are 'saved'
-    @curValue = @value
-    @origValue = @value
-    idBinder = IdBinder.get()
-    @domId = idBinder.assignId(@)
-    @selDomId = '#' + @domId
-    delArgs = @makeDelArgs()
-    @delBtn = new DeleteButtonBase(delArgs)
+    #@curValue = @value
+    #@origValue = @value
+    #idBinder = IdBinder.get()
+    #@domId = idBinder.assignId(@)
+    #@selDomId = '#' + @domId
+    #delArgs = @makeDelArgs()
+    #@delBtn = new DeleteButtonBase(delArgs)
+      
     @updateClass = root.johaEditClass["update"]
     @deleteClass = root.johaEditClass["delete"]
     @createClass = root.johaEditClass["create"]
     @recalcTrigger = root.johaChangeTrigger
+    @commonMethods =
+      setValId: (domId) ->
+        domId + '-val'
+
+      setEditValId: (domId) ->
+        domId + '-edit'
+
+      appendDelBtn: (contDom) =>
+        delBtn = @delBtn.get()
+        contDom.append delBtn
+        contDom
+
+      updateEditBoxVal: (contDom) ->
+        domId = contDom.attr("id")
+        valId = domId + '-val'
+        editValId = domId + '-edit'
+        editBoxValDom = $('#'+editValId)
+        valDom = $('#'+valId)
+        newVal = editBoxValDom.val()
+        valDom.text(newVal)
+        newVal
+
+      updateContAfterEdit: (domId) =>
+        contDom = $('#'+domId)
+        @curValue = @updateEditBoxVal(contDom)
+  
+        #parses as a JSON string, but returns
+        #original object if its not a valid JSON string
+        #ToDo: What if we don't want to evaluate JSON?
+        jsonVal = softParseJSON @curValue
+        #Side Effect that updates the container's edit class
+        #updateClass = root.johaEditClass["update"]
+        if jsonVal is @origValue
+          contDom.removeClass @updateClass
+        else
+          contDom.addClass @updateClass
+        return @curValue  #return value not currently used
+
+      basicView: (curValue, domId, valId, contClass) ->
+        inTag = 'span'
+        inVal = curValue
+        inHtml = wrapHtml(inTag, inVal)
+        #Outer Div Wrapper
+        outerTag = 'div'
+        outerHtml = wrapHtml(outerTag)
+        div = $(outerHtml)
+        div.attr("id", domId)
+        valDom = $( inHtml )
+        valDom.attr("id", valId)
+        div.append valDom
+        div.addClass contClass
+        {div: div, val: valDom}
+
+      editView: (curValue, editValId, contType) ->
+        editTag = 'input'
+        editType = "type='text'"
+        editHtml = wrapHtml(editTag,'',editType)
+        edit = $(editHtml)
+        attrs = { id:editValId, value:curValue }
+        edit.attr(attrs)
+        #hide the editing element initially
+        edit.hide()
+        edit
+
+      editControl: (elDom, editDom, elClass) ->
+        elDom.addClass(elClass)
+        elDom.click =>
+          editDom.toggle()
+          editDom.focus() if elDom.is ":visible"
+
+      onTrigger: (triggerName, listener, eventFn) ->
+        listener.bind(triggerName, eventFn)
+
+      editChange: (editDom, domListener, triggerName) ->
+        domListener.trigger(triggerName)
+        editDom.hide()
 
   jsonType: ->
     typeof @value
 
-  appendDelBtn: (contDom) =>
-    delBtn = @delBtn.get()
-    contDom.append delBtn
-    contDom
+  #appendDelBtn: (contDom) =>
+  #  delBtn = @delBtn.get()
+  #  contDom.append delBtn
+  #  contDom
 
+  #ToDo: Remove this?
   makeDelArgs: =>
     #Default
     targetId = @domId
@@ -131,14 +215,60 @@ class ValueContainerBase extends ContainerBase
            delFn: delFn
            }
 
+class BasicValueContainerNoOp extends ValueContainerBase
+  contructor: (@value) ->
+    super(@value)
+    alert("No Op Value Container Not Implemented Yet"
+
+class BasicValueContainerNoDel extends ValueContainerBase
+  constructor: (@value) ->
+    super(@value)
+    @valId = @commonMethods["setValId"](@domId)
+    @editValId = @commonMethods["setEditValId"](@domId)
+
+  currentValue: =>
+    softParseJSON(@curValue)
+
+  updateEditBoxVal: (contDom) ->
+    @commonMethods["updateEditBoxVal"](contDom)
+
+  updateContAfterEdit: (domId) =>
+    @commonMethods["updateContAfterEdit"](domId)
+
+  view: ->
+    elDoms = @commonMethods["basicView"](@curValue,@domId,
+                                         @valId,@containerType)
+    div = elDoms["div"]
+    valDom = elDoms["val"]
+    edit = @commonMethods["editView"](@curValue, @editValId)
+    div.append edit
+    
+    #controls
+    @commonMethods["editControl"](valDom, edit, 'clickable-label')
+    edit.change =>
+      @commonMethods["editChange"](edit, div, @recalcTrigger)
+    #ToDo: Move recalc Function to common methods?
+    recalcFn = (event) =>
+      @updateContAfterEdit( event.target.id )
+    @commonMethods["onTrigger"](@recalcTrigger, div, recalcFn)
+    return div
+
+#Fully functional container (ToDo: Rename to make it clear)
 class BasicValueContainer extends ValueContainerBase
   constructor: (@value) ->
     @containerType = 'basic-vc'
     super @value
-    @valId = @domId + '-val'
-    @editValId = @domId + '-edit'
+    @valId = @commonMethods["setValId"](@domId)
+    @editValId = @commonMethods["setEditValId"](@domId) 
+    #@valId = @domId + '-val'
+    #@editValId = @domId + '-edit'
     @deleteClass = root.johaEditClass["delete"]
+    delArgs = @makeDelArgs()
+    @delBtn = new DeleteButtonBase(delArgs)
     #@recalcTrigger = root.johaEditClass["changed"]
+
+  appendDelBtn: (contDom) =>
+    @commonMethods["appendDelBtn"](contDom)
 
   currentValue: =>
     #IMPORTANT
@@ -165,82 +295,38 @@ class BasicValueContainer extends ValueContainerBase
            delFn: delFn
            }
 
-  updateEditBoxVal: (contDom) ->
-    domId = contDom.attr("id")
-    valId = domId + '-val'
-    editValId = domId + '-edit'
-    editBoxValDom = $('#'+editValId)
-    valDom = $('#'+valId)
-    newVal = editBoxValDom.val()
-    valDom.text(newVal)
-    newVal
+  updateEditBoxVal: (contDom) =>
+    @commonMethods["updateEditBoxVal"](contDom)
 
   updateContAfterEdit: (domId) =>
-    contDom = $('#'+domId)
-    @curValue = @updateEditBoxVal(contDom)
-    #parses as a JSON string, but returns
-    #original object if its not a valid JSON string
-    #ToDo: What if we don't want to evaluate JSON?
-    jsonVal = softParseJSON @curValue
-
-    #Side Effect that updates the container's edit class
-    #updateClass = root.johaEditClass["update"]
-    if jsonVal is @origValue
-      contDom.removeClass @updateClass
-    else
-      contDom.addClass @updateClass
-
-    return @curValue  #return value not currently used
-    
+    @commonMethods["updateContAfterEdit"](domId)
 
   view: ->
-    #Value
-    inTag = 'span'
-    inVal = @curValue
-    inHtml = wrapHtml(inTag, inVal)
-    #Outer Div Wrapper
-    outerTag = 'div'
-    outerHtml = wrapHtml(outerTag)
-    div = $(outerHtml)
-    div.attr("id", @domId)
-    valDom = $( inHtml )
-    valDom.attr("id", @valId)
-    div.append valDom
+    elDoms = @commonMethods["basicView"](@curValue,@domId,
+                                         @valId, @containerType)
+    div = elDoms["div"]
+    valDom = elDoms["val"]
     #edit field for value
-    editTag = 'input'
-    editType = "type='text'"
-    editHtml = wrapHtml(editTag,'',editType)
-    edit = $(editHtml)
-    attrs = { id:@editValId, value:@curValue }
-    edit.attr(attrs)
-    #hide the editing element initially
-    edit.hide()
-      
-    contClass = @containerType
-    div.addClass contClass
+    edit = @commonMethods["editView"](@curValue, @editValId)
     div.append edit
     div = @appendDelBtn div 
 
     #controls
-    #val is the Value Element jQueried
-    valDom.addClass 'clickable-label'
-    valDom.click =>
-      edit.toggle()
-      edit.focus() if valDom.is ":visible"
-
-
+    @commonMethods["editControl"](valDom, edit, 'clickable-label')
     edit.change =>
-      alert @recalcTrigger
-      div.trigger(@recalcTrigger)
-      edit.hide()
+      @commonMethods["editChange"](edit, div, @recalcTrigger)
+    #edit.change =>
+    #  alert @recalcTrigger
+    #  div.trigger(@recalcTrigger)
+    #  edit.hide()
 
     #let external entities trigger updates
     recalcFn = (event) =>
       console.log "Recalc", event.target.id, event
       @updateContAfterEdit( event.target.id )
      
-    div.bind(@recalcTrigger, recalcFn) 
-
+    #div.bind(@recalcTrigger, recalcFn) 
+    @commonMethods["onTrigger"](@recalcTrigger, div, recalcFn)
     #return dom 
     return div
     
@@ -614,6 +700,7 @@ class LinksContainer
     
 
 root.RootValueContainer = RootValueContainer
+root.BasicValueContainerNoDel = BasicValueContainerNoDel
 root.FilesContainer = FilesContainer
 root.LinksContainer = LinksContainer
 root.johaChangeTrigger = johaChangeTrigger
