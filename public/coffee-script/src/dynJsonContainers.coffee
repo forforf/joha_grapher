@@ -82,9 +82,15 @@ valueContainerFactory = (value) ->
 
 #The base container that most other containers
 #can inherit from
-class ValueContainerBase
+class ContainerBase
+  constructor: (@value) ->
+    nothing yet
+
+#The base container for holding values
+class ValueContainerBase extends ContainerBase
 
   constructor: (@value) ->
+    #super(@value)
     #@currentValue() is the public API
     #@curValue is used for calculating the correct @currentValue
     #more specifically:
@@ -144,7 +150,7 @@ class BasicValueContainer extends ValueContainerBase
     retVal = if $(@selDomId).hasClass @deleteClass
       null
     else
-      @curValue  #IMPORTANT: Note that @curValue does not reflect user editing
+      softParseJSON(@curValue)  #IMPORTANT: Note that @curValue does not reflect user editing
     retVal
 
   makeDelArgs: =>
@@ -226,7 +232,6 @@ class BasicValueContainer extends ValueContainerBase
     edit.change =>
       alert @recalcTrigger
       div.trigger(@recalcTrigger)
-      #@updateContAfterEdit( @domId ) 
       edit.hide()
 
     #let external entities trigger updates
@@ -535,8 +540,7 @@ class LinksContainer
       console.log 'edit fn', targetId, $('#'+targetId)
       targetDom = $('#'+targetId)
       targetDom.toggleClass('joha-link-edit-active')
-      #Fix hardcoding
-      targetDom.trigger("joha-recalculate")
+      targetDom.trigger(johaChangeTrigger) 
       #targetDom.change()
 
     editBtnArgs = {targetId: @domId , editFn: editFn}
@@ -552,20 +556,8 @@ class LinksContainer
         dom.find('.link-view').show()
         dom.find('.link-edit').hide()
 
-    #TODO: Fix why this has to be hardcoded
-    alert johaChangeTrigger
-    alert root.johaChangeTrigger
+    dom.bind(johaChangeTrigger, toggleViewOrEditFn)
 
-    dom.bind("joha-recalculate", toggleViewOrEditFn)
-
-
-    #domLinkEdit = $('<div />')
-    #domLinkEdit.addClass linkEditClass
-    #@linkEditAppend(domLinkEdit, @links)
-    
-    #dom.append domLinkView
-    #dom.append domLinkEdit
-    #dom
 
   linkViewDom: (url, label) ->
     attrs = "href='" + url + "'"
@@ -578,21 +570,30 @@ class LinksContainer
     linksViewOuterHtml = wrapHtml('div')
     linksViewOuterDom = $(linksViewOuterHtml)
     linksViewOuterDom.addClass 'link-view'
-    for own url, label of links
-      linkViewDom = @linkViewDom(url, label)
-      linksViewOuterDom.append linkViewDom
-      null
+    #for own url, label of links
+    #  linkViewDom = @linkViewDom(url, label)
+    #  linksViewOuterDom.append linkViewDom
+    #  null
+    objCont = new ObjectValueContainer(links)
+    linksViewOuterDom.append objCont.view()
     linksViewOuterDom
 
   linkEditDom: (url, label) ->
     objHtml = wrapHtml('div')
     urlHtml = wrapHtml('span', url)
     labelHtml = wrapHtml('span', label)
+    urlCont = new BasicValueContainer(url)
+    labelCont = new BasicValueContainer(label)
+    _kv = {}
+    _kv[url] = label
+    #objCont = new ObjectValueContainer(_kv)
     objDom = $(objHtml)
-    urlDom = $(urlHtml)
-    labelDom = $(labelHtml)
+    urlDom = urlCont.view() #(urlHtml)
+    labelDom = labelCont.view() # $(labelHtml)
     objDom.append urlDom
     objDom.append labelDom
+    #objDom.append objCont.view()
+    
 
   linksEdit: (links) ->
     linksEditDom  = $('<div />')
@@ -603,15 +604,6 @@ class LinksContainer
       null
     linksEditDom
 
-  #linkEditAppend: (parentDom, links) ->
-  #  linkEditSepEl = 'div'
-  #  sepStart = '<' + linkEditSepEl + '>'
-  #  sepEnd = '</' + linkEditSepEl + '>'
-  #  for own url, label of links
-  #    editHtml = '<span>' + url + '</span><span>' + label + '</span>'
-  #    linkEditDom = $(sepStart + editHtml + sepEnd)
-  #    parentDom.append linkEditDom
-  #    null
 
   _curVal: ->
     undefined
