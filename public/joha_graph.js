@@ -81,12 +81,15 @@
       
 /* Header data */
 
+ var JohaNodeEditor = require('JohaNodeEditor').JohaNodeEditor;
 
 var johaGraph = {};  //Global graph container
 // Write something here about initialization or getting ready, something something
 $j(document).ready(function() {
   //Constants
   JOHA_DATA_DEF = syncJax('/data_definition');
+
+  //console.log(JohaNodeEditor);
   //do this to ensure we can't clobber the constant JOHA_DATA_DEF
   $joha_data_def = function(){ return jQuery.extend(true, {}, JOHA_DATA_DEF); };
   
@@ -938,7 +941,9 @@ function dynamicEditForm(nodeData){
   console.log('node copy', nodeCopy);
   console.log('Special Treat', specialTreatment);
   var joha_data_def = $joha_data_def();
-  var someObj = domNodeFactory(nodeCopy, specialTreatment, joha_data_def, SHOW_EVEN_IF_NULL);
+  //var someObj = domNodeFactory(nodeCopy, specialTreatment, joha_data_def, SHOW_EVEN_IF_NULL);
+  var baseObj = new JohaNodeEditor(nodeCopy);
+  var someObj = baseObj.view();
   $j('#dn_node_data').append(someObj);
   console.log('Dynamically creatted node data obj', someObj);
   

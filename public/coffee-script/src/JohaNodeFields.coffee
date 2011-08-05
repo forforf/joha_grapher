@@ -1,4 +1,6 @@
 root = exports ? this
+$ = $ || window.$ || window.$j
+
 #Libraries
 #coffeescript ibraries are found in stitch/coffeescripts
 dynJc = require('dynJsonContainers')
@@ -104,6 +106,6 @@ nodeFieldFactory = (fieldName, fieldValue) ->
     when 'label' then new NodeLabelField(fieldName, fieldValue)
     when 'attached_files' then new NodeFilesField(fieldName, fieldValue)
     when 'links' then new NodeLinksField(fieldName, fieldValue)
-    else  new NodeJsonField(fieldName, fieldValue)
+    else new NodeJsonField(fieldName, fieldValue)
  
 root.nodeFieldFactory = nodeFieldFactory

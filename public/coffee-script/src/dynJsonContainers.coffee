@@ -1,6 +1,8 @@
 #Libraries
 #coffeescript ibraries are found in stitch/coffeescripts
 root = exports ? this
+$ = $ || window.$ || window.$j
+
 #### Overview
 
 # dynJsonContainers convets a JSON object into an editiable
@@ -69,6 +71,7 @@ valueContainerFactory = (value) ->
   
   containerFromValue = (value) ->
     type = getType(value)
+    console.log 'valueContainerFactory - type', type
     containerClass = containerFromSimpleType[type]
     objContainer = new containerClass(value)
     return objContainer #if objContainer
@@ -261,11 +264,15 @@ class BasicValueContainerNoDel extends ValueContainerBase
 class BasicValueContainer extends ValueContainerBase
   constructor: (@value) ->
     @containerType = 'basic-vc'
+    console.log 'BVC constructor', @value
     super @value
     @valId = @commonMethods["setValId"](@domId)
     @editValId = @commonMethods["setEditValId"](@domId) 
+    console.log 'BVC constructor - making DelBtn', @domId, @recalcTrigger, @deleteClass
     @delBtn = @commonMethods["makeDelBtn"](@domId, 
                                               @recalcTrigger,@deleteClass)
+    console.log 'BVC constructor done'
+    
   currentValue: =>
     #IMPORTANT
     #the currentValue function should return values
@@ -492,6 +499,7 @@ class ObjectValueContainer extends ObjectBase
 #ToDo:Provide option that prevents adding/deleting, and one for read only (no edits allowed) 
 class RootValueContainer
   constructor: (@value, options) ->
+    console.log 'RVC constructor entered', @value
     options or= {}
     @containerType = 'root-vc'
     #ToDo: Use extend to set overwrite default options

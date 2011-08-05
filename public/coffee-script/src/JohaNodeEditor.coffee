@@ -1,4 +1,5 @@
 root = exports ? this
+$ = $ || window.$ || window.$j
 
 #Libraries
 #coffeescript ibraries are found in stitch/coffeescripts
@@ -17,6 +18,7 @@ getKeys = forfLib.getKeys
 class JohaNodeEditor
   ni = 'not implemented'
   constructor: (@nodeData, options) ->
+    console.log 'JNE constructor Entered'
     #set prefix for IdTracker
     IdTracker.get(prefix: 'joha-node-edit-')
     @id = 'id'
@@ -42,6 +44,7 @@ class JohaNodeEditor
     @nodeData.id = @makeGUID() if not @nodeData[@id]
     @nodeData.label = "node:" + @nodeData[@id] if not @nodeData[@label]
     @nodeFields = @buildNodeFields()
+    @nodeFields
 
   buildFieldDropDown: =>
     $('<div>Dropdown Goes Here</div>')
@@ -54,7 +57,6 @@ class JohaNodeEditor
     #assign Root Dom Id (see function)
     nodeDom = $('<div />')
     fieldNames = getKeys @nodeData
-
     idDom = johaFields[@id].view()
     labelDom = johaFields[@label].view()
     linksDom = johaFields[@links].view() if arrayContains(fieldNames, @links) 
