@@ -369,8 +369,8 @@ class KeyValueBase extends ContainerBase
       basicView: (kvCont, keyCont, valCont) ->
         domId = kvCont.domId
         contType = kvCont.containerType
-        kvLabel = kvCont.kvLabel #Fix
-        kLabel = kvCont.kLabel #Fix
+        kvLabel = kvCont.kvLabel 
+        kLabel = kvCont.kLabel 
         vLabel = kvCont.vLabel
         kvTag = 'div'
         kvHtml = wrapHtml( kvTag, kvLabel)
@@ -414,7 +414,7 @@ class KeyValue extends KeyValueBase
   view: =>
     kv = @commonMethods["basicView"](this, @keyContainer, @valContainer)
     kv.append @delBtn
-    #kv
+    kv
 
   currentValue: =>
     @commonMethods["currentValue"](@domId, @keyContainer,
@@ -458,12 +458,7 @@ class ObjectValueContainer extends ObjectBase
     newVal = newObj["val"]
     newKeyStr = String newKey
     newJsonVal = softParseJSON newVal
-    #newCleanObj = {}
-    #newCleanObj["key"] = newKeyStr
-    #newCleanObj["val"] = newJsonVal
     newChild = new KeyValue(newKeyStr, newJsonVal)
-    console.log "Obj Cont", me
-    console.log "Obj Add New", newChild
     me.kvChildren.push newChild
     #Add new child to Dom
     thisDom = $(me.selDomId)
@@ -474,22 +469,9 @@ class ObjectValueContainer extends ObjectBase
     newChildDom = $(newChild.selDomId)
     newChildDom.addClass me.createClass
     newChildDom.trigger(me.recalcTrigger)
-    #newChildDom.change()
 
   view: =>
     obj = @commonMethods["basicObjView"](this)
-    #tag = 'div'
-    #val = 'Object'
-    #objHtml = wrapHtml(tag, val)
-    #obj = $(objHtml)
-    #obj.attr("id", @domId)
-    #obj.addClass @containerType
-    #running for side effect
-    #for kvChild in @kvChildren
-    #  kvChildDom = kvChild.view()
-    #  kvChildDom.addClass @itemClass
-    #  obj.append kvChildDom
-    #  null
     obj.append @delBtn
 
     addNew = new ObjectDataEntryForm(this, addNewItem)
@@ -505,18 +487,6 @@ class ObjectValueContainer extends ObjectBase
         extend _curVal, kvChild.currentValue()
       _curVal
     retVal
- 
-  #makeDelArgs: =>
-  #  targetId = @domId
-  #  delFn = (targetId) =>
-  #    targetDom = $('#'+targetId)
-  #    targetDom.toggleClass @deleteClass
-  #    targetDom.trigger(@recalcTrigger)
-  #    #targetDom.change()
-  #  args = {
-  #         targetId: targetId
-  #         delFn: delFn
-  #         }
 
 #ToDo:Provide option to force @value to be a certain type
 #ToDo:Provide option that prevents adding/deleting, and one for read only (no edits allowed) 
@@ -570,8 +540,8 @@ class LinksKeyValue extends KeyValueBase
     @keyContainer = new BasicValueContainerNoDel(@key)
     @valContainer = new BasicValueContainerNoDel(@val)
     @kvLabel = "---"
-    @kLabel = "URL"
-    @vLabel = "Label Name"
+    @kLabel = "Link URL"
+    @vLabel = "Link Label"
     @delBtn = @commonMethods["makeDelBtn"](@domId,
                                            @recalcTrigger,@deleteClass)
   
@@ -588,13 +558,7 @@ class LinksKeyValue extends KeyValueBase
 class LinksContainer extends ObjectBase
   constructor: (links, options) ->
     @objValue = links
-    #idBinder = IdBinder.get()
-    #@domId = idBinder.assignId(@)
-    #@domId = @domId #+ "-cont"
-    #@selDomId = '#' + @domId
-    #@linksClassName = 'joha-urllinks'
-    #@linkClassName = 'joha-link'
-    @containerType = 'links'
+    @containerType = 'links-edit-vc'
     @itemClass = 'joha-links-item'
     @objLabel = "Links"
     @showEditClass = 'joha-link-edit-active'
@@ -606,20 +570,11 @@ class LinksContainer extends ObjectBase
     super @objValue
     @delBtn = @commonMethods["makeDelBtn"](@domId,
                                            @recalcTrigger,@deleteClass)
-  
-  domShowHide: (domList) ->
-    for own dom, state of domList
-      switch state
-        when "show"
-          dom.show()
-        when "hide"
-          dom.hide()
-        when "toggle"
-          dom.toggle()
-
 
   view: =>
+    linksDomClass = 'joha-links'
     linksDom = $('<div />')
+    linksDom.addClass  linksDomClass
     linkEditDom = @commonMethods["basicObjView"](this)
     linkViewDom = @linksView @currentValue() 
     linkEditDom.addClass @editClass
@@ -635,10 +590,8 @@ class LinksContainer extends ObjectBase
     linksDom.append linkEditDom
     linksDom.append linkViewDom
 
-    #ToDo: Rushed this, refactor?
     editFn = (targetId) =>
-      console.log 'edit fn', targetId, $('#'+targetId)
-      targetDom = $('#'+targetId)
+      targetDom = $('.'+linksDomClass)
       targetDom.toggleClass @showEditClass
       targetDom.trigger(johaChangeTrigger) 
 
@@ -646,7 +599,11 @@ class LinksContainer extends ObjectBase
     editBtn = new EditButtonBase(editBtnArgs)
     linksDom.append editBtn.get()
 
-    toggleViewOrEditFn = =>
+    #This function is relying on a lot of 'this'
+    #magic. Is there a better way?
+    toggleViewOrEditFn = (event) =>
+      newLinks =  @linksView @currentValue()
+      linksDom.find('.'+@viewClass).replaceWith newLinks
       if linksDom.hasClass @showEditClass
         linksDom.find('.'+@viewClass).hide()
         linksDom.find('.'+@editClass).show()
@@ -655,44 +612,6 @@ class LinksContainer extends ObjectBase
         linksDom.find('.'+@editClass).hide()  
 
     linksDom.bind(johaChangeTrigger, toggleViewOrEditFn)
-
-  ###
-  view: ->
-    #if class is 'joha-link-edit-active' the edit view is shown
-    #else the normal view is shown
-    
-    linkViewClass = 'link-view'
-    #linkEditClass = 'link-edit'
-    dom = $('<div />')
-    dom.attr("id", @domId)
-    dom.addClass @linksClassName
-
-    #domLinkView = $('<div />')
-    #domLinkView.addClass linkViewClass
-    #@linkViewAppend(domLinkView, @links)
-    linksViewDom = @linksView(@links)
-    linksEditDom = @linksEdit(@links)
-    if dom.hasClass 'joha-link-edit-active'
-      linksViewDom.hide()
-      linksEditDom.show()
-    else
-      linksViewDom.show()
-      linksEditDom.hide()
-
-    dom.append linksViewDom
-    dom.append linksEditDom
-     
-    #ToDo: Rushed this, refactor anything? 
-    editFn = (targetId) =>
-      console.log 'edit fn', targetId, $('#'+targetId)
-      targetDom = $('#'+targetId)
-      targetDom.toggleClass @showEditClass
-      targetDom.trigger(johaChangeTrigger) 
-
-    editBtnArgs = {targetId: @domId , editFn: editFn}
-    editBtn = new EditButtonBase(editBtnArgs)
-    linksDom.append editBtn.get()
-  ###
 
   linkViewDom: (url, label) ->
     attrs = "href='" + url + "'"
@@ -704,13 +623,11 @@ class LinksContainer extends ObjectBase
   linksView:  (links) ->
     linksViewOuterHtml = wrapHtml('div')
     linksViewOuterDom = $(linksViewOuterHtml)
-    #linksViewOuterDom.addClass 'link-view'
+    linksViewOuterDom.addClass @viewClass
     for own url, label of links
       linkViewDom = @linkViewDom(url, label)
       linksViewOuterDom.append linkViewDom
       null
-    #objCont = new ObjectValueContainer(links)
-    #linksViewOuterDom.append objCont.view()
     linksViewOuterDom
 
   linkEditDom: (url, label) ->
@@ -721,18 +638,16 @@ class LinksContainer extends ObjectBase
     labelCont = new BasicValueContainer(label)
     _kv = {}
     _kv[url] = label
-    #objCont = new ObjectValueContainer(_kv)
     objDom = $(objHtml)
-    urlDom = urlCont.view() #(urlHtml)
-    labelDom = labelCont.view() # $(labelHtml)
+    urlDom = urlCont.view() 
+    labelDom = labelCont.view() 
     objDom.append urlDom
     objDom.append labelDom
-    #objDom.append objCont.view()
     
 
   linksEdit: (links) ->
     linksEditDom  = $('<div />')
-    linksEditDom.addClass 'link-edit'
+    #linksEditDom.addClass 'link-edit'
     for own url, label of links
       linkEditDom = @linkEditDom(url, label)
       linksEditDom.append linkEditDom
@@ -744,8 +659,6 @@ class LinksContainer extends ObjectBase
     undefined
 
   currentValue: => 
-    #calcVal = @_curVal()
-    #calcVal || @objValue
     _curVal = {}
     cv = for kvChild in @kvChildren
       extend _curVal, kvChild.currentValue()
