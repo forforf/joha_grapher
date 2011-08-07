@@ -320,6 +320,7 @@ class ArrayValueContainer extends ContainerBase
   constructor: (@value) ->
     @containerType = 'array-vc'
     @itemClass = 'joha-array-item'
+    @newFormClass = 'joha-array-add'
     #we know @value is an array
     @children = for val in @value
       valueContainerFactory(val)
@@ -356,9 +357,22 @@ class ArrayValueContainer extends ContainerBase
       null
     #av = @appendDelBtn av
     av.append @delBtn
-    
+
     addNew = new ArrayDataEntryForm(this, addNewItem)
-    av.append addNew.get()
+    addNewForm = addNew.get()
+    formId = @domId + '-addform'
+    addNewForm.addClass @newFormClass
+    addNewForm.attr('id', formId)
+    addNewForm.hide()
+
+    editFn = (targetId) =>
+      formDom = $('#'+formId)
+      formDom.toggle()
+    
+    editBtnArgs = {targetId: @domId , editFn: editFn}
+    editBtn = new EditButtonBase(editBtnArgs)
+    av.append editBtn.get()
+    av.append addNewForm
     av
 
   currentValue: =>
@@ -451,6 +465,7 @@ class ObjectValueContainer extends ObjectBase
   constructor: (@objValue) ->
     @containerType = 'object-vc'
     @itemClass = 'joha-object-item'
+    @newFormClass = 'joha-object-add'
     @objLabel = 'Object'
     #we know @objValue is an object
     @kvChildren = for own key, val of @objValue
@@ -482,7 +497,21 @@ class ObjectValueContainer extends ObjectBase
     obj.append @delBtn
 
     addNew = new ObjectDataEntryForm(this, addNewItem)
-    obj.append addNew.get()
+    addNewForm = addNew.get()
+    formId = @domId + 'addfrom'
+    addNewForm.addClass @newFormClass
+    addNewForm.attr('id', formId)
+    addNewForm.hide()
+
+    editFn = (targetId) =>
+      formDom = $('#'+formId)
+      formDom.toggle()
+
+    editBtnArgs = {targetId: @domId , editFn: editFn}
+    editBtn = new EditButtonBase(editBtnArgs)
+
+    obj.append editBtn.get()
+    obj.append addNewForm
     obj
 
   currentValue: =>
@@ -629,7 +658,7 @@ class LinksContainer extends ObjectBase
     linkDom
 
   linksView:  (links) ->
-    linksViewOuterHtml = wrapHtml('div')
+    linksViewOuterHtml = wrapHtml('div','Links')
     linksViewOuterDom = $(linksViewOuterHtml)
     linksViewOuterDom.addClass @viewClass
     for own url, label of links
