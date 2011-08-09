@@ -1,0 +1,57 @@
+/* Fix jquery ui icons so they can display inline */
+/* Making it highly specific so it overides other selectors */
+#joha-edit-node-data .ui-icon { 
+  display: inline-block;
+  padding: 0;
+}
+
+/* Top Level Fields Styling */
+.joha-field {
+  border-color: red;
+  border-style: solid;
+  border-width: 1px;
+  padding-left: 0.25em;
+}
+
+.joha-field  .joha-label:after {
+  content:":";
+}
+
+/* basic value container styling */
+.basic-vc {
+  display: inline;
+/*  font-size: 90%; */
+}
+
+.basic-vc span {
+  padding-left: 0.5em;
+}
+
+
+
+    
+/* Complex JSON Object Styling */
+/* Styling must scale to arbitrary complexity */
+
+
+
+/* User Editing Styles */
+/* Order of update/create/delete is importnat */
+.joha-update {
+  color: blue;
+  /* background-color: #aaaadd; */
+  font-weight: 700;
+}
+
+/*remove .edit_new at some point */
+.joha-create {
+  color: green;
+  /* background-color: #aaddaa; */
+  font-weight: 700;
+}
+
+.joha-delete {
+  color: red;
+  text-decoration: line-through;
+}
+

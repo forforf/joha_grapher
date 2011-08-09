@@ -245,7 +245,6 @@ class BasicValueContainerNoDel extends ValueContainerBase
       @commonMethods["editChange"](edit, div, @recalcTrigger)
     #ToDo: Move recalc Function to common methods?
     recalcFn = (event) =>
-      alert 'recalculating'
       @updateContAfterEdit( event.target.id )
     @commonMethods["onTrigger"](@recalcTrigger, div, recalcFn)
     return div
@@ -287,10 +286,11 @@ class BasicValueContainer extends ValueContainerBase
                                          @valId, @containerType)
     div = elDoms["div"]
     valDom = elDoms["val"]
+    div.append @delBtn
     #edit field for value
     edit = @commonMethods["editView"](@curValue, @editValId)
     div.append edit
-    div.append @delBtn
+    
 
     #controls
     @commonMethods["editControl"](valDom, edit, 'clickable-label')
@@ -299,7 +299,6 @@ class BasicValueContainer extends ValueContainerBase
 
     #let external entities trigger updates
     recalcFn = (event) =>
-      alert 'recalculating ...'
       @updateContAfterEdit( event.target.id )
      
     @commonMethods["onTrigger"](@recalcTrigger, div, recalcFn)

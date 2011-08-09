@@ -22,16 +22,21 @@ class NodeField
   constructor: () ->
     idBinder = IdBinder.get()
     @fieldDomId = idBinder.assignId(this)
+    @fieldClass = 'joha-field'
+    @fieldNameClass = 'field-name'
 
 class NodeJsonField extends NodeField
   constructor: (@fieldName, @fieldValue) ->
     super()
-    @className = 'json-field'
+    @jsonClass = 'field-json'
+    @labelClass = 'joha-label'
     @jsonContainer = new RootValueContainer @fieldValue
     @origValue = @jsonContainer.origValue
     labelHtml = '<span>' + @fieldName + '</span>'
     @labelName = $(labelHtml)
-    @labelName.addClass @className + '-label'
+    #@labelName.addClass @className + '-label'
+    @labelName.addClass @jsonClass
+    @labelName.addClass @labelClass
 
   currentValue: =>
     @jsonContainer.currentValue()
@@ -41,6 +46,8 @@ class NodeJsonField extends NodeField
     label = @labelName
     cont = $('<div />')
     cont.attr("id", @fieldDomId)
+    cont.addClass @fieldClass
+    cont.addClass @jsonClass
     val = @jsonContainer.view()
     cont.append label
     cont.append val
@@ -48,7 +55,8 @@ class NodeJsonField extends NodeField
 
 class NodeIdField extends NodeField
   constructor: (@fieldName, @fieldValue) ->
-    @className = 'id-field'
+    super()
+    @idClass = 'field-id'
     #The value of the id must be a string
     @idFieldValue = String(@fieldValue)
     @origValue = @idFieldValue
@@ -61,11 +69,15 @@ class NodeIdField extends NodeField
     nameHtml = '<span>' + @fieldName + '</span>'
     valueHtml = '<span>' + @idFieldValue + '</span>'
     html = '<div>'+ nameHtml + valueHtml + '</div>'
-    $(html).addClass @className
+    idCont = $(html)
+    idCont.addClass @fieldClass
+    idCont.addClass @idClass
+    
 
 class NodeLabelField extends NodeField
   constructor: (@fieldName, @fieldValue) ->
-    @className = 'label-field'
+    super()
+    @labelClass = 'field-label'
     #The value of the label must be a string
     @labelFieldValue = String(@fieldValue)
     @origValue = @labelFieldValue
@@ -81,13 +93,16 @@ class NodeLabelField extends NodeField
     label = @labelName 
     cont = $('<div />')
     val = @labelContainer.view()
+    cont.addClass @fieldClass
+    cont.addClass @labelClass
     cont.append label
     cont.append val
     cont 
  
 class NodeFilesField extends NodeField
   constructor: (@fieldName, @fieldValue) ->
-    @className = 'files-field'
+    super()
+    @filesClass = 'field-files'
     #files are an array of file names (without path info)
     #at least for now.
     #ToDo: Robust type checking invalid @fieldValue as
@@ -98,17 +113,19 @@ class NodeFilesField extends NodeField
     @origValue = @fieldValue
 
   currentValue: =>
+    #addClass @fieldClass
+    #addClass @filesClass
     @filesContainer.currentValue()
 
-    
   view: ->
-    #To
+    #ToDo
     @filesContainer.view()
 
 #ToDo: Node label is set lower down, move it up here?
 class NodeLinksField extends NodeField
   constructor: (@fieldName, @fieldValue) ->
-    @className = 'links-field'
+    super()
+    @linksClass = 'field-links'
     #links are an object of url keys with text values
     #ToDo: Robust type checking invalid @fieldValue as
     #well as invalid array items
@@ -122,9 +139,9 @@ class NodeLinksField extends NodeField
     
   view: =>
     #ToDo: Add Link wrapper
-    @linksContainer.view()
-
-
+    linksDom = @linksContainer.view()
+    linksDom.addClass @fieldClass
+    linksDom.addClass @linksClass
 
 nodeFieldFactory = (fieldName, fieldValue) ->
   nodeField = switch fieldName

@@ -119,7 +119,7 @@ class JohaNodeEditor
         delFn: @delFn
       delBtnObj = new DeleteButtonBase(delBtnArgs)
       delBtnDom = delBtnObj.get()
-      fieldDom.append delBtnDom
+      fieldDom.prepend delBtnDom
       nodeDom.append fieldDom
       null
     #reserved for new entries
