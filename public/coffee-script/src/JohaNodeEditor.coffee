@@ -5,13 +5,17 @@ $ = $ || window.$ || window.$j
 #coffeescript ibraries are found in stitch/coffeescripts
 IdBinder = require('IdTrackerSingleton').IdBinder
 IdTracker = IdBinder #TODO: Pick a name and stick with it
-nodeFieldFactory = require('JohaNodeFields').nodeFieldFactory
+johaNFs = require 'JohaNodeFields'
+nodeFieldFactory = johaNFs.nodeFieldFactory
+johaEditClass = johaNFs.johaEditClass
+johaChangeTrigger = johaNFs.johaChangeTrigger
 extend = require('extend').extend
 forfLib = require('forf')
 arrayRemoveSet = forfLib.arrayRemoveSet
 arrayRemoveItem = forfLib.arrayRemoveItem
 arrayContains = forfLib.arrayContains
 getKeys = forfLib.getKeys
+DeleteButtonBase = require('johaComponents').DeleteButtonBase
 
 #jQueryContext = require('onDomReady').$jjq
 
@@ -25,9 +29,13 @@ class JohaNodeEditor
     @label = 'label'
     @links = 'links'
     @files = 'attached_files'
-    
+    @mainNodeId = 'joha-edit-node-data'
+    @newFieldsId = 'joha-new-fields'
     #ToDo: Accept custom fields for id and label, etc
-    options = extend( {}, options)
+    defaultOptions =
+      availableFields:  ["test", "foo", "bar"]
+
+    options = extend( defaultOptions, options)
 
     requiredUserFields = options['requiredFields'] || []
     #determine required fields (note id and label are removed if 
@@ -38,17 +46,46 @@ class JohaNodeEditor
     for field in @requiredFields
       @nodeData[field] = null
       null
-
     @availFields =  options['availableFields'] || []
-    
     @nodeData.id = @makeGUID() if not @nodeData[@id]
     @nodeData.label = "node:" + @nodeData[@id] if not @nodeData[@label]
     @nodeFields = @buildNodeFields()
     @nodeFields
 
   buildFieldDropDown: =>
-    $('<div>Dropdown Goes Here</div>')
+    selectId = 'add-new-field-select'
+    mainForm = $('<form />')
+    mainForm.text('Add New Field')
+    select = $('<select />')
+    select.attr('id', selectId)
+    select.attr('name', 'addField')
+    for availField in @availFields
+      selectOption = $('<option />')
+      selectOption.text(availField)
+      select.append selectOption
+    mainForm.append select
+    
+    select.change =>
+      newFieldName = select.val()
+      newFieldsDom = $('#'+@newFieldsId)
+      @nodeFields[newFieldName] = nodeFieldFactory(newFieldName, null)
+      newFieldDom = @nodeFields[newFieldName].view()
+      newFieldDom.addClass johaEditClass["create"]
+      delBtnArgs =
+        targetId: newFieldDom.attr('id')
+        delFn: @delFn
+      delBtnObj = new DeleteButtonBase(delBtnArgs)
+      delBtnDom = delBtnObj.get()
+      newFieldDom.append delBtnDom
+      newFieldsDom.append newFieldDom
+      
+  #delete Function for delete Button
+  delFn: (targetId) =>
+    targetDom = $('#'+targetId)
+    targetDom.toggleClass johaEditClass["delete"]
+    targetDom.trigger johaChangeTrigger
 
+      
   buildDom: =>
     #idTracker is a singleton that gives us the
     #next sequential id.
@@ -56,6 +93,7 @@ class JohaNodeEditor
     johaFields = @nodeFields
     #assign Root Dom Id (see function)
     nodeDom = $('<div />')
+    nodeDom.attr('id', @mainNodeId)
     fieldNames = getKeys @nodeData
     idDom = johaFields[@id].view()
     labelDom = johaFields[@label].view()
@@ -72,10 +110,23 @@ class JohaNodeEditor
       nodeDom.append johaFields[reqField].view()
       arrayRemoveItem(remainingFieldNames, reqField)
       null
+
     #remaining fields
     for remField in remainingFieldNames
-      nodeDom.append johaFields[remField].view()
+      fieldDom = johaFields[remField].view()
+      delBtnArgs =
+        targetId: fieldDom.attr("id")
+        delFn: @delFn
+      delBtnObj = new DeleteButtonBase(delBtnArgs)
+      delBtnDom = delBtnObj.get()
+      fieldDom.append delBtnDom
+      nodeDom.append fieldDom
       null
+    #reserved for new entries
+    newFieldDom = $('<div />')
+    newFieldDom.text('New Fields')
+    newFieldDom.attr('id', @newFieldsId)
+    nodeDom.append newFieldDom
     #links and files
     nodeDom.append linksDom
     nodeDom.append filesDom
@@ -114,13 +165,15 @@ class JohaNodeEditor
   currentValue: =>
     curThis = this
     curVal = {}
-    console.log 'before @nodeFields'
     fields = @nodeFields
-    console.log 'JNE cv1', @, this, curThis
     for own fieldName, fieldObj of fields
-      curVal[fieldName] = fieldObj.currentValue()
+      objDomId = fieldObj.fieldDomId if fieldObj.fieldDomId || ""
+      objDom = $('#'+objDomId)
+      if objDom.hasClass johaEditClass["delete"]
+        null #curVal[fieldName] = null
+      else
+        curVal[fieldName] = fieldObj.currentValue()
       null
-    console.log 'JNE cV2', this, curThis, curVal
     curVal
 
   deleteNodeData: ->

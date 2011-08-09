@@ -8,24 +8,43 @@ RootValueContainer = dynJc.RootValueContainer
 BasicValueContainerNoDel = dynJc.BasicValueContainerNoDel
 FilesContainer =     dynJc.FilesContainer
 LinksContainer =     dynJc.LinksContainer
+johaEditClass  =     dynJc.johaEditClass
+johaChangeTrigger =  dynJc.johaChangeTrigger
+IdBinder = require('IdTrackerSingleton').IdBinder
+
+#pass through
+root.johaEditClass = johaEditClass
+root.johaChangeTrigger = johaChangeTrigger
+
 getType = require('forf').getType
 
 class NodeField
-  ni = 'Not Implemented'
-  constructor: (@fieldName, @fieldValue) ->
+  constructor: () ->
+    idBinder = IdBinder.get()
+    @fieldDomId = idBinder.assignId(this)
 
 class NodeJsonField extends NodeField
   constructor: (@fieldName, @fieldValue) ->
+    super()
     @className = 'json-field'
     @jsonContainer = new RootValueContainer @fieldValue
     @origValue = @jsonContainer.origValue
+    labelHtml = '<span>' + @fieldName + '</span>'
+    @labelName = $(labelHtml)
+    @labelName.addClass @className + '-label'
 
   currentValue: =>
     @jsonContainer.currentValue()
 
   view: ->
     #ToDo: Requires the label wrapper around it (including className)
-    @jsonContainer.view()
+    label = @labelName
+    cont = $('<div />')
+    cont.attr("id", @fieldDomId)
+    val = @jsonContainer.view()
+    cont.append label
+    cont.append val
+    cont
 
 class NodeIdField extends NodeField
   constructor: (@fieldName, @fieldValue) ->
@@ -51,15 +70,21 @@ class NodeLabelField extends NodeField
     @labelFieldValue = String(@fieldValue)
     @origValue = @labelFieldValue
     #Since value is a string, container will be string container
+    @labelName = $('<span>' + @fieldName + '</span>')
+    @labelName.addClass @className +  '-label'
     @labelContainer = new BasicValueContainerNoDel @fieldValue
   
   currentValue: => 
     @labelContainer.currentValue()
 
   view: ->
-    #label wrapper
-    @labelContainer.view()
-
+    label = @labelName 
+    cont = $('<div />')
+    val = @labelContainer.view()
+    cont.append label
+    cont.append val
+    cont 
+ 
 class NodeFilesField extends NodeField
   constructor: (@fieldName, @fieldValue) ->
     @className = 'files-field'
@@ -77,9 +102,10 @@ class NodeFilesField extends NodeField
 
     
   view: ->
-    #ToDo: Add File wrapper
+    #To
     @filesContainer.view()
 
+#ToDo: Node label is set lower down, move it up here?
 class NodeLinksField extends NodeField
   constructor: (@fieldName, @fieldValue) ->
     @className = 'links-field'
@@ -101,11 +127,12 @@ class NodeLinksField extends NodeField
 
 
 nodeFieldFactory = (fieldName, fieldValue) ->
-  switch fieldName
+  nodeField = switch fieldName
     when 'id' then new NodeIdField(fieldName, fieldValue)
     when 'label' then new NodeLabelField(fieldName, fieldValue)
     when 'attached_files' then new NodeFilesField(fieldName, fieldValue)
     when 'links' then new NodeLinksField(fieldName, fieldValue)
     else new NodeJsonField(fieldName, fieldValue)
- 
+  nodeField
+    
 root.nodeFieldFactory = nodeFieldFactory

@@ -126,17 +126,6 @@ class ValueContainerBase extends ContainerBase
     #@curVal doesn't change until edits are 'saved'
     #@recalcTrigger = root.johaChangeTrigger
     valContBaseMethods =
-      #setValId: (domId) ->
-      #  domId + '-val'
-
-      #setEditValId: (domId) ->
-      #  domId + '-edit'
-
-      #appendDelBtn: (contDom) =>
-      #  delBtn = @delBtn.get()
-      #  contDom.append delBtn
-      #  contDom
-
       updateEditBoxVal: (contDom) ->
         domId = contDom.attr("id")
         valId = domId + '-val'
@@ -150,13 +139,13 @@ class ValueContainerBase extends ContainerBase
       updateContAfterEdit: (domId) =>
         contDom = $('#'+domId)
         @curValue = @updateEditBoxVal(contDom)
-  
+	
+	
         #parses as a JSON string, but returns
         #original object if its not a valid JSON string
         #ToDo: What if we don't want to evaluate JSON?
         jsonVal = softParseJSON @curValue
         #Side Effect that updates the container's edit class
-        #updateClass = root.johaEditClass["update"]
         if jsonVal is @origValue
           contDom.removeClass @updateClass
         else
@@ -165,7 +154,7 @@ class ValueContainerBase extends ContainerBase
 
       basicView: (curValue, domId, valId, contClass) ->
         inTag = 'span'
-        inVal = curValue
+        inVal = curValue || "--empty--" 
         inHtml = wrapHtml(inTag, inVal)
         #Outer Div Wrapper
         outerTag = 'div'
@@ -201,7 +190,7 @@ class ValueContainerBase extends ContainerBase
       editChange: (editDom, domListener, triggerName) ->
         domListener.trigger(triggerName)
         editDom.hide()
-
+    
     @commonMethods = extend(@commonMethods, valContBaseMethods)
     
   jsonType: ->
@@ -256,6 +245,7 @@ class BasicValueContainerNoDel extends ValueContainerBase
       @commonMethods["editChange"](edit, div, @recalcTrigger)
     #ToDo: Move recalc Function to common methods?
     recalcFn = (event) =>
+      alert 'recalculating'
       @updateContAfterEdit( event.target.id )
     @commonMethods["onTrigger"](@recalcTrigger, div, recalcFn)
     return div
@@ -309,7 +299,7 @@ class BasicValueContainer extends ValueContainerBase
 
     #let external entities trigger updates
     recalcFn = (event) =>
-      console.log "Recalc", event.target.id, event
+      alert 'recalculating ...'
       @updateContAfterEdit( event.target.id )
      
     @commonMethods["onTrigger"](@recalcTrigger, div, recalcFn)
