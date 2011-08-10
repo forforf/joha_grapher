@@ -3,13 +3,15 @@ $ = $ || window.$ || window.$j
 
 #Libraries
 #coffeescript ibraries are found in stitch/coffeescripts
-dynJc = require('dynJsonContainers')
+dynJc = require 'dynJsonContainers'
 RootValueContainer = dynJc.RootValueContainer
 BasicValueContainerNoDel = dynJc.BasicValueContainerNoDel
 FilesContainer =     dynJc.FilesContainer
 LinksContainer =     dynJc.LinksContainer
 johaEditClass  =     dynJc.johaEditClass
 johaChangeTrigger =  dynJc.johaChangeTrigger
+johaComp = require 'johaComponents'
+wrapHtml = johaComp.wrapHtml
 IdBinder = require('IdTrackerSingleton').IdBinder
 
 #pass through

@@ -334,7 +334,7 @@ class ArrayValueContainer extends ContainerBase
 
   view: =>
     tag = 'div'
-    val = 'Arrays'
+    val = '' #value label
     avHtml = wrapHtml(tag, val)
     av = $(avHtml)
     av.attr("id", @domId)
@@ -380,17 +380,21 @@ class KeyValueBase extends ContainerBase
         domId = kvCont.domId
         contType = kvCont.containerType
         kvLabel = kvCont.kvLabel 
-        kLabel = kvCont.kLabel 
+        kLabel = kvCont.kLabel
+        kClass = kvCont.kClass
         vLabel = kvCont.vLabel
+        vClass = kvCont.vClass
         kvTag = 'div'
         kvHtml = wrapHtml( kvTag, kvLabel)
         kv = $(kvHtml)
         kTag = 'div'
         kHtml = wrapHtml( kTag, kLabel )
         k = $(kHtml)
+        k.addClass kClass
         vTag = 'div'
         vHtml = wrapHtml(vTag, vLabel)
         v = $(vHtml)
+        v.addClass vClass
         kv.attr("id", domId)
         kv.addClass(contType)
         kv.append k
@@ -415,9 +419,11 @@ class KeyValue extends KeyValueBase
     #keyContainer should always be basic type (string)
     @keyContainer = valueContainerFactory(@key)
     @valContainer = valueContainerFactory(@val)
-    @kvLabel = "Key-Value"
-    @kLabel = "Key"
-    @vLabel = "Value"
+    @kvLabel = "" #Label for key-value wrapper
+    @kLabel = ""
+    @kClass = "keyvaluekey-vc"
+    @vLabel = ""
+    @vClass = "keyvaluevalue-vc"
     @delBtn = @commonMethods["makeDelBtn"](@domId,
                                            @recalcTrigger,@deleteClass)
 
@@ -455,7 +461,7 @@ class ObjectValueContainer extends ObjectBase
     @containerType = 'object-vc'
     @itemClass = 'joha-object-item'
     @newFormClass = 'joha-object-add'
-    @objLabel = 'Object'
+    @objLabel = '' #label for object container
     #we know @objValue is an object
     @kvChildren = for own key, val of @objValue
       new KeyValue(key, val)
@@ -525,7 +531,8 @@ class RootValueContainer
     @origValue = @valueContainer.origValue
 
   view: ->
-    @valueContainer.view()
+    valCont = @valueContainer.view()
+    valCont.addClass 'value-container'
 
   currentValue: =>
     @valueContainer.currentValue()

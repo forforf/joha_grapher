@@ -1,0 +1,150 @@
+/* Fix jquery ui icons so they can display inline */
+/* Making it highly specific so it overides other selectors */
+
+/* SASS Constants */
+$SEPIA1: #F3EDED;
+  
+$joha_field_el_padding: 0.1em 0.1em 0.1em 0.1em;
+
+/* SASS Hack in order to assign named colors to the base color */
+#background-color-base {
+  background-color: $SEPIA1;
+}
+
+#sass-tester {
+}
+
+#joha-edit-node-data .ui-icon { 
+  display: inline-block;
+  padding: 0;
+  position: relative;
+    top: -0.2em;
+}
+
+/* Top Level Fields Styling */
+.joha-field {
+  border-color: blue;
+  border-style: solid;
+  border-width: 1px;
+  padding-left: 0.25em;
+}
+
+/* dummy - only used for SASS inheritance */ 
+#johafieldpositioning { 
+  position: relative;
+    left: -0.1em;
+}
+
+#johainlineblocks {
+  display: inline-block;
+  vertical-align: top;
+}
+
+.joha-field  {
+
+  .joha-label{
+    border-color: blue;
+    border-style: solid;
+    border-width: 1px;
+    @extend #background-color-base;
+    /* background-color: $val_cont_base_color; */
+    border-top-left-radius: 0.3em;
+    border-top-right-radius: 0.3em;
+    padding: $joha_field_el_padding;
+    position: relative;
+      left: -0.1em;
+  }
+
+ .value-container {
+    /* background-color: $val_cont_base_color; */
+    @extend #background-color-base;
+    padding: $joha_field_el_padding;
+    @extend #johafieldpositioning;
+  }
+}
+
+/* basic value container styling */
+.basic-vc {
+/*  display: inline-block; */
+/*  font-size: 90%; */
+}
+
+.basic-vc span {
+  padding-left: 0.5em;
+}
+
+/* Complex JSON Object Styling */
+/* Styling must scale to arbitrary complexity */
+/* Array Styling */
+.array-vc {
+}
+.array-vc:before {
+  content: "[";
+}
+.array-vc:after {
+  content: "]";
+}
+
+.joha-array-item {
+  @extend #johainlineblocks;
+}
+.joha-array-item:after {
+  content: ",";
+}
+
+/* Object Styling */
+.object-vc {
+}
+/* Wraps curly braces around Object */
+.object-vc:before {
+  content: "{";
+}
+.object-vc:after {
+  content: "}";
+}
+
+.keyvalue-vc {
+  .keyvaluekey-vc {
+    @extend #johainlineblocks;
+  }
+  
+  .keyvaluevalue-vc {
+    @extend #johainlineblocks;
+  }
+  
+  .basic-vc {
+    @extend #johainlineblocks;
+  }
+}  
+/* Adds Comma after Key-Value */
+/* Not sure how to remove the trailing comma yet */
+.keyvalue-vc:after {
+  content: ",";
+}
+
+/* Adds : after object key */
+.keyvaluekey-vc:after {
+  content: ":";
+}
+
+
+/* User Editing Styles */
+/* Order of update/create/delete is importnat */
+.joha-update {
+  color: blue;
+  /* background-color: #aaaadd; */
+  font-weight: 700;
+}
+
+/*remove .edit_new at some point */
+.joha-create {
+  color: green;
+  /* background-color: #aaddaa; */
+  font-weight: 700;
+}
+
+.joha-delete {
+  color: red;
+  text-decoration: line-through;
+}
+
