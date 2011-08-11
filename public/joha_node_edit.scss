@@ -1,14 +1,70 @@
-/* Fix jquery ui icons so they can display inline */
-/* Making it highly specific so it overides other selectors */
+/* General Styling */
+input {
+  width: 4em;
+}
 
 /* SASS Constants */
-$SEPIA1: #F3EDED;
+$C0: #F3EDED;
+$CAnalog1:  #FAE8E1;
+$CAnalog2: #DCC9C6;
+$CAnalog3: #DCC6D1;
+$CAnalog4: #FAE1FA;
+$CComplement1: #A69292;
+$CComplement2: #FFFFFF;
+$CComplement3: #81A68C;
+$CComplement4: #EDF3EF;
   
 $joha_field_el_padding: 0.1em 0.1em 0.1em 0.1em;
+$joha_el_margin: 0.2em 0.2em 0.2em 0.2em;
 
-/* SASS Hack in order to assign named colors to the base color */
-#background-color-base {
-  background-color: $SEPIA1;
+/* SASS Mixins */
+@mixin bg-color-base {
+  background-color: $C0;
+}
+
+@mixin bg-offset1 {
+  background-color: $CAnalog1;
+}
+
+@mixin bg-offset2 {
+  background-color: $CAnalog2;
+}
+
+@mixin array-color {
+  background-color: $CComplement2;
+}
+
+@mixin item-color {
+  background-color: $CComplement4;
+  border-color: $CComplement3;
+  border-style: solid;
+  border-width: 1px;
+}
+
+@mixin object-color {
+  background-color: $CAnalog3;
+}
+
+@mixin keyvalue-color {
+  background-color: $C0;
+}
+
+@mixin joha-inline-block {
+  display: inline-block;
+  vertical-align: top;
+}
+
+@mixin joha-field-positioning { 
+  position: relative;
+    left: -0.1em;
+}
+
+@mixin joha-propagation {
+  text-decoration: inherit;
+}
+
+@mixin joha-margin {
+  margin: $joha_el_margin;
 }
 
 #sass-tester {
@@ -23,53 +79,44 @@ $joha_field_el_padding: 0.1em 0.1em 0.1em 0.1em;
 
 /* Top Level Fields Styling */
 .joha-field {
-  border-color: blue;
+  border-color: $C0;
   border-style: solid;
   border-width: 1px;
+  margin-top: 0.5em;
   padding-left: 0.25em;
-}
-
-/* dummy - only used for SASS inheritance */ 
-#johafieldpositioning { 
-  position: relative;
-    left: -0.1em;
-}
-
-#johainlineblocks {
-  display: inline-block;
-  vertical-align: top;
-}
-
-.joha-field  {
 
   .joha-label{
-    border-color: blue;
+    @incluce joha-field-positioning;
+    border-color: $C0;
     border-style: solid;
     border-width: 1px;
-    @extend #background-color-base;
+    @include bg-color-base;
     /* background-color: $val_cont_base_color; */
     border-top-left-radius: 0.3em;
     border-top-right-radius: 0.3em;
     padding: $joha_field_el_padding;
-    position: relative;
-      left: -0.1em;
   }
 
  .value-container {
-    /* background-color: $val_cont_base_color; */
-    @extend #background-color-base;
+    @include bg-color-base;
+    @include joha-field-positioning;
+    @include joha-propagation;
     padding: $joha_field_el_padding;
-    @extend #johafieldpositioning;
   }
 }
 
 /* basic value container styling */
-.basic-vc {
+.joha-field .basic-vc {
+  @include item-color;
+  @include joha-inline-block;
+  @include joha-margin;
+  @include joha-propagation;
 /*  display: inline-block; */
 /*  font-size: 90%; */
 }
 
 .basic-vc span {
+  @include joha-propagation;
   padding-left: 0.5em;
 }
 
@@ -77,50 +124,66 @@ $joha_field_el_padding: 0.1em 0.1em 0.1em 0.1em;
 /* Styling must scale to arbitrary complexity */
 /* Array Styling */
 .array-vc {
+  @include joha-inline-block;
+  @include joha-propagation;
+  @include array-color;
 }
-.array-vc:before {
+/*.array-vc:before {
   content: "[";
 }
 .array-vc:after {
   content: "]";
 }
+*/
 
 .joha-array-item {
-  @extend #johainlineblocks;
+  margin: 0.1em;
+  @include joha-inline-block;
+  @include joha-propagation;
 }
+/*
 .joha-array-item:after {
   content: ",";
 }
-
+*/
 /* Object Styling */
 .object-vc {
+  @include joha-inline-block;
+  @include joha-propagation;
+  @include object-color;
 }
 /* Wraps curly braces around Object */
-.object-vc:before {
+/*.object-vc:before {
   content: "{";
 }
 .object-vc:after {
   content: "}";
 }
-
+*/
 .keyvalue-vc {
+  @include joha-propagation;
+  @include object-color;
+
   .keyvaluekey-vc {
-    @extend #johainlineblocks;
+    @include joha-propagation;
+    @include joha-inline-block;
   }
   
   .keyvaluevalue-vc {
-    @extend #johainlineblocks;
+    @include joha-propagation;
+    @include joha-inline-block;
   }
   
   .basic-vc {
-    @extend #johainlineblocks;
+    @include joha-propagation;
+    @include joha-inline-block;
   }
 }  
 /* Adds Comma after Key-Value */
 /* Not sure how to remove the trailing comma yet */
-.keyvalue-vc:after {
+/*.keyvalue-vc:after {
   content: ",";
-}
+}*/
 
 /* Adds : after object key */
 .keyvaluekey-vc:after {
@@ -129,7 +192,6 @@ $joha_field_el_padding: 0.1em 0.1em 0.1em 0.1em;
 
 
 /* User Editing Styles */
-/* Order of update/create/delete is importnat */
 .joha-update {
   color: blue;
   /* background-color: #aaaadd; */

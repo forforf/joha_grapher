@@ -1,10 +1,9 @@
-/* Fix jquery ui icons so they can display inline */
-/* Making it highly specific so it overides other selectors */
-/* SASS Constants */
-/* SASS Hack in order to assign named colors to the base color */
-#background-color-base, .joha-field .joha-label, .joha-field .value-container {
-  background-color: #f3eded; }
+/* General Styling */
+input {
+  width: 4em; }
 
+/* SASS Constants */
+/* SASS Mixins */
 #joha-edit-node-data .ui-icon {
   display: inline-block;
   padding: 0;
@@ -13,73 +12,113 @@
 
 /* Top Level Fields Styling */
 .joha-field {
-  border-color: blue;
+  border-color: #f3eded;
   border-style: solid;
   border-width: 1px;
+  margin-top: 0.5em;
   padding-left: 0.25em; }
-
-/* dummy - only used for SASS inheritance */
-#johafieldpositioning, .joha-field .value-container {
-  position: relative;
-  left: -0.1em; }
-
-#johainlineblocks, .joha-array-item, .keyvalue-vc .keyvaluekey-vc, .keyvalue-vc .keyvaluevalue-vc, .keyvalue-vc .basic-vc {
-  display: inline-block;
-  vertical-align: top; }
-
-.joha-field .joha-label {
-  border-color: blue;
-  border-style: solid;
-  border-width: 1px;
-  /* background-color: $val_cont_base_color; */
-  border-top-left-radius: 0.3em;
-  border-top-right-radius: 0.3em;
-  padding: 0.1em 0.1em 0.1em 0.1em;
-  position: relative;
-  left: -0.1em; }
-.joha-field .value-container {
-  /* background-color: $val_cont_base_color; */
-  padding: 0.1em 0.1em 0.1em 0.1em; }
+  .joha-field .joha-label {
+@incluce joha-field-positioning;
+    border-color: #f3eded;
+    border-style: solid;
+    border-width: 1px;
+    background-color: #f3eded;
+    /* background-color: $val_cont_base_color; */
+    border-top-left-radius: 0.3em;
+    border-top-right-radius: 0.3em;
+    padding: 0.1em 0.1em 0.1em 0.1em; }
+  .joha-field .value-container {
+    background-color: #f3eded;
+    position: relative;
+    left: -0.1em;
+    text-decoration: inherit;
+    padding: 0.1em 0.1em 0.1em 0.1em; }
 
 /* basic value container styling */
-.basic-vc {
+.joha-field .basic-vc {
+  background-color: #edf3ef;
+  border-color: #81a68c;
+  border-style: solid;
+  border-width: 1px;
+  display: inline-block;
+  vertical-align: top;
+  margin: 0.2em 0.2em 0.2em 0.2em;
+  text-decoration: inherit;
   /*  display: inline-block; */
   /*  font-size: 90%; */ }
 
 .basic-vc span {
+  text-decoration: inherit;
   padding-left: 0.5em; }
 
 /* Complex JSON Object Styling */
 /* Styling must scale to arbitrary complexity */
 /* Array Styling */
-.array-vc:before {
-  content: "["; }
+.array-vc {
+  display: inline-block;
+  vertical-align: top;
+  text-decoration: inherit;
+  background-color: white; }
 
+/*.array-vc:before {
+  content: "[";
+}
 .array-vc:after {
-  content: "]"; }
+  content: "]";
+}
+*/
+.joha-array-item {
+  margin: 0.1em;
+  display: inline-block;
+  vertical-align: top;
+  text-decoration: inherit; }
 
+/*
 .joha-array-item:after {
-  content: ","; }
-
+  content: ",";
+}
+*/
 /* Object Styling */
-/* Wraps curly braces around Object */
-.object-vc:before {
-  content: "{"; }
+.object-vc {
+  display: inline-block;
+  vertical-align: top;
+  text-decoration: inherit;
+  background-color: #dcc6d1; }
 
+/* Wraps curly braces around Object */
+/*.object-vc:before {
+  content: "{";
+}
 .object-vc:after {
-  content: "}"; }
+  content: "}";
+}
+*/
+.keyvalue-vc {
+  text-decoration: inherit;
+  background-color: #dcc6d1; }
+  .keyvalue-vc .keyvaluekey-vc {
+    text-decoration: inherit;
+    display: inline-block;
+    vertical-align: top; }
+  .keyvalue-vc .keyvaluevalue-vc {
+    text-decoration: inherit;
+    display: inline-block;
+    vertical-align: top; }
+  .keyvalue-vc .basic-vc {
+    text-decoration: inherit;
+    display: inline-block;
+    vertical-align: top; }
 
 /* Adds Comma after Key-Value */
 /* Not sure how to remove the trailing comma yet */
-.keyvalue-vc:after {
-  content: ","; }
-
+/*.keyvalue-vc:after {
+  content: ",";
+}*/
 /* Adds : after object key */
 .keyvaluekey-vc:after {
   content: ":"; }
 
 /* User Editing Styles */
-/* Order of update/create/delete is importnat */
 .joha-update {
   color: blue;
   /* background-color: #aaaadd; */
