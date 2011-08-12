@@ -119,7 +119,11 @@ class JohaNodeEditor
         delFn: @delFn
       delBtnObj = new DeleteButtonBase(delBtnArgs)
       delBtnDom = delBtnObj.get()
-      fieldDom.append delBtnDom
+      #put the delete button just after the label
+      #ToDo: See if placement can be uncoupled from lower layer html/class definitions
+      label = fieldDom.find('.joha-label')
+      label.append delBtnDom
+      #fieldDom.prepend delBtnDom
       nodeDom.append fieldDom
       null
     #reserved for new entries

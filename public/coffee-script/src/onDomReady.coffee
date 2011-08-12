@@ -26,7 +26,7 @@ $ ->
 	       label: 'short basic data test',
 	       a_string: 'abc',
 	       #a_number: 42,
-	       #a_simple_array: ['A', 'B', 'C'],
+	       a_simple_array: ['A', 'B', 'C'],
 	       a_simple_obj: { a: 'AA' }, #, b: 'BB', c: 'CC' },
 	       links: {
                      'http://www.google.com': 'google',
