@@ -181,6 +181,7 @@ class JohaNodeEditor
     curVal
 
   origValue: =>
+    fields = @nodeFields
     origVal = {}
     for own fieldName, fieldObj of fields
       origVal[fieldName] = fieldObj.origValue
