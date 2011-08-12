@@ -71,10 +71,21 @@ $joha_el_margin: 0.2em 0.2em 0.2em 0.2em;
 }
 
 #joha-edit-node-data .ui-icon { 
+  cursor: pointer;
   display: inline-block;
   padding: 0;
   position: relative;
     top: -0.2em;
+}
+
+.ui-icon:hover {
+  @include bg-offset1;
+}
+
+#joha-edit-node-data .selected {
+  border-color: $CComplement3;
+  border-style: solid;
+  border-width: 4px;
 }
 
 /* Top Level Fields Styling */

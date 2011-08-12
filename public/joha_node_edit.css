@@ -5,10 +5,19 @@ input {
 /* SASS Constants */
 /* SASS Mixins */
 #joha-edit-node-data .ui-icon {
+  cursor: pointer;
   display: inline-block;
   padding: 0;
   position: relative;
   top: -0.2em; }
+
+.ui-icon:hover {
+  background-color: #fae8e1; }
+
+#joha-edit-node-data .selected {
+  border-color: #81a68c;
+  border-style: solid;
+  border-width: 4px; }
 
 /* Top Level Fields Styling */
 .joha-field {
