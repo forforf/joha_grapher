@@ -176,6 +176,12 @@ class JohaNodeEditor
       null
     curVal
 
+  origValue: =>
+    origVal = {}
+    for own fieldName, fieldObj of fields
+      origVal[fieldName] = fieldObj.origValue
+    origVal
+    
   deleteNodeData: ->
     return ni
 

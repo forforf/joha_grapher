@@ -46,6 +46,7 @@ ArrayDataEntryForm = johaComp.ArrayDataEntryForm
 ObjectDataEntryForm = johaComp.ObjectDataEntryForm
 softParseJSON = require('jsonHelper').softParseJSON
 
+
 #Constants
 johaEditClass = {
                  "update": "joha-update"
@@ -154,7 +155,7 @@ class ValueContainerBase extends ContainerBase
 
       basicView: (curValue, domId, valId, contClass) ->
         inTag = 'span'
-        inVal = curValue || "--empty--" 
+        inVal = curValue #|| "--empty--" 
         inHtml = wrapHtml(inTag, inVal)
         #Outer Div Wrapper
         outerTag = 'div'
@@ -320,16 +321,22 @@ class ArrayValueContainer extends ContainerBase
 
 
   addNewItem = (me, newVal) =>
+    console.log "AddNewArrayItem", newVal
     newJsonVal = softParseJSON newVal
-    newChild = new RootValueContainer(newJsonVal)
+    newRVC = new RootValueContainer(newJsonVal)
+    newChild = newRVC.valueContainer
+    newChildDom = newChild.view()
     me.children.push newChild
     #Add new child to Dom
     thisDom = $(me.selDomId)
     #append to end of array items
     jItemClass = '.' + me.itemClass
     lastArrayItemDom = thisDom.find(jItemClass).last()
-    lastArrayItemDom.after( newChild.view() )
-    newChildDom = $(newChild.valueContainer.selDomId)
+    if lastArrayItemDom.length > 0
+      lastArrayItemDom.after( newChildDom )
+    else
+      thisDom.prepend( newChildDom )
+    newChildDom.addClass me.itemClass
     newChildDom.addClass me.createClass
     newChildDom.trigger(me.recalcTrigger)
 
@@ -526,7 +533,10 @@ class RootValueContainer
     @origValue = @valueContainer.origValue
 
   view: ->
-    @valueContainer.view()
+    valCont = $('<div />')
+    valCont.append @valueContainer.view()
+    valCont.addClass @containerType
+    valCont.addClass 'value-container'
 
   currentValue: =>
     @valueContainer.currentValue()

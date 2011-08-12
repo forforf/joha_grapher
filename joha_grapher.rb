@@ -677,3 +677,10 @@ get '/some_json' do
   content_type :json
   return some_data.to_json
 end
+
+get '/json_echo' do
+  json_data = params[:json]
+  json_data.to_json
+  content_type :json
+  return json_data
+end

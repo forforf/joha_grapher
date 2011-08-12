@@ -39,6 +39,36 @@ $ ->
   console.log( 'domData:', domData )
   $('#data').append(domData)
   
+  #Save Button
+  saveButtonHtml = "<button type='button'>Save</button>"
+  saveButtonDom = $(saveButtonHtml)
+  $('#save').append saveButtonDom
+  saveButtonDom.click =>
+    current_json = JSON.stringify newNode.currentValue()
+    $.ajax
+        type: 'GET',
+        url: '/json_echo',
+        data: {json: current_json}
+        success: (new_json) ->
+          $('#data').empty()
+          newNode = new JohaNodeEditor new_json
+          domData = newNode.view()
+          $('#data').append domData
+          
+  #Clear Edits Button
+  clearButtonHtml =  "<button type='button'>Clear Edits</button>"
+  clearButtonDom = $(clearButtonHtml)
+  $('#save').append clearButtonDom
+  clearButtonDom.click =>
+    editClasses = ['joha-delete', 'joha-update', 'joha-create']
+    for editClass in editClasses
+      #THIS IS ONLY A TEMPORARY SOLUTION
+      newNode = new JohaNodeEditor newNode.origValue()
+      domData = newNode.view()
+      $('#data').empty()
+      $('#data').append domData
+      
+    
 ###
 #Working with dynJsonContainers
 dynJson = require 'dynJsonContainers'
