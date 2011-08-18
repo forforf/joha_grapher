@@ -73,7 +73,6 @@ valueContainerFactory = (value) ->
   
   containerFromValue = (value) ->
     type = getType(value)
-    console.log 'valueContainerFactory - type', type
     containerClass = containerFromSimpleType[type]
     objContainer = new containerClass(value)
     return objContainer #if objContainer
@@ -285,14 +284,11 @@ class BasicValueContainerNoDel extends ValueContainerBase
 class BasicValueContainer extends ValueContainerBase
   constructor: (@value) ->
     @containerType = 'basic-vc'
-    console.log 'BVC constructor', @value
     super @value
     @valId = @commonMethods["setValId"](@domId)
     @editValId = @commonMethods["setEditValId"](@domId) 
-    console.log 'BVC constructor - making DelBtn', @domId, @recalcTrigger, @deleteClass
     @delBtn = @commonMethods["makeDelBtn"](@domId, 
                                               @recalcTrigger,@deleteClass)
-    console.log 'BVC constructor done'
     
   currentValue: =>
     #IMPORTANT
@@ -351,7 +347,6 @@ class ArrayValueContainer extends ContainerBase
 
 
   addNewItem = (me, newVal) =>
-    console.log "AddNewArrayItem", newVal
     newJsonVal = softParseJSON newVal
     newRVC = new RootValueContainer(newJsonVal)
     newChild = newRVC.valueContainer
@@ -561,7 +556,6 @@ class ObjectValueContainer extends ObjectBase
 #ToDo:Provide option that prevents adding/deleting, and one for read only (no edits allowed) 
 class RootValueContainer
   constructor: (@value, options) ->
-    console.log 'RVC constructor entered', @value
     options or= {}
     @containerType = 'root-vc'
     #ToDo: Use extend to set overwrite default options
@@ -602,16 +596,39 @@ class FileValueContainer extends BasicValueContainerNoMod
 #ToDo:  ContainerBase has some unnecessary cruft for files
 class FilesContainer extends ContainerBase
   constructor: (@files, nodeId) ->
+    #alert "Entered Files Container"
     #ToDo: Organize this better
     super(@files)
     @fileClassName = 'joha-filename'
-    @filesList = for filename in @files
-      fileCont = @makeFileCont(filename)
+    johaFilesList = []
+    dummy = []
+    #iter = iter or= 0
+    console.log 'init filesList', johaFilesList
+    for fname in @files
+      #iter += 1
+      #alert "iteration: " + iter
+      #undefined.stophere if iter > 2
+      fileCont = @makeFileCont(fname)
+      console.log 'fileCont to insert', fileCont
+      console.log 'building filesList - pre', johaFilesList
+      console.log 'PRE-ADD fileCont', johaFilesList
+      johaFilesList.unshift fileCont
+      console.log 'POST_ADD  fileCont', johaFilesList
+      #works? dummy.concat [fileCont]
+      #problem ->dummy.push fileCont
+      console.log 'building filesList', johaFilesList
+      null
+    console.log 'filesList', johaFilesList
+    console.log 'dummy filelist', dummy
+    #@filesList = dummy #johaFilesList
+    @filesList = johaFilesList
+    console.log 'final @filesList', @filesList
     @filesListClass = 'joha-files'
     filesListHtml = wrapHtml('div')
     @filesListDom = $(filesListHtml)
     @filesListDom.addClass @filesListClass
     @containerType = 'files-vc value-container'
+    #create id attr for the attachment form
     formId = @domId + 'attform'
     newFilesCallbackFn = (fileList) =>
       for fileItem in fileList
@@ -621,9 +638,8 @@ class FilesContainer extends ContainerBase
         @insertFileCont fileCont, @filesListDom, @createClass
         null
     
-    #Do we need form and fileInput?
-    uploadFn = (formDom, fileInputNative) =>
-      alert "uploads"
+    uploadFn = (formDom) =>
+      #formDom is AttachmentForm object
       uploadFileContList = @uploadableFileContainers()
       uploadForm = new FormData()
       uploadFiles = {}
@@ -636,11 +652,10 @@ class FilesContainer extends ContainerBase
       xhr = new XMLHttpRequest()
       xhr.open('POST', formDom.attr('action'), true)
       xhr.onload = (e) -> 
-        alert  'onload'
         console.log this.responseText
-      xhr.send(uploadForm);
+      xhr.send(uploadForm)
 
-      #return false; 
+      #jQuery not working with Chrome for some reason
       #$.ajax
       #  url: formDom.attr('action') #'/upload_files_test',
       #  type: formDom.attr('method') #'POST'
@@ -652,24 +667,10 @@ class FilesContainer extends ContainerBase
       #    console.log 'Files Uploaded', data
       #    for uploadFileCont in uploadFileContList
       #      $(uploadFileCont.selDomId).removeClass @createClass
-      #  return false
-      #$.ajax '/upload_files_test',
-      #  type: 'POST'
-      #  data: uploadForm
-      #  error: (jqXHR, textStatus, errorThrown) ->
-      #    alert 'Ajax Error' + errorThrown
-      #  success: (data, textStatus, jqXHR)->
-      #    alert JSON.stringify data
-      #    console.log 'Files Uploaded', data
-      #    for uploadFileCont in uploadFileContList
-      #      $(uploadFileCont.selDomId).removeClass @createClass
-      uploadForm
-      #form.submit()
-      
-
+      uploadForm 
+    
+    #ToDo: Figure out iframe approach to supprt pre-HTML5
     form = new AttachmentForm(formId, '/upload_files_html5', 'iframe-uploader', newFilesCallbackFn, uploadFn)
-    #@addNewAttachBtnDom.click =>
-    #  $('#'+formId).toggle()
     form.updateNodeId nodeId
     @formDom = form.get()
     
@@ -679,7 +680,6 @@ class FilesContainer extends ContainerBase
     labelHtml = wrapHtml('span', 'File Attachments')
     labelDom = $(labelHtml)
     dom.append labelDom
-    #dom.append @addNewAttachBtnDom
     for fileCont in @filesList
       @insertFileCont(fileCont, @filesListDom)
       null
@@ -691,7 +691,7 @@ class FilesContainer extends ContainerBase
 
   makeFileCont: (filename) =>
     fileCont = new FileValueContainer(filename)
-    console.log fileCont
+    console.log "made file Cont", fileCont
     #fileCont = new BasicValueContainerNoMod(filename)
     fileCont
 
@@ -713,10 +713,24 @@ class FilesContainer extends ContainerBase
     _curVal
 
   uploadableFileContainers: =>
-    uploadFileConts = []
+    console.log 'uploadableFileContainers @filesList', @filesList
+    uploadFileConts =
+      new: []
+      deleted: []
     for fileCont in @filesList
-      deleted = $(fileCont.selDomId).hasClass @deleteClass
-      uploadFileConts.push(fileCont) if not deleted
+      delSel = '.'+@deleteClass
+      newSel = '.'+@createClass
+      bothSel = delSel+newSel
+      fileDom = $(fileCont.selDomId)
+      #ignore if both new and deleted
+      alert fileCont.curValue
+      if (fileDom.is newSel) and not (fileDom.is delSel)
+        uploadFileConts.new.push fileCont
+      if (fileDom.is delSel) and not (fileDom.is newSel)
+        uploadFileConts.deleted.push fileCont
+        #deleted = $(fileCont.selDomId).is @deleteClass
+        #uploadFileConts.push(fileCont) if not deleted
+    console.log 'uploadFileConts', uploadFileConts
     uploadFileConts
       
   currentUploads: =>
@@ -726,7 +740,6 @@ class FilesContainer extends ContainerBase
         null
       else
         fileItemList.push fileCont.currentUploads()
-    #console.log "Consolidated Uploads", fileItemList
     fileItemList
 
 class LinksKeyValue extends KeyValueBase
@@ -746,7 +759,6 @@ class LinksKeyValue extends KeyValueBase
     linkskv.append @delBtn
  
   currentValue: =>
-    console.log "LinksKeyValueConts", @keyContainer, @valContainer
     @commonMethods["currentValue"](@domId, @keyContainer,
                                    @valContainer, @deleteClass)
 

@@ -572,6 +572,8 @@ post '/upload_files_html5' do
   node_id = params["node_id"]
   params.delete("node_id")
   uploaded_files = params
+  p 'uploaded_files'
+  p uploaded_files
   response = []
   uploaded_files.each do |fname_key, filedata|
     #skip unexpected formats
