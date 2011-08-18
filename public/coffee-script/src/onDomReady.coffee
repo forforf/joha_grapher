@@ -32,6 +32,7 @@ $ ->
                      'http://www.google.com': 'google',
                      'http://www.yahoo.com': 'yahoo'},
 	       a_complex_obj: {h: {hh: ['i', 'j', {k: 'K'}] } }
+	       attached_files: ['file1.txt', 'file2.txt']
 	     }
 
   newNode = new JohaNodeEditor nodeData

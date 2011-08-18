@@ -3,7 +3,7 @@
 root = exports ? this
 $ = $ || window.$ || window.$j
 
-#### Overview
+# ### Overview
 
 # dynJsonContainers convets a JSON object into an editiable
 # (jQuery) representation of that object in a browser
@@ -44,6 +44,7 @@ EditButtonBase = johaComp.EditButtonBase
 DeleteButtonBase = johaComp.DeleteButtonBase
 ArrayDataEntryForm = johaComp.ArrayDataEntryForm
 ObjectDataEntryForm = johaComp.ObjectDataEntryForm
+AttachmentForm = johaComp.AttachmentForm
 softParseJSON = require('jsonHelper').softParseJSON
 
 
@@ -215,8 +216,38 @@ class ValueContainerBase extends ContainerBase
 class BasicValueContainerNoOp extends ValueContainerBase
   contructor: (@value) ->
     super(@value)
-    alert("No Op Value Container Not Implemented Yet"
+    alert "No Op Value Container Not Implemented Yet"
 
+class BasicValueContainerNoMod extends ValueContainerBase
+  constructor: (@value) ->
+    super(@value)
+    @valId = @commonMethods["setValId"](@domId)
+    @delBtn = @commonMethods["makeDelBtn"](@domId,@recalcTrigger,@deleteClass)
+
+  currentValue: =>
+    retVal = if $(@selDomId).hasClass @deleteClass
+      null
+    else
+      softParseJSON(@curValue)  
+    retVal  
+
+  view: ->
+    elDoms = @commonMethods["basicView"](@curValue,@domId,
+                                         @valId, @containerType)
+    div = elDoms["div"]
+    valDom = elDoms["val"]
+    div.append @delBtn
+    
+    #let external entities trigger updates
+    recalcFn = (event) =>
+     #This class doesn't modify its values
+     null
+   
+    @commonMethods["onTrigger"](@recalcTrigger, div, recalcFn)
+    #return dom 
+    return div
+    
+    
 class BasicValueContainerNoDel extends ValueContainerBase
   constructor: (@value) ->
     super(@value)
@@ -549,31 +580,154 @@ class RootValueContainer
 #ToDo: Add to specs
 #Where to keep origValue?
 #Should it be here or the parent container?
-class FilesContainer
-  constructor: (@files, options) ->
-    @fileClassName = 'joha-filename'
-    @filesClassName = 'joha-files'
 
-  view: ->
+class FileValueContainer extends BasicValueContainerNoMod
+  constructor: (filename) ->
+    @fileItemData = null
+    super(filename)
+
+  setFileItem: (fileItem) =>
+    @fileItemData = fileItem
+
+  getFileItem: =>
+    @fileItemData
+
+  currentUploads: =>
+    retVal = if $(@selDomId).hasClass @deleteClass
+      null
+    else
+      @fileItemData
+    retVal
+
+#ToDo:  ContainerBase has some unnecessary cruft for files
+class FilesContainer extends ContainerBase
+  constructor: (@files, nodeId) ->
+    #ToDo: Organize this better
+    super(@files)
+    @fileClassName = 'joha-filename'
+    @filesList = for filename in @files
+      fileCont = @makeFileCont(filename)
+    @filesListClass = 'joha-files'
+    filesListHtml = wrapHtml('div')
+    @filesListDom = $(filesListHtml)
+    @filesListDom.addClass @filesListClass
+    @containerType = 'files-vc value-container'
+    formId = @domId + 'attform'
+    newFilesCallbackFn = (fileList) =>
+      for fileItem in fileList
+        fileBasename = fileItem.fileName
+        fileCont = @makeFileCont(fileBasename)
+        fileCont.setFileItem(fileItem)
+        @insertFileCont fileCont, @filesListDom, @createClass
+        null
+    
+    #Do we need form and fileInput?
+    uploadFn = (formDom, fileInputNative) =>
+      alert "uploads"
+      uploadFileContList = @uploadableFileContainers()
+      uploadForm = new FormData()
+      uploadFiles = {}
+      for uploadFileCont in uploadFileContList
+         uploadFile = uploadFileCont.currentUploads() 
+         uploadForm.append(uploadFile.fileName, uploadFile) if uploadFile
+         null
+      uploadForm.append('node_id', "FooBar")
+      #HTML5 Only?
+      xhr = new XMLHttpRequest()
+      xhr.open('POST', formDom.attr('action'), true)
+      xhr.onload = (e) -> 
+        alert  'onload'
+        console.log this.responseText
+      xhr.send(uploadForm);
+
+      #return false; 
+      #$.ajax
+      #  url: formDom.attr('action') #'/upload_files_test',
+      #  type: formDom.attr('method') #'POST'
+      #  data: uploadForm
+      #  error: (jqXHR, textStatus, errorThrown) ->
+      #    alert 'Ajax Error' + errorThrown
+      #  success: (data, textStatus, jqXHR)->
+      #    alert JSON.stringify data
+      #    console.log 'Files Uploaded', data
+      #    for uploadFileCont in uploadFileContList
+      #      $(uploadFileCont.selDomId).removeClass @createClass
+      #  return false
+      #$.ajax '/upload_files_test',
+      #  type: 'POST'
+      #  data: uploadForm
+      #  error: (jqXHR, textStatus, errorThrown) ->
+      #    alert 'Ajax Error' + errorThrown
+      #  success: (data, textStatus, jqXHR)->
+      #    alert JSON.stringify data
+      #    console.log 'Files Uploaded', data
+      #    for uploadFileCont in uploadFileContList
+      #      $(uploadFileCont.selDomId).removeClass @createClass
+      uploadForm
+      #form.submit()
+      
+
+    form = new AttachmentForm(formId, '/upload_files_html5', 'iframe-uploader', newFilesCallbackFn, uploadFn)
+    #@addNewAttachBtnDom.click =>
+    #  $('#'+formId).toggle()
+    form.updateNodeId nodeId
+    @formDom = form.get()
+    
+  view: =>
     dom = $('<div />')
-    fileSepEl = 'span'
-    sepStart = '<' + fileSepEl + '>'
-    sepEnd = '</' + fileSepEl + '>'
-    @files.forEach (filename) ->
-      fileDom = $(sepStart + filename + sepEnd)
-      dom.append fileDom
+    dom.addClass @containerType
+    labelHtml = wrapHtml('span', 'File Attachments')
+    labelDom = $(labelHtml)
+    dom.append labelDom
+    #dom.append @addNewAttachBtnDom
+    for fileCont in @filesList
+      @insertFileCont(fileCont, @filesListDom)
       null
  
-    dom.find(fileSepEl).addClass @fileClassName
-    dom.addClass @filesClassName
+    dom.addClass @containerType
+    dom.append @filesListDom
+    dom.append @formDom
     dom
-   
-  _curVal: ->
-    undefined
+
+  makeFileCont: (filename) =>
+    fileCont = new FileValueContainer(filename)
+    console.log fileCont
+    #fileCont = new BasicValueContainerNoMod(filename)
+    fileCont
+
+  insertFileCont: (fileCont, filesListDom, withClass) =>
+    @filesList.push fileCont
+    fileDom = fileCont.view()
+    fileDom.addClass 'joha-file-item'
+    fileDom.addClass withClass
+    filesListDom.append fileDom
 
   currentValue: =>
-    calcVal = @_curVal()
-    calcVal || @files
+    _curVal = []
+    cv = for fileCont in @filesList
+      itemVal = if $(fileCont.selDomId).hasClass @deleteClass
+        null
+      else
+        fileCont.currentValue()
+      _curVal.push itemVal
+    _curVal
+
+  uploadableFileContainers: =>
+    uploadFileConts = []
+    for fileCont in @filesList
+      deleted = $(fileCont.selDomId).hasClass @deleteClass
+      uploadFileConts.push(fileCont) if not deleted
+    uploadFileConts
+      
+  currentUploads: =>
+    fileItemList = []
+    for fileCont in @filesList
+      if $(fileCont.selDomId).hasClass @deleteClass
+        null
+      else
+        fileItemList.push fileCont.currentUploads()
+    #console.log "Consolidated Uploads", fileItemList
+    fileItemList
 
 class LinksKeyValue extends KeyValueBase
   constructor: (@key, @val)->
@@ -708,6 +862,7 @@ class LinksContainer extends ObjectBase
 
 root.RootValueContainer = RootValueContainer
 root.BasicValueContainerNoDel = BasicValueContainerNoDel
+root.BasicValueContainerNoMod = BasicValueContainerNoMod
 root.FilesContainer = FilesContainer
 root.LinksContainer = LinksContainer
 root.johaChangeTrigger = johaChangeTrigger

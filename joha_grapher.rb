@@ -568,7 +568,20 @@ post '/node_data_update' do
   return new_graph
 end
 
-
+post '/upload_files_html5' do
+  node_id = params["node_id"]
+  params.delete("node_id")
+  uploaded_files = params
+  response = []
+  uploaded_files.each do |fname_key, filedata|
+    #skip unexpected formats
+    next unless filedata.respond_to? :keys
+    filename = fname_key if fname_key == filedata[:filename]
+    response << filename if filename
+  end
+  content_type :json
+  return response.to_json
+end
 
 post '/upload_files' do
   puts "Uploaded Files"

@@ -48,8 +48,9 @@ class JohaNodeEditor
       null
     @availFields =  options['availableFields'] || []
     @nodeData.id = @makeGUID() if not @nodeData[@id]
+    @nodeId = @nodeData.id
     @nodeData.label = "node:" + @nodeData[@id] if not @nodeData[@label]
-    @nodeFields = @buildNodeFields()
+    @nodeFields = @buildNodeFields(@nodeId)
     @nodeFields
 
   buildFieldDropDown: =>
@@ -68,7 +69,7 @@ class JohaNodeEditor
     select.change =>
       newFieldName = select.val()
       newFieldsDom = $('#'+@newFieldsId)
-      @nodeFields[newFieldName] = nodeFieldFactory(newFieldName, null)
+      @nodeFields[newFieldName] = nodeFieldFactory(newFieldName, null, @nodeId)
       newFieldDom = @nodeFields[newFieldName].view()
       newFieldDom.addClass johaEditClass["create"]
       delBtnArgs =
@@ -190,10 +191,10 @@ class JohaNodeEditor
   deleteNodeData: ->
     return ni
 
-  buildNodeFields: ->
+  buildNodeFields: (nodeId) ->
      _objContainer = {}
      for own fieldName, fieldValue of @nodeData
-       _objContainer[fieldName] = nodeFieldFactory(fieldName, fieldValue)
+       _objContainer[fieldName] = nodeFieldFactory(fieldName, fieldValue, nodeId)
      _objContainer
      
 

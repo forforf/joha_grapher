@@ -102,7 +102,7 @@ class NodeLabelField extends NodeField
     cont 
  
 class NodeFilesField extends NodeField
-  constructor: (@fieldName, @fieldValue) ->
+  constructor: (@fieldName, @fieldValue, nodeId) ->
     super()
     @filesClass = 'field-files'
     #files are an array of file names (without path info)
@@ -111,7 +111,7 @@ class NodeFilesField extends NodeField
     #well as invalid array items
     valType = getType(@fieldValue)
     @files = if valType is '[object Array]' then @fieldValue else [@fieldValue]
-    @filesContainer = new FilesContainer @files
+    @filesContainer = new FilesContainer @files, nodeId
     @origValue = @fieldValue
 
   currentValue: =>
@@ -145,11 +145,13 @@ class NodeLinksField extends NodeField
     linksDom.addClass @fieldClass
     linksDom.addClass @linksClass
 
-nodeFieldFactory = (fieldName, fieldValue) ->
+#ToDo: nodeId is only needed for files, is there a more elegant way?
+nodeFieldFactory = (fieldName, fieldValue, nodeId) ->
+
   nodeField = switch fieldName
     when 'id' then new NodeIdField(fieldName, fieldValue)
     when 'label' then new NodeLabelField(fieldName, fieldValue)
-    when 'attached_files' then new NodeFilesField(fieldName, fieldValue)
+    when 'attached_files' then new NodeFilesField(fieldName, fieldValue, nodeId)
     when 'links' then new NodeLinksField(fieldName, fieldValue)
     else new NodeJsonField(fieldName, fieldValue)
   nodeField

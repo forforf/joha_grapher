@@ -201,6 +201,13 @@ $joha_el_margin: 0.2em 0.2em 0.2em 0.2em;
   content: ":";
 }
 
+.joha-file-item {
+  @include item-color;
+  @include joha-inline-block;
+  @include joha-margin;
+  @include joha-propagation;
+}
+
 
 /* User Editing Styles */
 .joha-update {
