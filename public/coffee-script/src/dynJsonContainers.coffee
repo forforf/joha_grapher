@@ -586,7 +586,7 @@ class FileValueContainer extends BasicValueContainerNoMod
   getFileItem: =>
     @fileItemData
 
-  currentUploads: =>
+  currentFileItem: =>
     retVal = if $(@selDomId).hasClass @deleteClass
       null
     else
@@ -598,31 +598,23 @@ class FilesContainer extends ContainerBase
   constructor: (@files, nodeId) ->
     #alert "Entered Files Container"
     #ToDo: Organize this better
+    #initialize container list variables
+    @initFileContList = []  #list of existing files
+    @newFileContList = []   #list of new files created
+    @deletedFileContList = []  #list of any files to be deleted
     super(@files)
     @fileClassName = 'joha-filename'
-    johaFilesList = []
-    dummy = []
+    #johaFilesList = []
+    #dummy = []
     #iter = iter or= 0
-    console.log 'init filesList', johaFilesList
     for fname in @files
-      #iter += 1
-      #alert "iteration: " + iter
-      #undefined.stophere if iter > 2
       fileCont = @makeFileCont(fname)
       console.log 'fileCont to insert', fileCont
-      console.log 'building filesList - pre', johaFilesList
-      console.log 'PRE-ADD fileCont', johaFilesList
-      johaFilesList.unshift fileCont
-      console.log 'POST_ADD  fileCont', johaFilesList
-      #works? dummy.concat [fileCont]
-      #problem ->dummy.push fileCont
-      console.log 'building filesList', johaFilesList
+      @initFileContList.push fileCont
+      console.log 'POST_ADD  fileCont', @initFileContList
       null
-    console.log 'filesList', johaFilesList
-    console.log 'dummy filelist', dummy
-    #@filesList = dummy #johaFilesList
-    @filesList = johaFilesList
-    console.log 'final @filesList', @filesList
+    console.log 'init filesList', @initFileContList
+    @filesList = []
     @filesListClass = 'joha-files'
     filesListHtml = wrapHtml('div')
     @filesListDom = $(filesListHtml)
@@ -635,19 +627,39 @@ class FilesContainer extends ContainerBase
         fileBasename = fileItem.fileName
         fileCont = @makeFileCont(fileBasename)
         fileCont.setFileItem(fileItem)
-        @insertFileCont fileCont, @filesListDom, @createClass
+        #@insertFileCont fileCont, @filesListDom, @createClass
+        @newFileContList.push fileCont
         null
+      @viewNewFileInsert @newFileContList
     
     uploadFn = (formDom) =>
       #formDom is AttachmentForm object
-      uploadFileContList = @uploadableFileContainers()
+      #uploadFileContList = @uploadableFileContainers()
+      uploadList = @uploadableFileContainers()
+      console.log 'upload files', uploadList   
       uploadForm = new FormData()
-      uploadFiles = {}
-      for uploadFileCont in uploadFileContList
-         uploadFile = uploadFileCont.currentUploads() 
-         uploadForm.append(uploadFile.fileName, uploadFile) if uploadFile
-         null
-      uploadForm.append('node_id', "FooBar")
+      
+      #I can't get formData to take generic objects, and
+      #I can't get xhr to send data (probably because of multipart issues)
+      #So the best solution would be to construct a
+      #valid multipart message, however, I'm just going to 
+      #add some semantic meaning to the formData keys to avoid that
+      for uploadNewCont in uploadList.new
+        fileItem = uploadNewCont.currentFileItem()
+        console.log 'File Item', fileItem
+        formDataKey = 'NEW_FILE___' + fileItem.fileName
+        uploadForm.append(formDataKey, fileItem)
+        null
+     
+      for uploadDelCont in uploadList.deleted
+        delFileName = uploadDelCont.origValue
+        formDataKey = 'DEL_FILE___' + delFileName
+        console.log 'del file', delFileName, formDataKey
+        uploadForm.append(formDataKey, delFileName)
+        null
+
+      uploadForm.append('node_id', "FIXME!!")
+   
       #HTML5 Only?
       xhr = new XMLHttpRequest()
       xhr.open('POST', formDom.attr('action'), true)
@@ -655,7 +667,7 @@ class FilesContainer extends ContainerBase
         console.log this.responseText
       xhr.send(uploadForm)
 
-      #jQuery not working with Chrome for some reason
+      #jQuery not working with Chrome for some reason, multipart issue?
       #$.ajax
       #  url: formDom.attr('action') #'/upload_files_test',
       #  type: formDom.attr('method') #'POST'
@@ -673,21 +685,41 @@ class FilesContainer extends ContainerBase
     form = new AttachmentForm(formId, '/upload_files_html5', 'iframe-uploader', newFilesCallbackFn, uploadFn)
     form.updateNodeId nodeId
     @formDom = form.get()
-    
+  
+
+  validFileConts: =>
+    @initFileContList.concat @newFileContList
+
   view: =>
     dom = $('<div />')
     dom.addClass @containerType
     labelHtml = wrapHtml('span', 'File Attachments')
     labelDom = $(labelHtml)
     dom.append labelDom
-    for fileCont in @filesList
-      @insertFileCont(fileCont, @filesListDom)
-      null
+    @viewInitFileInsert @initFileContList
+    #for fileCont in @initFileContList
+    #  @insertFileCont(fileCont, @filesListDom)
+    #  null
  
     dom.addClass @containerType
     dom.append @filesListDom
     dom.append @formDom
     dom
+
+  #TODO: DRY up with next method
+  viewInitFileInsert: (initFileContList) =>
+    for initFileCont in initFileContList
+      fileDom = initFileCont.view()
+      fileDom.addClass 'joha-file-item'
+      @filesListDom.append fileDom
+
+  viewNewFileInsert: (newFileContList) =>
+    for newFileCont in newFileContList
+      fileDom = newFileCont.view()
+      fileDom.addClass 'joha-file-item'
+      fileDom.addClass @createClass
+      @filesListDom.append fileDom
+      
 
   makeFileCont: (filename) =>
     fileCont = new FileValueContainer(filename)
@@ -695,16 +727,16 @@ class FilesContainer extends ContainerBase
     #fileCont = new BasicValueContainerNoMod(filename)
     fileCont
 
-  insertFileCont: (fileCont, filesListDom, withClass) =>
-    @filesList.push fileCont
-    fileDom = fileCont.view()
-    fileDom.addClass 'joha-file-item'
-    fileDom.addClass withClass
-    filesListDom.append fileDom
+  #insertFileCont: (fileCont, filesListDom, withClass) =>
+    #@filesList.push fileCont
+    #fileDom = fileCont.view()
+    #fileDom.addClass 'joha-file-item'
+    #fileDom.addClass withClass
+    #filesListDom.append fileDom
 
   currentValue: =>
     _curVal = []
-    cv = for fileCont in @filesList
+    cv = for fileCont in @validFileConts()
       itemVal = if $(fileCont.selDomId).hasClass @deleteClass
         null
       else
@@ -713,34 +745,55 @@ class FilesContainer extends ContainerBase
     _curVal
 
   uploadableFileContainers: =>
-    console.log 'uploadableFileContainers @filesList', @filesList
+    #console.log 'uploadableFileContainers files Lists', @newFileContList, @initFileContList
     uploadFileConts =
       new: []
       deleted: []
-    for fileCont in @filesList
-      delSel = '.'+@deleteClass
-      newSel = '.'+@createClass
-      bothSel = delSel+newSel
-      fileDom = $(fileCont.selDomId)
-      #ignore if both new and deleted
-      alert fileCont.curValue
-      if (fileDom.is newSel) and not (fileDom.is delSel)
-        uploadFileConts.new.push fileCont
-      if (fileDom.is delSel) and not (fileDom.is newSel)
-        uploadFileConts.deleted.push fileCont
-        #deleted = $(fileCont.selDomId).is @deleteClass
-        #uploadFileConts.push(fileCont) if not deleted
+
+    newUploadList = []
+    for fileCont in @newFileContList
+      fileContDom = $(fileCont.selDomId)
+      delSel = '.'+fileCont.deleteClass
+      newUploadList.push fileCont if not (fileContDom.is delSel)
+      null
+    console.log "new upload list", newUploadList
+    
+    deletedUploadList = []
+    
+    for fileCont in @initFileContList
+      fileContDom = $(fileCont.selDomId)
+      delSel = '.'+fileCont.deleteClass
+      deletedUploadList.push fileCont if (fileContDom.is delSel)
+      null
+
+    #for fileCont in @filesList
+    #  delSel = '.'+@deleteClass
+    #  newSel = '.'+@createClass
+    #  bothSel = delSel+newSel
+    #  fileDom = $(fileCont.selDomId)
+    #  #ignore if both new and deleted
+    #  alert fileCont.curValue
+    #  if (fileDom.is newSel) and not (fileDom.is delSel)
+    #    uploadFileConts.new.push fileCont
+    #  if (fileDom.is delSel) and not (fileDom.is newSel)
+    #    uploadFileConts.deleted.push fileCont
+    #    #deleted = $(fileCont.selDomId).is @deleteClass
+    #    #uploadFileConts.push(fileCont) if not deleted
+
+    uploadFileConts.new = newUploadList
+    uploadFileConts.deleted = deletedUploadList
     console.log 'uploadFileConts', uploadFileConts
     uploadFileConts
+  
       
-  currentUploads: =>
-    fileItemList = []
-    for fileCont in @filesList
-      if $(fileCont.selDomId).hasClass @deleteClass
-        null
-      else
-        fileItemList.push fileCont.currentUploads()
-    fileItemList
+  #currentUploads: =>
+  #  fileItemList = []
+  #  for fileCont in @filesList
+  #    if $(fileCont.selDomId).hasClass @deleteClass
+  #      null
+  #    else
+  #      fileItemList.push fileCont.currentUploads()
+  #  fileItemList
 
 class LinksKeyValue extends KeyValueBase
   constructor: (@key, @val)->

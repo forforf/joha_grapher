@@ -571,15 +571,35 @@ end
 post '/upload_files_html5' do
   node_id = params["node_id"]
   params.delete("node_id")
-  uploaded_files = params
-  p 'uploaded_files'
-  p uploaded_files
-  response = []
-  uploaded_files.each do |fname_key, filedata|
-    #skip unexpected formats
-    next unless filedata.respond_to? :keys
+  
+  new_files = {}
+  del_files = []
+  params.each do |key, val|
+    new_file_regex = /^NEW_FILE___/
+    del_file_regex = /^DEL_FILE___/
+    if key.match(new_file_regex)
+      new_fname = key.sub(new_file_regex, "")
+      new_files[new_fname] = val
+    end
+    if key.match(del_file_regex)
+      del_fname = val
+      del_files << del_fname
+    end
+  end
+  p new_files
+  p del_files
+  
+    
+  #uploaded_files = params
+  #p 'uploaded_files'
+  #p uploaded_files
+  response = { :to_save => [], :to_delete => [] }
+  new_files.each do |fname_key, filedata|
     filename = fname_key if fname_key == filedata[:filename]
-    response << filename if filename
+    response[:to_save] << filename if filename
+  end
+  del_files.each do |fname|
+    response[:to_delete] << fname
   end
   content_type :json
   return response.to_json
