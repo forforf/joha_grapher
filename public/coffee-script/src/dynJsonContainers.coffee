@@ -36,6 +36,8 @@ $ = $ || window.$ || window.$j
 #Libraries are in stitch/coffeescripts
 IdBinder = require('IdTrackerSingleton').IdBinder
 forf = require('forf')
+arrayContains = forf.arrayContains
+arrayRemoveItem = forf.arrayRemoveItem
 getType = forf.getType
 extend = forf.extend
 johaComp = require('johaComponents')
@@ -580,6 +582,13 @@ class FileValueContainer extends BasicValueContainerNoMod
     @fileItemData = null
     super(@filename)
 
+  equiv: (fvc) =>
+    return false if fvc is undefined
+    if this.filename is fvc.filename
+      true
+    else
+      false
+
   setFileItem: (fileItem) =>
     @fileItemData = fileItem
 
@@ -672,10 +681,13 @@ class FilesContainer extends ContainerBase
       uploadForm.append('node_id', "FIXME!!")
    
       #HTML5 Only?
+      self = this #maintain a reference to this context
       xhr = new XMLHttpRequest()
       xhr.open('POST', formDom.attr('action'), true)
       xhr.onload = (e) -> 
-        console.log this.responseText
+        resp = JSON.parse(this.responseText)
+        self.updateViewAfterUpload(self, resp)
+        self.updateContsAfterUpload(self, resp)
       xhr.send(uploadForm)
 
       #jQuery not working with Chrome for some reason, multipart issue?
@@ -697,12 +709,99 @@ class FilesContainer extends ContainerBase
     form.updateNodeId nodeId
     @formDom = form.get()
  
-  findContByName: (basename) =>
+  findContByName: (basename, contList) =>
+    contList or= @validFileConts()
     respCont = null
-    for cont in @validFileConts 
+    for cont in contList
       respCont = cont if basename is cont.filename
       null
     respCont
+
+  removeFileContFromList: (contList, remCont) =>
+    console.log 'remove cont', contList, remCont
+    for aCont in contList
+      console.log 'remove cont iter', aCont, remCont
+      if aCont.filename is remCont.filename
+        console.log 'Before removing from contList', contList
+        arrayRemoveItem(contList, aCont)
+        console.log 'after remove', contList, aCont
+    contList
+
+  updateViewAfterUpload: (self, uploadResponse) ->
+    idFinder = new IdBinder.get()
+    #update files to be saved by server
+    serverSaveFilesAccepted = uploadResponse["to_save"]
+    newFileContDomList = self.filesListDom.find('.'+self.createClass) 
+    #Robust verification to update the view for server accepted files
+    #Find all 'new' files in view
+    newFileContDomList.each( (i) ->
+      newFileDomId = $(this).attr("id")
+      newFileCont = idFinder.getBoundById(newFileDomId)
+      if arrayContains(serverSaveFilesAccepted, newFileCont.filename)
+        $(this).removeClass self.createClass
+      return null)
+    
+    #deleted files from server
+    deletedFilesAccepted = uploadResponse["to_delete"]
+    console.log 'deleted files', deletedFilesAccepted
+    for delFilename in deletedFilesAccepted
+      cont = self.findContByName(delFilename)
+      #How to delete file container? Hide or Remove? (prob Remove is better
+      $(cont.selDomId).remove()
+      null
+  
+  updateContsAfterUpload: (self, uploadResponse) ->
+    #files being saved
+    serverSaveFilesAccepted = uploadResponse["to_save"]
+    console.log 'to save:', serverSaveFilesAccepted
+    console.log 'init', self.initFileContList
+    console.log 'new', self.newFileContList
+    xfer = []
+    for savingFilename in serverSaveFilesAccepted
+      savingCont = self.findContByName(savingFilename, self.newFileContList)
+      if savingCont
+        xfer.push savingCont 
+    console.log 'Xfer', xfer
+    console.log 'New File', self.newFileContList
+    #Add the xfer conts to existing conts
+    self.initFileContList  = self.initFileContList.concat xfer
+    #remove xfer from new conts
+    #for newFileCont in self.newFileContList 
+    #  for xferCont in xfer
+    #    console.log "Checking Equiv", xferCont, newFileCont
+    #    if xferCont.equiv newFileCont
+    #      console.log "Found equiv", newFileCont, self.newFileContList.indexOf(newFileCont)
+    #      idx = self.newFileContList.indexOf(newFileCont)
+    #      self.newFileContList.splice(idx,1)
+    #      null
+
+    idFinder = new IdBinder.get()
+    newFileContDomList = self.filesListDom.find('.'+self.createClass)
+    self.newFileContList = []
+    newFileContDomList.each( (i) ->
+      newFileDomId = $(this).attr("id")
+      newFileCont = idFinder.getBoundById(newFileDomId)
+      self.newFileContList.push newFileCont)
+
+          
+    console.log 'New File after xfer', self.newFileContList
+    console.log 'init Files after xfer', self.initFileContList
+
+    #files being deleted
+    #ToDo: For performance, it would probably be better to do this one before save files
+    
+    deletedFilesAccepted = uploadResponse["to_delete"]
+    for existingFile in self.initFileContList
+      continue if existingFile is undefined
+      console.log 'Iter FileCont', existingFile
+      if arrayContains(deletedFilesAccepted, existingFile.filename)
+        idx = self.initFileContList.indexOf existingFile
+        self.initFileContList.splice idx, 1
+      null
+    
+
+    console.log "After deletes", self.initFileContList
+    console.log "After deletes - new", self.newFileContList
 
   validFileConts: =>
     @initFileContList.concat @newFileContList
