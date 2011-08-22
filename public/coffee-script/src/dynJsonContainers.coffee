@@ -609,9 +609,7 @@ class FilesContainer extends ContainerBase
     #iter = iter or= 0
     for fname in @files
       fileCont = @makeFileCont(fname)
-      console.log 'fileCont to insert', fileCont
       @initFileContList.push fileCont
-      console.log 'POST_ADD  fileCont', @initFileContList
       null
     console.log 'init filesList', @initFileContList
     @filesList = []
@@ -623,14 +621,26 @@ class FilesContainer extends ContainerBase
     #create id attr for the attachment form
     formId = @domId + 'attform'
     newFilesCallbackFn = (fileList) =>
+      newestFileItemsToAdd = []
       for fileItem in fileList
         fileBasename = fileItem.fileName
+        #ToDo: How to find dupes more efficiently/elegantly?
+        existingConts = @validFileConts()
+        skipThis = false
+        for cont in existingConts
+          existingName = cont.origValue
+          skipThis = true if fileBasename is existingName
+        if skipThis
+          alert 'file already added'
+          continue
         fileCont = @makeFileCont(fileBasename)
         fileCont.setFileItem(fileItem)
         #@insertFileCont fileCont, @filesListDom, @createClass
-        @newFileContList.push fileCont
+        newestFileItemsToAdd.push fileCont
         null
-      @viewNewFileInsert @newFileContList
+      
+      @viewNewFileInsert newestFileItemsToAdd
+      @newFileContList = @newFileContList.concat newestFileItemsToAdd
     
     uploadFn = (formDom) =>
       #formDom is AttachmentForm object
