@@ -576,9 +576,9 @@ class RootValueContainer
 #Should it be here or the parent container?
 
 class FileValueContainer extends BasicValueContainerNoMod
-  constructor: (filename) ->
+  constructor: (@filename) ->
     @fileItemData = null
-    super(filename)
+    super(@filename)
 
   setFileItem: (fileItem) =>
     @fileItemData = fileItem
@@ -626,12 +626,13 @@ class FilesContainer extends ContainerBase
         fileBasename = fileItem.fileName
         #ToDo: How to find dupes more efficiently/elegantly?
         existingConts = @validFileConts()
+        #skipThis will be null if name doesn't exist
         skipThis = false
         for cont in existingConts
-          existingName = cont.origValue
+          existingName = cont.filename
           skipThis = true if fileBasename is existingName
         if skipThis
-          alert 'file already added'
+          alert "Skipping file: " + fileBasename + "\n It is already assigned."
           continue
         fileCont = @makeFileCont(fileBasename)
         fileCont.setFileItem(fileItem)
@@ -695,7 +696,13 @@ class FilesContainer extends ContainerBase
     form = new AttachmentForm(formId, '/upload_files_html5', 'iframe-uploader', newFilesCallbackFn, uploadFn)
     form.updateNodeId nodeId
     @formDom = form.get()
-  
+ 
+  findContByName: (basename) =>
+    respCont = null
+    for cont in @validFileConts 
+      respCont = cont if basename is cont.filename
+      null
+    respCont
 
   validFileConts: =>
     @initFileContList.concat @newFileContList
