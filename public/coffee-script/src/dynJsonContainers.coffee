@@ -605,22 +605,17 @@ class FileValueContainer extends BasicValueContainerNoMod
 #ToDo:  ContainerBase has some unnecessary cruft for files
 class FilesContainer extends ContainerBase
   constructor: (@files, nodeId) ->
-    #alert "Entered Files Container"
     #ToDo: Organize this better
     #initialize container list variables
     @initFileContList = []  #list of existing files
     @newFileContList = []   #list of new files created
-    @deletedFileContList = []  #list of any files to be deleted
+    #@deletedFileContList = []  #list of any files to be deleted
     super(@files)
     @fileClassName = 'joha-filename'
-    #johaFilesList = []
-    #dummy = []
-    #iter = iter or= 0
     for fname in @files
       fileCont = @makeFileCont(fname)
       @initFileContList.push fileCont
       null
-    console.log 'init filesList', @initFileContList
     @filesList = []
     @filesListClass = 'joha-files'
     filesListHtml = wrapHtml('div')
@@ -645,7 +640,6 @@ class FilesContainer extends ContainerBase
           continue
         fileCont = @makeFileCont(fileBasename)
         fileCont.setFileItem(fileItem)
-        #@insertFileCont fileCont, @filesListDom, @createClass
         newestFileItemsToAdd.push fileCont
         null
       
@@ -654,9 +648,7 @@ class FilesContainer extends ContainerBase
     
     uploadFn = (formDom) =>
       #formDom is AttachmentForm object
-      #uploadFileContList = @uploadableFileContainers()
       uploadList = @uploadableFileContainers()
-      console.log 'upload files', uploadList   
       uploadForm = new FormData()
       
       #I can't get formData to take generic objects, and
@@ -666,7 +658,6 @@ class FilesContainer extends ContainerBase
       #add some semantic meaning to the formData keys to avoid that
       for uploadNewCont in uploadList.new
         fileItem = uploadNewCont.currentFileItem()
-        console.log 'File Item', fileItem
         formDataKey = 'NEW_FILE___' + fileItem.fileName
         uploadForm.append(formDataKey, fileItem)
         null
@@ -674,7 +665,6 @@ class FilesContainer extends ContainerBase
       for uploadDelCont in uploadList.deleted
         delFileName = uploadDelCont.origValue
         formDataKey = 'DEL_FILE___' + delFileName
-        console.log 'del file', delFileName, formDataKey
         uploadForm.append(formDataKey, delFileName)
         null
 
@@ -732,7 +722,7 @@ class FilesContainer extends ContainerBase
     #update files to be saved by server
     serverSaveFilesAccepted = uploadResponse["to_save"]
     newFileContDomList = self.filesListDom.find('.'+self.createClass) 
-    #Robust verification to update the view for server accepted files
+    #verification to update the view for server accepted files
     #Find all 'new' files in view
     newFileContDomList.each( (i) ->
       newFileDomId = $(this).attr("id")
@@ -753,27 +743,13 @@ class FilesContainer extends ContainerBase
   updateContsAfterUpload: (self, uploadResponse) ->
     #files being saved
     serverSaveFilesAccepted = uploadResponse["to_save"]
-    console.log 'to save:', serverSaveFilesAccepted
-    console.log 'init', self.initFileContList
-    console.log 'new', self.newFileContList
     xfer = []
     for savingFilename in serverSaveFilesAccepted
       savingCont = self.findContByName(savingFilename, self.newFileContList)
       if savingCont
         xfer.push savingCont 
-    console.log 'Xfer', xfer
-    console.log 'New File', self.newFileContList
     #Add the xfer conts to existing conts
     self.initFileContList  = self.initFileContList.concat xfer
-    #remove xfer from new conts
-    #for newFileCont in self.newFileContList 
-    #  for xferCont in xfer
-    #    console.log "Checking Equiv", xferCont, newFileCont
-    #    if xferCont.equiv newFileCont
-    #      console.log "Found equiv", newFileCont, self.newFileContList.indexOf(newFileCont)
-    #      idx = self.newFileContList.indexOf(newFileCont)
-    #      self.newFileContList.splice(idx,1)
-    #      null
 
     idFinder = new IdBinder.get()
     newFileContDomList = self.filesListDom.find('.'+self.createClass)
@@ -782,10 +758,7 @@ class FilesContainer extends ContainerBase
       newFileDomId = $(this).attr("id")
       newFileCont = idFinder.getBoundById(newFileDomId)
       self.newFileContList.push newFileCont)
-
           
-    console.log 'New File after xfer', self.newFileContList
-    console.log 'init Files after xfer', self.initFileContList
 
     #files being deleted
     #ToDo: For performance, it would probably be better to do this one before save files
@@ -798,10 +771,7 @@ class FilesContainer extends ContainerBase
         idx = self.initFileContList.indexOf existingFile
         self.initFileContList.splice idx, 1
       null
-    
 
-    console.log "After deletes", self.initFileContList
-    console.log "After deletes - new", self.newFileContList
 
   validFileConts: =>
     @initFileContList.concat @newFileContList
@@ -843,13 +813,6 @@ class FilesContainer extends ContainerBase
     #fileCont = new BasicValueContainerNoMod(filename)
     fileCont
 
-  #insertFileCont: (fileCont, filesListDom, withClass) =>
-    #@filesList.push fileCont
-    #fileDom = fileCont.view()
-    #fileDom.addClass 'joha-file-item'
-    #fileDom.addClass withClass
-    #filesListDom.append fileDom
-
   currentValue: =>
     _curVal = []
     cv = for fileCont in @validFileConts()
@@ -861,7 +824,6 @@ class FilesContainer extends ContainerBase
     _curVal
 
   uploadableFileContainers: =>
-    #console.log 'uploadableFileContainers files Lists', @newFileContList, @initFileContList
     uploadFileConts =
       new: []
       deleted: []
@@ -872,7 +834,6 @@ class FilesContainer extends ContainerBase
       delSel = '.'+fileCont.deleteClass
       newUploadList.push fileCont if not (fileContDom.is delSel)
       null
-    console.log "new upload list", newUploadList
     
     deletedUploadList = []
     
@@ -882,34 +843,11 @@ class FilesContainer extends ContainerBase
       deletedUploadList.push fileCont if (fileContDom.is delSel)
       null
 
-    #for fileCont in @filesList
-    #  delSel = '.'+@deleteClass
-    #  newSel = '.'+@createClass
-    #  bothSel = delSel+newSel
-    #  fileDom = $(fileCont.selDomId)
-    #  #ignore if both new and deleted
-    #  alert fileCont.curValue
-    #  if (fileDom.is newSel) and not (fileDom.is delSel)
-    #    uploadFileConts.new.push fileCont
-    #  if (fileDom.is delSel) and not (fileDom.is newSel)
-    #    uploadFileConts.deleted.push fileCont
-    #    #deleted = $(fileCont.selDomId).is @deleteClass
-    #    #uploadFileConts.push(fileCont) if not deleted
-
     uploadFileConts.new = newUploadList
     uploadFileConts.deleted = deletedUploadList
     console.log 'uploadFileConts', uploadFileConts
     uploadFileConts
   
-      
-  #currentUploads: =>
-  #  fileItemList = []
-  #  for fileCont in @filesList
-  #    if $(fileCont.selDomId).hasClass @deleteClass
-  #      null
-  #    else
-  #      fileItemList.push fileCont.currentUploads()
-  #  fileItemList
 
 class LinksKeyValue extends KeyValueBase
   constructor: (@key, @val)->
