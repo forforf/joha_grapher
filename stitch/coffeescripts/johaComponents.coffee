@@ -1,1 +1,1 @@
-/home/bufs/my_jscoff_libs/libs/coffee_src/johaComponents.coffee
+../../public/coffee-script/src/johaComponents.coffee

@@ -42,10 +42,12 @@ getType = forf.getType
 extend = forf.extend
 johaComp = require('johaComponents')
 wrapHtml = johaComp.wrapHtml
+AddButtonBase = johaComp.AddButtonBase
 EditButtonBase = johaComp.EditButtonBase
 DeleteButtonBase = johaComp.DeleteButtonBase
 ArrayDataEntryForm = johaComp.ArrayDataEntryForm
 ObjectDataEntryForm = johaComp.ObjectDataEntryForm
+LinksDataEntryForm = johaComp.LinksDataEntryForm
 AttachmentForm = johaComp.AttachmentForm
 softParseJSON = require('jsonHelper').softParseJSON
 
@@ -528,7 +530,7 @@ class ObjectValueContainer extends ObjectBase
 
     addNew = new ObjectDataEntryForm(this, addNewItem)
     addNewForm = addNew.get()
-    formId = @domId + 'addfrom'
+    formId = @domId + '-addform'
     addNewForm.addClass @newFormClass
     addNewForm.attr('id', formId)
     addNewForm.hide()
@@ -809,8 +811,6 @@ class FilesContainer extends ContainerBase
 
   makeFileCont: (filename) =>
     fileCont = new FileValueContainer(filename)
-    console.log "made file Cont", fileCont
-    #fileCont = new BasicValueContainerNoMod(filename)
     fileCont
 
   currentValue: =>
@@ -879,12 +879,29 @@ class LinksContainer extends ObjectBase
     @showEditClass = 'joha-link-edit-active'
     @viewClass = 'joha-link-view'
     @editClass = 'joha-link-edit'
+    @newFormClass = 'joha-link-add'
     @linksChildren = for own key, val of @objValue
       new LinksKeyValue(key, val)
     @kvChildren = @linksChildren #ToDo: refactor to single name
     super @objValue
     @delBtn = @commonMethods["makeDelBtn"](@domId,
                                            @recalcTrigger,@deleteClass)
+  addNewItem = (me, newLink) =>
+    newUrl = newLink["url"]
+    newLabel = newLink["label"]
+    newUrlStr = String newUrl
+    newLabelStr = String newLabel
+    newChild = new LinksKeyValue(newUrlStr, newLabelStr)
+    me.kvChildren.push newChild
+    #Add new child to Dom
+    thisDom = $(me.selDomId)
+    #append to end of obj items
+    jItemClass = '.' + me.itemClass
+    lastObjItemDom = thisDom.find(jItemClass).last()
+    lastObjItemDom.after( newChild.view() )
+    newChildDom = $(newChild.selDomId)
+    newChildDom.addClass me.createClass
+    newChildDom.trigger(me.recalcTrigger)
 
   view: =>
     linksDomClass = 'joha-links'
@@ -936,15 +953,42 @@ class LinksContainer extends ObjectBase
     linkDom
 
   linksView:  (links) ->
-    linksViewOuterHtml = wrapHtml('div','Links')
+    linksViewOuterHtml = wrapHtml('div')
+    linksViewOuterTitle = wrapHtml('span','Links')
+    linksContainerHtml = wrapHtml('div')
     linksViewOuterDom = $(linksViewOuterHtml)
+    linksViewOuterTitleDom = $(linksViewOuterTitle)
+    linksContainerDom = $(linksContainerHtml)
+    linksContainerDom.addClass 'links-vc'
+    linksContainerDom.addClass 'value-container'
+    linksViewOuterTitleDom.addClass 'link-label'
+    linksViewOuterDom.append linksViewOuterTitleDom
     linksViewOuterDom.addClass @viewClass
     for own url, label of links
       linkViewDom = @linkViewDom(url, label)
-      linksViewOuterDom.append linkViewDom
+      linksContainerDom.append linkViewDom
       null
+    linksViewOuterDom.append linksContainerDom
+    addNew = new LinksDataEntryForm(this, addNewItem)
+    addNewForm = addNew.get()
+    formId = @domId + '-addform'
+    addNewForm.addClass @newFormClass
+    addNewForm.attr('id', formId)
+    addNewForm.hide()
+    linksViewOuterDom.append addNewForm
+
+    addFn = (targetId) =>
+      formDom = $('#'+formId)
+      console.log 'Add Form', formDom
+      formDom.toggle()
+
+    addBtnArgs = {targetId: @domId, addFn: addFn}
+    addBtn = new AddButtonBase(addBtnArgs)
+    linksViewOuterDom.append addBtn.get()
+
     linksViewOuterDom
 
+  #Is this even called anymore?
   linkEditDom: (url, label) ->
     objHtml = wrapHtml('div')
     urlHtml = wrapHtml('span', url)
@@ -954,6 +998,7 @@ class LinksContainer extends ObjectBase
     _kv = {}
     _kv[url] = label
     objDom = $(objHtml)
+    objDom.addClass 
     urlDom = urlCont.view() 
     labelDom = labelCont.view() 
     objDom.append urlDom

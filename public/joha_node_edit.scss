@@ -67,6 +67,17 @@ $joha_el_margin: 0.2em 0.2em 0.2em 0.2em;
   margin: $joha_el_margin;
 }
 
+@mixin joha-node-label {
+  @incluce joha-field-positioning;
+  border-color: $C0;
+  border-style: solid;
+  border-width: 1px;
+  @include bg-color-base;
+  border-top-left-radius: 0.3em;
+  border-top-right-radius: 0.3em;
+  padding: $joha_field_el_padding;
+}
+
 #sass-tester {
 }
 
@@ -97,15 +108,7 @@ $joha_el_margin: 0.2em 0.2em 0.2em 0.2em;
   padding-left: 0.25em;
 
   .joha-label{
-    @incluce joha-field-positioning;
-    border-color: $C0;
-    border-style: solid;
-    border-width: 1px;
-    @include bg-color-base;
-    /* background-color: $val_cont_base_color; */
-    border-top-left-radius: 0.3em;
-    border-top-right-radius: 0.3em;
-    padding: $joha_field_el_padding;
+    @include joha-node-label
   }
 
  .value-container {
@@ -201,6 +204,18 @@ $joha_el_margin: 0.2em 0.2em 0.2em 0.2em;
   content: ":";
 }
 
+/*Link Styling*/
+.joha-links   .link-label {
+    @include joha-node-label;
+}
+
+#joha-edit-node-data a {
+  @include item-color;
+  @include joha-inline-block;
+  @include joha-margin;
+}
+
+/*File Container Styling*/
 .joha-file-item {
   @include item-color;
   @include joha-inline-block;
