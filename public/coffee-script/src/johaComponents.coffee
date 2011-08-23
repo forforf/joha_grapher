@@ -56,7 +56,7 @@ class DataEntryFormBase
     hideButtonDom = $(hideButtonHtml)
     formDom.append formLabelDom
     formDom.append buttonDom
-    formDom.hideButtonDom
+    formDom.append hideButtonDom
     @formDom = formDom
     buttonDom.click (e) =>
       e.preventDefault()
@@ -101,92 +101,109 @@ class ArrayDataEntryForm extends DataEntryFormBase
     #  onClickCallback(arrayObj, dataEntered)
     #hideButtonDom.click =>
     #  formDom.hide()
-    # test
 
   #get: ->
   #  @formDom
 
 #requires jQuery and leverages JQueryUI
-class ObjectDataEntryForm
+class ObjectDataEntryForm extends DataEntryFormBase
   constructor: (objCont, onClickCallback) ->
-    dataEntered = null
-    formHtml = wrapHtml('form')
-    formLabel = wrapHtml('div', 'New Key-Value for Object Item:')
-    keyLabel = wrapHtml('span', 'Key:')
-    valLabel = wrapHtml('span', 'Value:')
-    keyInputHtml = wrapHtml('input', '', "type='text' name='key_item'")
-    valInputHtml = wrapHtml('input', '', "type='text' name='val_item'")
-    buttonHtml = "<button type='submit'>Update</button>" 
-    hideButtonHtml = "<button type='button'>Hide</button>"
-    formLabelDom = $(formLabel)
-    keyLabelDom = $(keyLabel)
-    valLabelDom = $(valLabel)
-    keyInputDom = $(keyInputHtml)
-    valInputDom = $(valInputHtml)
-    buttonDom = $( buttonHtml )
-    hideButtonDom = $( hideButtonHtml )
-    formDom = $(formHtml)
-    #build Dom
-    formDom.append formLabel
-    formDom.append keyLabelDom
-    formDom.append keyInputDom
-    formDom.append valLabelDom
-    formDom.append valInputDom
-    formDom.append buttonDom
-    formDom.append hideButtonDom
-    @formDom = formDom
-    buttonDom.click (e) =>
-      e.preventDefault()
+    myUpdateFn = (e) ->
       dataEntered = {}
       dataEntered["key"] = keyInputDom.val()
       dataEntered["val"] = valInputDom.val()
       onClickCallback(objCont, dataEntered)
-    hideButtonDom.click (e) =>
-      formDom.hide()
+    options =
+      formLabel: 'New Key-Value for Object Item:'
+      updateFn: myUpdateFn
+    super(objCont, onClickCallback, options)
+    #dataEntered = null
+    #formHtml = wrapHtml('form')
+    #formLabel = wrapHtml('div', 'New Key-Value for Object Item:')
+    keyLabel = wrapHtml('span', 'Key:')
+    valLabel = wrapHtml('span', 'Value:')
+    keyInputHtml = wrapHtml('input', '', "type='text' name='key_item'")
+    valInputHtml = wrapHtml('input', '', "type='text' name='val_item'")
+    #buttonHtml = "<button type='submit'>Update</button>" 
+    #hideButtonHtml = "<button type='button'>Hide</button>"
+    #formLabelDom = $(formLabel)
+    keyLabelDom = $(keyLabel)
+    valLabelDom = $(valLabel)
+    keyInputDom = $(keyInputHtml)
+    valInputDom = $(valInputHtml)
+    #buttonDom = $( buttonHtml )
+    #hideButtonDom = $( hideButtonHtml )
+    #formDom = $(formHtml)
+    #build Dom
+    #formDom.append formLabel
+    @formDom.append keyLabelDom
+    @formDom.append keyInputDom
+    @formDom.append valLabelDom
+    @formDom.append valInputDom
+    #formDom.append buttonDom
+    #formDom.append hideButtonDom
+    #@formDom = formDom
+    #buttonDom.click (e) =>
+    #  e.preventDefault()
+    #  dataEntered = {}
+    #  dataEntered["key"] = keyInputDom.val()
+    #  dataEntered["val"] = valInputDom.val()
+    #  onClickCallback(objCont, dataEntered)
+    #hideButtonDom.click (e) =>
+    #  formDom.hide()
 
-  get: ->
-    @formDom
+  #get: ->
+  #  @formDom
   
 #requires jQuery and leverages JQueryUI
-class LinksDataEntryForm
+class LinksDataEntryForm extends DataEntryFormBase
   constructor: (linkCont, onClickCallback) ->
-    dataEntered = null
-    formHtml = wrapHtml('form')
-    formLabel = wrapHtml('div', 'Add new link:')
-    urlLabel = wrapHtml('span', 'Url:')
-    labelLabel = wrapHtml('span', 'Label:')
-    urlInputHtml = wrapHtml('input', '', "type='text' name='url_item'")
-    labelInputHtml = wrapHtml('input', '', "type='text' name='label_item'")
-    buttonHtml = "<button type='submit'>Update</button>" 
-    hideButtonHtml = "<button type='button'>Hide</button>"
-    formLabelDom = $(formLabel)
-    urlLabelDom = $(urlLabel)
-    labelLabelDom = $(labelLabel)
-    urlInputDom = $(urlInputHtml)
-    labelInputDom = $(labelInputHtml)
-    buttonDom = $( buttonHtml )
-    hideButtonDom = $( hideButtonHtml )
-    formDom = $(formHtml)
-    #build Dom
-    formDom.append formLabel
-    formDom.append urlLabelDom
-    formDom.append urlInputDom
-    formDom.append labelLabelDom
-    formDom.append labelInputDom
-    formDom.append buttonDom
-    formDom.append hideButtonDom
-    @formDom = formDom
-    buttonDom.click (e) =>
-      e.preventDefault()
+    myUpdateFn = (e) ->
       dataEntered = {}
       dataEntered["url"] = urlInputDom.val()
       dataEntered["label"] = labelInputDom.val()
       onClickCallback(linkCont, dataEntered)
-    hideButtonDom.click (e) =>
-      formDom.hide()
+    options = 
+      formLabel: 'Add New Link:'
+      updateFn: myUpdateFn
+    super(linkCont, onClickCallback, options)
+    #dataEntered = null
+    #formHtml = wrapHtml('form')
+    #formLabel = wrapHtml('div', 'Add new link:')
+    urlLabel = wrapHtml('span', 'Url:')
+    labelLabel = wrapHtml('span', 'Label:')
+    urlInputHtml = wrapHtml('input', '', "type='text' name='url_item'")
+    labelInputHtml = wrapHtml('input', '', "type='text' name='label_item'")
+    #buttonHtml = "<button type='submit'>Update</button>" 
+    #hideButtonHtml = "<button type='button'>Hide</button>"
+    #formLabelDom = $(formLabel)
+    urlLabelDom = $(urlLabel)
+    labelLabelDom = $(labelLabel)
+    urlInputDom = $(urlInputHtml)
+    labelInputDom = $(labelInputHtml)
+    #buttonDom = $( buttonHtml )
+    #hideButtonDom = $( hideButtonHtml )
+    #formDom = $(formHtml)
+    #build Dom
+    #formDom.append formLabel
+    @formDom.append urlLabelDom
+    @formDom.append urlInputDom
+    @formDom.append labelLabelDom
+    @formDom.append labelInputDom
+    #formDom.append buttonDom
+    #formDom.append hideButtonDom
+    #@formDom = formDom
+    #buttonDom.click (e) =>
+    #  e.preventDefault()
+    #  dataEntered = {}
+    #  dataEntered["url"] = urlInputDom.val()
+    #  dataEntered["label"] = labelInputDom.val()
+    #  onClickCallback(linkCont, dataEntered)
+    #hideButtonDom.click (e) =>
+    #  formDom.hide()
 
-  get: ->
-    @formDom
+  #get: ->
+  #  @formDom
     
 iframeUploader = (name) ->
   iframeHtml = wrapHtml('iframe')
