@@ -148,15 +148,11 @@ fileAttachmentButtons = ->
 fileAttachmentForm = (iframeName, formId, @callbackFn) ->  
   container = wrapHtml('div')
   labelWrapper = wrapHtml('div')
-  #label = wrapHtml('span', 'Add Files')
-  #toggleLabel = wrapHtml('button', 'Hide this again')
   fileChooser = wrapHtml('input')
   fileChooserUI = wrapHtml('button', 'Add Files')
   fileChooserCont = wrapHtml('div')
   containerDom = $(container)
   labelWrapperDom = $(labelWrapper)
-  #labelDom = $(label)
-  #toggleLabelDom = $(toggleLabel)
   fileChooserDom = $(fileChooser)
   fileChooserUIDom = $(fileChooserUI)
   fileChooserContDom = $(fileChooserCont)
@@ -185,13 +181,8 @@ fileAttachmentForm = (iframeName, formId, @callbackFn) ->
   fileChooserDom.addClass 'new-files' 
   fileChooserUIDom.css fileChUIStyle
   fileChooserContDom.css fileChContStyle
-
   fileChooserContDom.append fileChooserDom
   fileChooserContDom.append fileChooserUIDom
-      
-  #labelWrapperDom.append labelDom
-  #labelWrapperDom.append toggleLabelDom
-  #containerDom.append labelWrapperDom
   containerDom.append fileChooserContDom
 
   #ToDo: Maybe send raw filename with path back to callback?  
