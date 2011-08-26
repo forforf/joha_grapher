@@ -87,7 +87,9 @@ johaGraphDefaults = (thisGraph) ->
       w = domElement.offsetWidth
       style.left = (left - w / 2) + 'px'
       
-   return johaRGraphDefaults       
+   return johaRGraphDefaults     
+   
+   
 makeJohaRGraph = (Log) ->
   Log = log
   

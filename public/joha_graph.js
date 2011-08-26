@@ -431,8 +431,8 @@ function newNodeCreated(data){
 }
 
 function initializeGraph(){
-  blankGraph = rgraphInit(); //insert canvas into here if you can figure it out
-   
+  //blankGraph = rgraphInit(); //insert canvas into here if you can figure it out
+  blankGraph = makeJohaRGraph(Log); //ToDo: RGraph Log isn't working, fix it
   var nodeSource = '/index_nodes';
   //the below assigns the graph to myGraph (via Ajax)
   insertNodesIntoGraph(blankGraph, nodeSource);
@@ -1096,106 +1096,14 @@ function add_descendant_data(el, node_data_type){
 }
 
 
-//Main Graph Functions
-//--core grapher
-function rgraphInit(){
-  var rgraph = makeJohaRGraph(Log)
-  return rgraph;
-}
-/*
-    var rgraph = new $jit.RGraph({
-        //Where to append the visualization
-        injectInto: 'infovis',
-        levelDistance: 100,
-        width: 900,
-        height: 700,
-        //Optional: create a background canvas that plots
-        //concentric circles.
-        background: {
-            numberOfCircles: 100,  //default - doesn't change node placement
-            levelDistance: 100,  //default - doesn't change node placement
-          CanvasStyles: {
-            strokeStyle: '#555'
-          }
-        },
+// ToDo: Remove as the JohaRGraph module does this now
+////Main Graph Functions
+////--core grapher
+//function rgraphInit(){
+//  var rgraph = makeJohaRGraph(Log)
+//  return rgraph;
+//}
 
-        //Add navigation capabilities:
-        //zooming by scrolling and panning.
-        Navigation: {
-          enable: true,
-          panning: true,
-          zooming: 10
-        },
-        //Set Node and Edge styles.
-        Node: {
-            color: '#ddeeff'            
-        },
-        
-        Edge: {
-          color: '#C17878',
-          lineWidth:1.5
-        },
-        
-        Events: {  
-          enable: true,  
-          onClick: function(node, eventInfo, e) {  
-            if(node==false){
-              show_create_node_form(); }
-            else {
-              //myGraph.onClick(node.id);
-            };
-          }   
-        },  
-
-        onBeforeCompute: function(node){
-            Log.write("centering " + node.name + "...");
-            //Add the relation list in the right column.
-            //This list is taken from the data property of each JSON node.
-            //I don't remember what a relation list was.  My coop into the borged files and links
-            //$jit.id('inner-details').innerHTML = "Node Info: " + node.data.description;
-        },
-        
-        onAfterCompute: function(){
-            Log.write("done");
-        },
-        //Add the name of the node in the correponding label
-        //and a click handler to move the graph.
-        //This method is called once, on label creation.
-
-        onCreateLabel: function(domElement, node){
-            domElement.innerHTML = node.name;
-            domElement.onclick = function() {
-                rgraph.onClick(node.id);
-                routeClickedNodeDataToElements(node);
-            }
-        },
-        //Change some label dom properties.
-        //This method is called each time a label is plotted.
-        onPlaceLabel: function(domElement, node){
-            var style = domElement.style;
-            style.display = '';
-            style.cursor = 'pointer';
-
-            if (node._depth <= 1) {
-                style.fontSize = "0.8em";
-                style.color = "#ccc";
-            
-            } else if(node._depth == 2){
-                style.fontSize = "0.7em";
-                style.color = "#494949";
-            
-            } else {
-                style.display = 'none';
-            }
-
-            var left = parseInt(style.left);
-            var w = domElement.offsetWidth;
-            style.left = (left - w / 2) + 'px';
-        }
-    });
-    return rgraph;
-}
-*/
 //-- Grahper Log
 
 //JIT Graph Function (writes current status to the log element
