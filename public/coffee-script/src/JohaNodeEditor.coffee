@@ -137,25 +137,25 @@ class JohaNodeEditor
     nodeDom.append filesDom
     nodeDom
     
-    #for testing
-    curValLabel = 'Current Value:'
-    curValCalc = JSON.stringify @currentValue()
-    curValLabelHtml = '<span>' + curValLabel + '</span>'
-    curValCalcHtml = '<span>' + curValCalc +  '</span>'
-    curValLabelDom = $(curValLabelHtml)
-    curValCalcDom = $(curValCalcHtml)
-    curValDom = $('<div />')
-    curValDom.append curValLabelDom
-    curValDom.append curValCalcDom
-    nodeDom.append curValDom
-    testFn = (event) =>
-      console.log "JNE Testing nodeDom Change"
-      console.log 'this', @
-      newDomValue = JSON.stringify @currentValue()
-      curValCalcDom.text(newDomValue)
-
-    nodeDom.bind("joha-recalculate", testFn)
-    nodeDom
+    ##for testing
+    #curValLabel = 'Current Value:'
+    #curValCalc = JSON.stringify @currentValue()
+    #curValLabelHtml = '<span>' + curValLabel + '</span>'
+    #curValCalcHtml = '<span>' + curValCalc +  '</span>'
+    #curValLabelDom = $(curValLabelHtml)
+    #curValCalcDom = $(curValCalcHtml)
+    #curValDom = $('<div />')
+    #curValDom.append curValLabelDom
+    #curValDom.append curValCalcDom
+    #nodeDom.append curValDom
+    #testFn = (event) =>
+    #  console.log "JNE Testing nodeDom Change"
+    #  console.log 'this', @
+    #  newDomValue = JSON.stringify @currentValue()
+    #  curValCalcDom.text(newDomValue)
+    #
+    #nodeDom.bind("joha-recalculate", testFn)
+    #nodeDom
 
 
   clearNodeEdits: ->

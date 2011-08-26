@@ -81,7 +81,9 @@
       
 /* Header data */
 
- var JohaNodeEditor = require('JohaNodeEditor').JohaNodeEditor;
+var JohaNodeEditor = require('JohaNodeEditor').JohaNodeEditor;
+var makeJohaRGraph = require('JohaRGraph').makeJohaRGraph;
+
 
 var johaGraph = {};  //Global graph container
 // Write something here about initialization or getting ready, something something
@@ -263,7 +265,8 @@ function set_up_onClicks() {
   
   //ToDo: I think regular old bind/click will work here
   //Collect updated data when user selects to save the node data
-  $j('#save_node_data').live('click', function(event) {
+  $j('#save_node_data').click(function(event) {
+  //$j('#save_node_data').live('click', function(event) {
     
     var all_edits = {};
     fieldValueData = $j('.joha_field_value_container').map(function(){ return $j(this).data();}).get();
@@ -1023,6 +1026,7 @@ function insertNodesIntoGraph(aGraph, nodeLoc){
     function(graph_data) {
       console.log(graph_data);
       johaIndex(graph_data);
+      console.log(aGraph);
       aGraph.loadJSON(graph_data);
   
       aGraph.refresh();
@@ -1095,7 +1099,10 @@ function add_descendant_data(el, node_data_type){
 //Main Graph Functions
 //--core grapher
 function rgraphInit(){
-
+  var rgraph = makeJohaRGraph(Log)
+  return rgraph;
+}
+/*
     var rgraph = new $jit.RGraph({
         //Where to append the visualization
         injectInto: 'infovis',
@@ -1188,13 +1195,14 @@ function rgraphInit(){
     });
     return rgraph;
 }
-
+*/
 //-- Grahper Log
 
 //JIT Graph Function (writes current status to the log element
 var Log = {
     elem: false,
     write: function(text){
+        alert('writing log');
         if (!this.elem)
             this.elem = document.getElementById('log');
         this.elem.innerHTML = text;
