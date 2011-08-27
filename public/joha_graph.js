@@ -194,52 +194,6 @@ function set_up_onClicks() {
     confirmDelete.dialog('open');
   });
  
-/* 
-  //File Attachment Related
-  $j('.show_add_attach_form').click(function(){
-    $j('#add_attach_form').show();
-    //$j('#fileupload').show();
-  });
-  
-  $j('.hide_add_attach_form').click(function(){
-    $j('#add_attach_form').hide();
-    //$j('#fileupload').hide();
-  });
-  
-  $j('.ready_attachment_button').click(function(){
-    var filesToAdd = document.getElementById('add_attach_edit')
-    //Attachment is uploaded when node data is saved
-    readyAttachment(filesToAdd.files);
-  });
-
-  $j('.upload_attachment_button').click(function(){
-    var filesToAdd = document.getElementById('add_attach_edit')
-    //Attachment is uploaded when node data is saved
-    uploadAttachments();
-  });
-  
-  $j('.delete_attach_list').click(function(){
-    var node_id = $j('#current_node_id').text();
-    var fileAttachmentDeletes = $j('.file_attachment_name.joha_delete').map(function() {
-     return $j(this).text();
-    }).get()
-        
-    var deleteFileData = {
-      "node_id": node_id,
-      "del_files": fileAttachmentDeletes
-    };
-  
-    
-    jQuery.post("./delete_files", deleteFileData,
-      function(data){
-        //TODO: Synchronize the setting of base IDs
-        $j('#file_attachment_list').children().remove();
-        files_element_format(data, "joha-edit-filenames", $j('#file_attachment_list'));
-      },
-    "json");
-  });
-*/  
-/*
   //Set up editing in place (JQuery plugin Jeditable)
   //-- wrap it in .live so that future elements can use it
   //changed 'click' to 'hover' so single click editing works
@@ -259,7 +213,7 @@ function set_up_onClicks() {
     });
     
   });
-*/  
+
   //ToDo: I think regular old bind/click will work here
   //Collect updated data when user selects to save the node data
   $j('#save_node_data').click(function(event) {
@@ -313,13 +267,6 @@ function set_up_onClicks() {
     if (objSize(saveObj) > 0){
       jQuery.post("./node_data_update", saveObj,
         function(data){
-          //jlog("returned graph data", data);
-          //jlog("joha myGraph", johaGraph.myGraph);
-          //alert("loading new JSON");
-          //console.log(johaGraph.myGraph.toJSON());
-          //johaGraph.myGraph.op.morph(data, {
-          //  type: 'fade',
-          //  duration: 1500 
           
           johaIndex(data);
           $johaGraph.myGraph.loadJSON(data); 
@@ -329,11 +276,8 @@ function set_up_onClicks() {
         },
         "json");
     } 
-    
     //revert data to default (by acting like the node is clicked)
     console.log("Save Clicked", "TODO: Revert updated data to unchanged after node is saved");
-    
-    
   });
 
 
@@ -349,35 +293,12 @@ function set_up_onClicks() {
     var nodeId = $j('#current_node_id').text();
     actLikeNodeClicked(nodeId);
   });  
- 
- /*
-  //listen for clicks on delete buttons
-  $j('.delete_controls').live('click', function(event) {
-    event.preventDefault();
-    
-    delData = $j(this).data();
-
-    console.log('delete clicked', delData );
-    toggleDelete(delData.johaData__deleteContainerId);
-  });
-*/
-/*
-  // $j('#create_node').live('click', function(event) {
-  //  nodeId = $j('#create_node_id').val();
-  //  nodeLabel = $j('#create_node_label').val();
-  //  nodeParents = $j('#create_node_parents').val();
-  //  var initialNodeData = {id: nodeId, label: nodeLabel, parents: nodeParents};
-  //  console.log(initialNodeData);
-  // });
-*/
 }
-
 
 function newNodeCreated(data){
   var nodeData = data.node;
   var graphData = data.graph;
   console.log(nodeData);
-  //console.log(graphData);
   //TODO: See if there maybe an more elegant way of seeing if node is attached to graph
   //comparing root nodes??, leveraging server side information when node is created?
   var nodeId = nodeData.id;
@@ -430,10 +351,8 @@ function newNodeCreated(data){
 }
 
 function initializeGraph(){
-  //blankGraph = rgraphInit(); //insert canvas into here if you can figure it out
-  //blankGraph = makeJohaRGraph(Log); //ToDo: RGraph Log isn't working, fix it
   var blankJohaGraph = new JohaGraph();
-  //blankGraph = blankJohaGraph.thisRGraph;
+
   var nodeSource = '/index_nodes';
   //the below assigns the node data to myGraph (via Ajax)
   insertNodesIntoGraph(blankJohaGraph, nodeSource);
@@ -510,204 +429,7 @@ function deleteNode(nodeId){
           }
         });
 }
-/*
-//-- handle updating data
-function updateJeditElement(el, value, settings){
 
-  thisEl = $j(el);
-  
-  thisEl.data("johaData__UpdatedValue", value);
-
-  thisEl.addClass('joha_update edit_text');
- 
-  return value;
-}
-*/
-//-- file attachment handling
-/*
-function readyAttachment(filesToAdd){
-  var joha = new Joha();
-   $j('#pending_file_attachments').children().remove();
-  var idx = $j('.joha-edit-files-pending').length;
-  var divIdBase = "joha-edit-files-pending";
-  console.log(filesToAdd);
-  var pendingLabelId = "pending_files_label"
-  var pendingFileSectionLabel = "<span id =\"" + pendingLabelId + "\">Pending Attachments</span>";
-  
-  var filesIdBase = divIdBase + "_";
-  for (var i=0; i<filesToAdd.length; i++){
-   var fileName = filesToAdd[i].fileName;
-   if (fileName.length == 0) { continue; }
-   
-   var index = idx + i;
-   var fileIdBase = filesIdBase + index;
-    
-    //for (var i in filenames){
-      
-    var fileWr = $j("<div />", {
-      "id": fileIdBase + "_wr_" + index,
-      "class": "pending_file_wrapper",
-    });   
-     var pendingFileEl = joha.buildSimpleElem.staticValueElement(fileName, fileIdBase);
-     
-     fileWr.append(pendingFileEl);
-     //fileDelCtl = joha.buildSimpleElem.deleteControl(pendingFileEl, fileIdBase);
-     
-     var elId = "pending_delete";
-     var elClass = "delete_controls";
-     //TODO: This is duplicative but joha builder was not abstract enough
-     var elHtml = "<img id=\"" + elId + "\" class=\"" + elClass + "\" src=\"./images/delete_normal.png\" alt=\"-\" />"
-     var target = fileWr;
-     //johaTgt and johaCtl are available with the event.data parameter by way of controlObj
-      var eventActions = {'click': function(event){
-        console.log("Pending deleteControl clicked, Target:", event.data.johaTgt);
-        event.data.johaTgt.remove();
-        if ($j('.pending_file_wrapper').length == 0) {
-          $j('#pending_file_attachments').hide;
-        }
-      }};
-     var delCtl = johaPats.controlObj(elHtml, target, eventActions);
-     fileWr.append(delCtl);
-     //});
-     //pendingFileDiv.data({"johaData__fileData": filesToAdd[i]})
-     
-     $j('#pending_file_attachments').append(fileWr);
-  }
-};
-*/
-
-/*
-function redirectSubmit(){
-  $('add_attach_form').target = 'files_uploaded_iframe'; //return result goes to iframe
-  $('add_attach_form').submit();
-};
-*/
-  //
-/*
-function uploadAttachments(){  
-    var node_id = $j('#current_node_id').text()
-    $j("#node_id_input_edit").val(node_id);
-    alert($j("#node_id_input_edit").val());
-    redirectSubmit();
-//  //Refreshes the list
-    //with return value of Ajax (it's in the hidden iframe)
-
-};
-*/
-
-/*
-function downloadAttachment(nodeId, attName) {
-  var downloadUrl = "/download/" + nodeId + "/" + attName
-  window.location.href = downloadUrl;
-}
-*/
-
-/*
-//-- -- data structures 
-var files_element_format = function(filenames, divIdBase, el){
-  var joha = new Joha;
-  
-  if (filenames.length > 0 ){
-    //create the DOM elements
-    var filesIdBase = divIdBase + "_";
-    for (var i in filenames){
-      var fileIdBase = filesIdBase + i;
-      var fileWr = $j("<div />", {
-        "id": fileIdBase,
-      });
-      var filename = filenames[i];
-      var fileLabel = joha.buildSimpleElem.staticValueElement(filename, fileIdBase);
-      fileLabel.addClass('file_attachment_name');
-      fileLabel.click(function() {
-        var node_id = $j('#current_node_id').text();
-        downloadAttachment(node_id, filename);
-      });
-      fileWr.append(fileLabel);
-      var fileDelCtl = joha.buildSimpleElem.deleteControl(fileLabel, fileIdBase);
-      fileWr.append(fileDelCtl);
-      fileWr.appendTo(el);
-
-    }
-  } else {
-    alert('zero length filenames passed');
-  }
-}
-*/
-/*
-
-//move out of Global space at some point
-var johaSpecialFunctions = {
-  //-- Some data keys are special and get their own specific display function
-  //TODO: Pass elements into functions
-  edit_id_elements: function(id){
-    var current_node_id = $j('#current_node_id').text();
-    if (current_node_id == id) {} else {
-      alert("Current Node Id: " + current_node_id + " BUT Node Data has id: " + id + ".");
-    }
-  },
-
-  edit_label_elements: function(label){
-    //Note that the DOM eleemnt for label already exists, we're just inserting data into it.
-    //^^Bad we should pass it in or something
-    customData = {
-        "johaData__FieldName": "label",
-        "johaData__NodeId": $j('#current_node_id').text(),
-        "johaData__OriginalValue": $j('#joha-edit-label--').text(),
-        "johaData__Type": "replace_ops",
-        "johaData__UpdatedValue": node.name
-    }
-    $j('#joha-edit-label--').text(node.name);
-    $j('#joha-edit-label--').data(customData);
-    $j('#joha-edit-label--').addClass('joha_edit joha_field_value_container');
-  },
-  
-  //TODO: Create file object with filename and file data (if needed)
-  edit_file_elements: function(filenames){
-    //simpler code, but best behavior to make sure selecting node multiple times creates multiple data?
-    $j('#file_attachment_list').html("");
-    files_element_format(filenames, "joha-edit-filenames", $j('#file_attachment_list') );
-
-  },
-
-  edit_link_elements: function(links){
-      //TODO Refactor to eliminate the need to figure out element id just so we can delete it
-      var baseId = JOHA_ID;
-      var elId = baseId + "_links";
-      $j(elId).remove();
-      var myJoha = new Joha;
-      
-      var customData = {};
-      
-      //Another UGLY Hack to prevent arrays from screwing things up
-      //I'm not sure why Arrays are passed in to begin with
-      for (var key in links) {
-        if (!key){
-          return "";
-        }
-      }
-      
-      
-      var myLinksEl = myJoha.buildLinksList(links, elId, customData)
-      //var link_elements_format = new BuildKvlistDom({"links": links}, baseId);
-      $j('#dn_link_data').append(myLinksEl);
-    //simpler code, but best behavior to make sure selecting node multiple times creates multiple data?
-//    $j('#joha-edit-links').remove();
-//    link_elements_format(links, "joha-edit-links", $j('#dn_link_data') );
-
-  },
-}
-*/
-/*
-var johaConfig = {
-  
-  specialTreatmentFields: {
-    "id": johaSpecialFunctions.edit_id_elements,
-    "label": johaSpecialFunctions.edit_label_elements,
-    "links": johaSpecialFunctions.edit_link_elements,
-    "attached_files": johaSpecialFunctions.edit_file_elements  
-  },
-}
-*/
 // -- Autocomplete helpers
 var johaNodeData = {};
 
@@ -725,8 +447,7 @@ function indexData(treeData, indexedSet){
       indexData(child, currentIndexedSet);
     }
   }
-  
-
+ 
   return currentIndexedSet;
 }
 
@@ -750,78 +471,6 @@ function johaIndex(graphData){
   return johaNodeData;
 }
 
-/*
-function figureOutDataOps(rawData, opType, op) {
-  console.log('raw Data', rawData);
-  console.log('opType', opType);
-  console.log('op', op);
-  //server operations:
-  // for values: add, subtract, replace
-  // for keys: subtact_key, add_key
-  
-  //raw Data keys
-  //johaData__KeyName  
-  //johaData__dataValues
-  // or
-  //johaData__OriginalValue
-  //johaData__UpdatedValue
-  // also indexes are available
-  
-  var srvrCmdMap = {
-    'updates': 'replace',
-    'adds': 'add',
-    'deletes': 'subtract',
-  }
-  
-  var srvrCmd = srvrCmdMap[op];
-  
-  //is it a key or value item
-  var keyOps = ['kvlist_ops', 'link_ops'];
-  var serverSubCommand = {};
-  
-  var origVal = rawData["johaData__OriginalValue"];
-  var keyName = rawData["johaData__KeyName"];
-  var newVal = rawData["johaData__UpdatedValue"];
-  var keyItem = rawData["johaData__KeyItem"];
-
-  console.log(keyItem);
-  console.log(keyName);
-  console.log(newVal);
-  console.log(keyItem);
-  
-  if (!keyItem){
-    
-    serverSubCommand[srvrCmd] =  {  "orig_val": origVal,
-                              "new_val": newVal
-                            }
-                       
-                       
-  } else if (keyItem && keyItem == "value"){
-    //alert("key-value");
-    var keyOrigValue = {};
-    keyOrigValue[keyName] = origVal;
-    var keyNewValue = {};
-    keyNewValue[keyName] = newVal;
-    
-    serverSubCommand[srvrCmd] =  {  "orig_val": keyOrigValue,
-                                "new_val": keyNewValue
-                              }
-
-  } else if (keyItem && keyItem =="key"){
-    //alert("key only");
-    var srvrKeyCmd = srvrCmd + "_key";
-    var origKeyValue = rawData["johaData__OriginalValue"];
-    var newKeyValue = rawData["johaData__UpdatedValue"];
-    serverSubCommand[srvrKeyCmd] =  { "orig_val": origKeyValue,
-                                      "new_val": newKeyValue
-                            }
-
-  }
-  console.log("SERVER COMMAND");
-  console.log(serverSubCommand);
-  return serverSubCommand;  
-}
-*/
 /*
 //-- Transform data collected from DOM to more suitable for server
 //function johaMake
@@ -874,20 +523,6 @@ function johaSaveDataFix(nodeId, domSaveObj) {
       xformObj[fieldName]["rawData"].push(tmpOpObj);
       xformObj[fieldName]["op_type"] = dataType;
 
-      ////filter uneccessary operations
-      //**var ops = get_keys(xformObj[fieldName]);
-      //**console.log('Ops before filtering');
-      //**console.log(ops);
-      ////-- add + delete = NOOP
-      //**if (array_contains(ops, "adds") && array_contains(ops, "deletes")){
-      //**  xformObj[fieldName] = {};
-      //**}
-      
-      //-- any delete takes precedence
-      
-      //console.log('Ops after filtering');
-      //var ops = get_keys(xformObj[fieldName]);
-      //console.log(ops);
     }
     //We've now parsed a particul user operations
     console.log('User Operation: ' + op);
@@ -926,6 +561,7 @@ function johaSaveDataFix(nodeId, domSaveObj) {
   }
 }
 */
+
 function dynamicEditForm(nodeData){
 
   $j('.joha_edit').removeClass('joha_update joha_add joha_delete');
@@ -937,106 +573,30 @@ function dynamicEditForm(nodeData){
   //but only for display reasons
   var nodeCopy = jQuery.extend(true, {}, nodeData);
   //Validation not implemented yet 
-  //var nodeKeys = get_keys(nodeCopy);
-  //if (array_contains_all(nodeKeys, REQUIRED_DATA)) {} else {
-  //alert("Not all Required Data Elements are present in Node ID: " + nodeCopy.id + "Keys:" + nodeKeys) };
-  
-  
-//  var specialTreatment = johaConfig.specialTreatmentFields;
-
+ 
   
   //TODO: pass the Dom locations as a parameter in the special functions rather than
   //having it hard coded in the function.
   $j('#dn_node_data').empty();
   $j('#dn_link_data').empty();
   //TODO: Make #dn_file_data dynamic?
-  //$j('#dn_file_data').empty();
+
   
-  var SHOW_EVEN_IF_NULL = [];//["user_data"];  // show this field in the form even if it doesn't exist in the data
+  var SHOW_EVEN_IF_NULL = [];// show this field in the form even if it doesn't exist in the data
   console.log('node copy', nodeCopy);
-  //console.log('Special Treat', specialTreatment);
-  //var joha_data_def = johaGraph.dataDef();
-  //var someObj = domNodeFactory(nodeCopy, specialTreatment, joha_data_def, SHOW_EVEN_IF_NULL);
+  
   var baseObj = new JohaNodeEditor(nodeCopy);
   var someObj = baseObj.view();
   $j('#dn_node_data').append(someObj);
   console.log('Dynamically creatted node data obj', someObj);
   
-  
-  //in dynform.js library
 }
 
-/*
-function createNewField(newFieldName) {
-  var newType = $joha_data_def()[newFieldName];
-  
-  var dataValue;
-  if (newType === "static_ops" || newType === "replace_ops"){
-    //alert('Text Based');
-    //alert(newType);
-    dataValue = " *new* ";
-    createCommon(newFieldName, newType, dataValue);
-  } else if (newType === "list_ops"){
-    //alert('List Based')
-    //alert(dataValue)
-    dataValue = [];
-    createCommon(newFieldName, newType, dataValue);
-    
-  //TODO: Fix so links is its own type
-  } else if (newFieldName === "links"){
-    createLinks();
-    dataValue = [];
-  } else {
-    alert("something else -  " + newType + ":" + newFieldName);
-    dataValue = {};
-  }
-}  
- */
- /*
-function createCommon(newFieldName, newType, dataValue) {
-  var fieldData = {};
-  fieldData[newFieldName] = dataValue;
-
-  
-  if (newType) {
-    //alert("Val/Type: " + newVal + " / " + newType);
-    //TODO: DRY THIS UP to be identical (not copied) to creating from node data
-    
-    var johaBuilder = new Joha;
- 
-    
-    var nodeId = $j("#current_node_id").text();
-    //console.log($j('#dn_node_data_children'));
-    var fieldIndex = $j('#dn_node_data_children').children().length;
-
-    var fieldDom = domFieldFactory(newType, fieldData, JOHA_ID, johaBuilder, nodeId, fieldIndex)
-    fieldDom.addClass('new_field');
-    console.log("New Field Created");
-    console.log(fieldDom);
-    $j('#dn_node_data_children').append(fieldDom);
-  } else {
-    alert( "Choose a Type for " + newFieldName );
-  }
-  //setTimeout(function(){$j('#add_field_combobox').next().blur();},2);
-}
-*/
-/*
-function createLinks(){
-  var elId = JOHA_ID + "_links";
-  var myJoha = new Joha;
-  var myLinksEl = myJoha.buildLinksList({}, elId, {})
-  console.log(myLinksEl);
-  $j('#dn_link_data').append(myLinksEl);
-}
-*/
-
-/*
 function get_current_node_attachment(filename){
   var currentNodeId = $j('#current_node_id').text();
   //alert("Current Node: " + currentNodeId + " Filename: " + filename + ".");
 }
-*/
-    
+
 //Graphing helpers and interactions
 function insertNodesIntoGraph(aJohaGraph, nodeLoc){
   $johaGraph.johaObj = aJohaGraph;
@@ -1052,15 +612,13 @@ function insertNodesIntoGraph(aJohaGraph, nodeLoc){
       $johaGraph.myGraph = aGraph; //remember this is Asynchonous.  This won't be set right away.
     },
   "json");
-  
 }
-
 
 function actLikeNodeClicked(node_id) {
   var visnode = $johaGraph.myGraph.graph.getNode(node_id);
   alert(visnode);
   $johaGraph.myGraph.onClick(visnode.id);
-  $johaGraph.routeClickedNodeDataToElements(visnode);
+  routeClickedNodeDataToElements(visnode);
 }
 
 //-- called when a node is clicked
@@ -1086,33 +644,14 @@ function routeClickedNodeDataToElements(nodeStale) {
   add_descendant_data($j('#desc-nodes'), 'label');
   add_descendant_data($j('#desc-files'), 'attached_files');
   add_descendant_data($j('#desc-links'), 'links');
-  //make_attachment_list(node.data.attached_files, attachmentListBox);
-  //make_links_list(node.data.links, linksListBox);
-  
-  //Create dropdown box with the list of options determined by the edit node form
-  
-  //var contextEl = $j('#dn-node-data');
-//  var select = $j('#add_field_combobox');
-//  //console.log(contextEl)
-//  updateComboBoxList(select, $joha_data_def());
-//  select.combobox({
-//    selected: function(event, ui) {
 
-      //console.log(event);
-      //console.log(ui);
-//      createNewField(ui.item.text);
-//    }
-//  });
 } 
-// ToDo: Remove the function from global space in all cases
-$johaGraph.routeClickedNodeDataToElements = routeClickedNodeDataToElements;
 
 //-- finds all descendant data for a given node
 function add_descendant_data(el, node_data_type){
-  //var attach_name = el.previousSibling.innerHTML;
-  //var node_id = $('node_id_edit_label').innerHTML;
+
   var node_id = $j('#current_node_id').text();
-  //alert(node_id);
+
   //using jQuery
   el.load('/desc_data', {'node_id': node_id, 'node_data_type':node_data_type });
   //TODO: Do the binding to functions here, not at the server
@@ -1122,13 +661,6 @@ function add_descendant_data(el, node_data_type){
 }
 
 
-// ToDo: Remove as the JohaRGraph module does this now
-////Main Graph Functions
-////--core grapher
-//function rgraphInit(){
-//  var rgraph = makeJohaRGraph(Log)
-//  return rgraph;
-//}
 
 //-- Grahper Log
 
@@ -1251,10 +783,4 @@ var Log = {
     })( jQuery );
  //}
 
-// $j(function() {
-//		$j( "#add_field_combobox" ).combobox();
-//		$j( "#toggle" ).click(function() {
-//			$j( "#add_field_combobox" ).toggle();
-//		});
-//	});
 
