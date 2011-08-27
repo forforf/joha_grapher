@@ -433,10 +433,10 @@ function initializeGraph(){
   //blankGraph = rgraphInit(); //insert canvas into here if you can figure it out
   //blankGraph = makeJohaRGraph(Log); //ToDo: RGraph Log isn't working, fix it
   var blankJohaGraph = new JohaGraph();
-  blankGraph = blankJohaGraph.thisRGraph;
+  //blankGraph = blankJohaGraph.thisRGraph;
   var nodeSource = '/index_nodes';
   //the below assigns the node data to myGraph (via Ajax)
-  insertNodesIntoGraph(blankGraph, nodeSource);
+  insertNodesIntoGraph(blankJohaGraph, nodeSource);
   //setAuthToken('authtok_attach_form');  
 }
     
@@ -1038,8 +1038,9 @@ function get_current_node_attachment(filename){
 */
     
 //Graphing helpers and interactions
-function insertNodesIntoGraph(aGraph, nodeLoc){
-
+function insertNodesIntoGraph(aJohaGraph, nodeLoc){
+  $johaGraph.johaObj = aJohaGraph;
+  aGraph = aJohaGraph.thisRGraph;
   $j.get(nodeLoc,
     function(graph_data) {
       console.log(graph_data);
@@ -1068,8 +1069,11 @@ function routeClickedNodeDataToElements(nodeStale) {
   //is stale, and new tree data isn't part of it
   //the below is to update the passed in node with updated
   //information
-  node = $jit.json.getSubtree($johaGraph.myGraph.json, nodeStale.id);  //elements to receive node data
-
+  //node = $jit.json.getSubtree($johaGraph.myGraph.json, nodeStale.id);  //elements to receive node data
+  console.log('routing - stale node', nodeStale);
+  node = $johaGraph.johaObj.freshNode(nodeStale)
+  console.log('routing - fresh node', node);
+  
   //Need this here for parents that are not nodes
   //TODO: investigate using $jit to avoid duplication
   $j('#current_node_id').text(node.id);
