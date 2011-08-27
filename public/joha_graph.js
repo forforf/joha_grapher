@@ -294,7 +294,7 @@ function set_up_onClicks() {
     
     //fileAttachmentDeletes = $j('.file_attachment_name.joha_delete').map(function() {
     //  return $j(this).text();
-    //}).get()
+    // }).get()
     
     
     all_edits['updates'] = filterJohaData('.joha_update');
@@ -319,7 +319,6 @@ function set_up_onClicks() {
           //johaGraph.myGraph.op.morph(data, {
           //  type: 'fade',
           //  duration: 1500 
-          //});
           
           johaIndex(data);
           johaGraph.myGraph.loadJSON(data); 
@@ -361,13 +360,15 @@ function set_up_onClicks() {
     toggleDelete(delData.johaData__deleteContainerId);
   });
 */
-  //$j('#create_node').live('click', function(event) {
+/*
+  // $j('#create_node').live('click', function(event) {
   //  nodeId = $j('#create_node_id').val();
   //  nodeLabel = $j('#create_node_label').val();
   //  nodeParents = $j('#create_node_parents').val();
   //  var initialNodeData = {id: nodeId, label: nodeLabel, parents: nodeParents};
   //  console.log(initialNodeData);
-  //});
+  // });
+*/
 }
 
 
