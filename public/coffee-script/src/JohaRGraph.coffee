@@ -7,6 +7,7 @@ forfExtend = require('extend').extend
 
 class JohaGraph
   constructor: ->
+    @afterNodeClickCallback = $johaGraph.afterNodeClick
     @thisRGraph = new $jit.RGraph( @johaGraphDefaults(this) )
     
   freshNode: (staleNode) ->
@@ -67,7 +68,10 @@ class JohaGraph
         domElement.onclick = () ->
           #$johaGraph.myGraph.onClick(node.id)
           johaRGraph.thisRGraph.onClick(node.id)
-          $johaGraph.routeClickedNodeDataToElements(node)
+          freshNode = johaRGraph.freshNode(node)
+          #$johaGraph.afterNodeClick(freshNode)
+          johaRGraph.afterNodeClickCallback(freshNode)
+          null
         null
          
       #Change some label dom properties.

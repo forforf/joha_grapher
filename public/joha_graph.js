@@ -588,6 +588,8 @@ function dynamicEditForm(nodeData){
   var baseObj = new JohaNodeEditor(nodeCopy);
   var someObj = baseObj.view();
   $j('#dn_node_data').append(someObj);
+  //ToDo: Determine if node.label is flexible enough (will it always be label?)
+  $j('#joha-edit-label--').text(nodeCopy.label);
   console.log('Dynamically creatted node data obj', someObj);
   
 }
@@ -598,9 +600,9 @@ function get_current_node_attachment(filename){
 }
 
 //Graphing helpers and interactions
-function insertNodesIntoGraph(aJohaGraph, nodeLoc){
-  $johaGraph.johaObj = aJohaGraph;
-  aGraph = aJohaGraph.thisRGraph;
+function insertNodesIntoGraph(aJohaObj, nodeLoc){
+  $johaGraph.johaObj = aJohaObj;
+  aGraph = aJohaObj.thisRGraph;
   $j.get(nodeLoc,
     function(graph_data) {
       console.log(graph_data);
@@ -616,27 +618,20 @@ function insertNodesIntoGraph(aJohaGraph, nodeLoc){
 
 function actLikeNodeClicked(node_id) {
   var visnode = $johaGraph.myGraph.graph.getNode(node_id);
-  alert(visnode);
+  //alert(visnode);
   $johaGraph.myGraph.onClick(visnode.id);
-  routeClickedNodeDataToElements(visnode);
+  //visnode can be stale sometimes, so we freshen it
+  node = $johaGraph.johaObj.freshNode(visnode)
+  //routeClickedNodeDataToElements(node);
+  $johaGraph.afterNodeClick(node)
 }
 
 //-- called when a node is clicked
-function routeClickedNodeDataToElements(nodeStale) {
-  //not sure why, but the node passed into the function
-  //is stale, and new tree data isn't part of it
-  //the below is to update the passed in node with updated
-  //information
-  //node = $jit.json.getSubtree($johaGraph.myGraph.json, nodeStale.id);  //elements to receive node data
-  console.log('routing - stale node', nodeStale);
-  node = $johaGraph.johaObj.freshNode(nodeStale)
-  console.log('routing - fresh node', node);
-  
+$johaGraph.afterNodeClick = function(node) {
   //Need this here for parents that are not nodes
   //TODO: investigate using $jit to avoid duplication
   $j('#current_node_id').text(node.id);
   
-
   //functions to distribute data to 
   show_edit_node_form(node);
   console.log("Routing CLicked Node", node);
