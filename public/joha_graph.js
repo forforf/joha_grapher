@@ -82,20 +82,21 @@
 /* Header data */
 
 var JohaNodeEditor = require('JohaNodeEditor').JohaNodeEditor;
-var makeJohaRGraph = require('JohaRGraph').makeJohaRGraph;
+var johaRG = require('JohaRGraph')
+var makeJohaRGraph = johaRG.makeJohaRGraph;
+var JohaGraph = johaRG.JohaGraph;
 
 
-var johaGraph = {};  //Global graph container
+var $johaGraph = {};  //Global graph container
 $j(document).ready(function() {
   //Server provided Constants
   JOHA_DATA_DEF = syncJax('/data_definition');
 
-  //console.log(JohaNodeEditor);
   //do this to ensure we can't clobber the constant JOHA_DATA_DEF
-  $joha_data_def = function(){ return jQuery.extend(true, {}, JOHA_DATA_DEF); };
+  $johaGraph.dataDef = function(){ return jQuery.extend(true, {}, JOHA_DATA_DEF); };
   
   //Temporary for Testing
-  $joha_data_def()['user_data'] = "key_list_ops";
+  //johaGraph.dataDef()['user_data'] = "key_list_ops";
     
   initializeGraph();
   set_up_onClicks();
@@ -124,14 +125,14 @@ function set_up_onClicks() {
 
   $j('#rotate_test').click(function(){
     var theta = Math.PI/2;
-    johaGraph.myGraph.graph.eachNode(function(n) { 
+    $johaGraph.myGraph.graph.eachNode(function(n) { 
       var p = n.getPos('current'); 
       p.theta += theta; 
       if (p.theta < 0) { 
         p.theta += Math.PI * 2; 
       } 
     }); 
-   johaGraph.myGraph.plot(); 
+   $johaGraph.myGraph.plot(); 
     });
 
   //Create Node
@@ -321,8 +322,8 @@ function set_up_onClicks() {
           //  duration: 1500 
           
           johaIndex(data);
-          johaGraph.myGraph.loadJSON(data); 
-          johaGraph.myGraph.refresh();
+          $johaGraph.myGraph.loadJSON(data); 
+          $johaGraph.myGraph.refresh();
           actLikeNodeClicked(currentNodeId);
           //console.log(johaGraph.myGraph.toJSON());
         },
@@ -384,16 +385,16 @@ function newNodeCreated(data){
   //Do parents exist in graph?
   for (var i=0;i<parentsIds.length;i++) {
     var parentId = parentsIds[i];
-    node_in_graph = johaGraph.myGraph.graph.getNode(parentId);
+    node_in_graph = $johaGraph.myGraph.graph.getNode(parentId);
     console.log(node_in_graph);
-    console.log(johaGraph.myGraph.toJSON());
-    var topNodeId = johaGraph.myGraph.toJSON().id;
+    console.log($johaGraph.myGraph.toJSON());
+    var topNodeId = $johaGraph.myGraph.toJSON().id;
     console.log(topNodeId);
     
     if ( (node_in_graph) ) {
       johaIndex(graphData);
-      johaGraph.myGraph.loadJSON(graphData); 
-      johaGraph.myGraph.refresh();
+      $johaGraph.myGraph.loadJSON(graphData); 
+      $johaGraph.myGraph.refresh();
       actLikeNodeClicked(nodeId);
     } else if (topNodeId===undefined) { 
       //topNodeId doesn't exist, redirect (i.e. a brand new graph)
@@ -430,7 +431,9 @@ function newNodeCreated(data){
 
 function initializeGraph(){
   //blankGraph = rgraphInit(); //insert canvas into here if you can figure it out
-  blankGraph = makeJohaRGraph(Log); //ToDo: RGraph Log isn't working, fix it
+  //blankGraph = makeJohaRGraph(Log); //ToDo: RGraph Log isn't working, fix it
+  var blankJohaGraph = new JohaGraph();
+  blankGraph = blankJohaGraph.thisRGraph;
   var nodeSource = '/index_nodes';
   //the below assigns the node data to myGraph (via Ajax)
   insertNodesIntoGraph(blankGraph, nodeSource);
@@ -500,8 +503,8 @@ function deleteNode(nodeId){
           console.log(data);
           if (data.lenth>0){
             johaIndex(data);
-            johaGraph.myGraph.loadJSON(data); 
-            johaGraph.myGraph.refresh();
+            $johaGraph.myGraph.loadJSON(data); 
+            $johaGraph.myGraph.refresh();
           } else {
             window.location = "/redirect_to_graphs";
           }
@@ -952,7 +955,7 @@ function dynamicEditForm(nodeData){
   var SHOW_EVEN_IF_NULL = [];//["user_data"];  // show this field in the form even if it doesn't exist in the data
   console.log('node copy', nodeCopy);
   //console.log('Special Treat', specialTreatment);
-  var joha_data_def = $joha_data_def();
+  //var joha_data_def = johaGraph.dataDef();
   //var someObj = domNodeFactory(nodeCopy, specialTreatment, joha_data_def, SHOW_EVEN_IF_NULL);
   var baseObj = new JohaNodeEditor(nodeCopy);
   var someObj = baseObj.view();
@@ -1045,7 +1048,7 @@ function insertNodesIntoGraph(aGraph, nodeLoc){
       aGraph.loadJSON(graph_data);
   
       aGraph.refresh();
-      johaGraph.myGraph = aGraph; //remember this is Asynchonous.  This won't be set right away.
+      $johaGraph.myGraph = aGraph; //remember this is Asynchonous.  This won't be set right away.
     },
   "json");
   
@@ -1053,10 +1056,10 @@ function insertNodesIntoGraph(aGraph, nodeLoc){
 
 
 function actLikeNodeClicked(node_id) {
-  var visnode = johaGraph.myGraph.graph.getNode(node_id);
+  var visnode = $johaGraph.myGraph.graph.getNode(node_id);
   alert(visnode);
-  johaGraph.myGraph.onClick(visnode.id);
-  routeClickedNodeDataToElements(visnode);
+  $johaGraph.myGraph.onClick(visnode.id);
+  $johaGraph.routeClickedNodeDataToElements(visnode);
 }
 
 //-- called when a node is clicked
@@ -1065,7 +1068,7 @@ function routeClickedNodeDataToElements(nodeStale) {
   //is stale, and new tree data isn't part of it
   //the below is to update the passed in node with updated
   //information
-  node = $jit.json.getSubtree(johaGraph.myGraph.json, nodeStale.id);  //elements to receive node data
+  node = $jit.json.getSubtree($johaGraph.myGraph.json, nodeStale.id);  //elements to receive node data
 
   //Need this here for parents that are not nodes
   //TODO: investigate using $jit to avoid duplication
@@ -1098,7 +1101,7 @@ function routeClickedNodeDataToElements(nodeStale) {
 //  });
 } 
 // ToDo: Remove the function from global space in all cases
-johaGraph.routeClickedNodeDataToElements = routeClickedNodeDataToElements;
+$johaGraph.routeClickedNodeDataToElements = routeClickedNodeDataToElements;
 
 //-- finds all descendant data for a given node
 function add_descendant_data(el, node_data_type){
