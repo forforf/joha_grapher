@@ -5,7 +5,10 @@ $ = $ || window.$ || $j || window $j
 
 forfExtend = require('extend').extend
 
-johaGraphDefaults = (thisGraph) ->
+#warning: onCreateLabel requires the global variable
+#johaGraph which holds the main graph and data routing function
+  
+johaGraphDefaults = () ->
   johaRGraphDefaults =
     #Where to append the visualization
     injectInto: 'infovis'
@@ -40,28 +43,26 @@ johaGraphDefaults = (thisGraph) ->
     Events:
       enable: true
       onClick: (node, eventInfo, e) =>
-        #console.log node
-        #alert 'node ' + node.name + ' clicked'
         if node is false
           show_create_node_form()
+        null
           
   
     onBeforeCompute:(node) ->
-      alert 'onBeforeCompute'
       Log.write("centering " + node.name + "...")
+      null
           
     onAfterCompute: ->
-      alert 'onAfterCompute'
       Log.write("done")
+      null
    
-    onCreateLabel:(domElement, node) ->
-      #console.log 'onCreateLabel', node.name, domElement
+    onCreateLabel:(domElement, node) =>
+      #johaGraph.myGraph is the global variable that will hold the rGraph
       domElement.innerHTML = node.name
-      domElement.onclick = (me) ->
-        #alert 'createdLabel had click'
-        console.log 'This onCreateLabel click', this, me, me.onClick
-        thisGraph.onClick(node.id)
-        routeClickedNodeDataToElements(node)
+      domElement.onclick = () ->
+        johaGraph.myGraph.onClick(node.id)
+        johaGraph.routeClickedNodeDataToElements(node)
+      null
        
     #Change some label dom properties.
     #This method is called each time a label is plotted.
@@ -86,31 +87,15 @@ johaGraphDefaults = (thisGraph) ->
       left = parseInt(style.left)
       w = domElement.offsetWidth
       style.left = (left - w / 2) + 'px'
+      null
       
    return johaRGraphDefaults     
    
    
 makeJohaRGraph = (Log) ->
   Log = log
-  
-  #a hack to be able to set an event
-  #before the rgraph is defined. It must be overwritten in order to work
-  thisGraph = 
-    onClick: -> 
-      #This event will be called, but its not the one we want
-      #ToDo: Figure out how the event is bubbling so only desired events occur
-      null
-    
-  myDefaults = johaGraphDefaults(thisGraph)
-  #overwrite the previous hack
-  thisGraph = new $jit.RGraph(myDefaults)
+  thisGraph = new $jit.RGraph( johaGraphDefaults() )
   
   
-class JohaRGraph extends $jit.RGraph
-  constructor: ->
-    console.log 'making JohaGraph'
-    super(johaRGraphDefaults)
-  
-root.JohaRGraph = JohaRGraph
 root.makeJohaRGraph = makeJohaRGraph
 

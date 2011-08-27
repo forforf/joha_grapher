@@ -86,9 +86,8 @@ var makeJohaRGraph = require('JohaRGraph').makeJohaRGraph;
 
 
 var johaGraph = {};  //Global graph container
-// Write something here about initialization or getting ready, something something
 $j(document).ready(function() {
-  //Constants
+  //Server provided Constants
   JOHA_DATA_DEF = syncJax('/data_definition');
 
   //console.log(JohaNodeEditor);
@@ -98,20 +97,16 @@ $j(document).ready(function() {
   //Temporary for Testing
   $joha_data_def()['user_data'] = "key_list_ops";
     
- 
   initializeGraph();
   set_up_onClicks();
   setUpComboBox();
   
-
 });
 
 
-
-//Initialization Functions  TODO: Change to function form (lowercase underscore)
 //-- Get neccessary server side initialization data
 function syncJax(srcUrl) {
-  retVal = "";
+  var retVal = "";
   
   jQuery.ajax({
     url:srcUrl,
@@ -197,7 +192,8 @@ function set_up_onClicks() {
     //open dialog
     confirmDelete.dialog('open');
   });
-  
+ 
+/* 
   //File Attachment Related
   $j('.show_add_attach_form').click(function(){
     $j('#add_attach_form').show();
@@ -241,8 +237,8 @@ function set_up_onClicks() {
       },
     "json");
   });
-  
-
+*/  
+/*
   //Set up editing in place (JQuery plugin Jeditable)
   //-- wrap it in .live so that future elements can use it
   //changed 'click' to 'hover' so single click editing works
@@ -262,7 +258,7 @@ function set_up_onClicks() {
     });
     
   });
-  
+*/  
   //ToDo: I think regular old bind/click will work here
   //Collect updated data when user selects to save the node data
   $j('#save_node_data').click(function(event) {
@@ -354,6 +350,7 @@ function set_up_onClicks() {
     actLikeNodeClicked(nodeId);
   });  
  
+ /*
   //listen for clicks on delete buttons
   $j('.delete_controls').live('click', function(event) {
     event.preventDefault();
@@ -363,7 +360,7 @@ function set_up_onClicks() {
     console.log('delete clicked', delData );
     toggleDelete(delData.johaData__deleteContainerId);
   });
-
+*/
   //$j('#create_node').live('click', function(event) {
   //  nodeId = $j('#create_node_id').val();
   //  nodeLabel = $j('#create_node_label').val();
@@ -434,7 +431,7 @@ function initializeGraph(){
   //blankGraph = rgraphInit(); //insert canvas into here if you can figure it out
   blankGraph = makeJohaRGraph(Log); //ToDo: RGraph Log isn't working, fix it
   var nodeSource = '/index_nodes';
-  //the below assigns the graph to myGraph (via Ajax)
+  //the below assigns the node data to myGraph (via Ajax)
   insertNodesIntoGraph(blankGraph, nodeSource);
   //setAuthToken('authtok_attach_form');  
 }
@@ -509,6 +506,7 @@ function deleteNode(nodeId){
           }
         });
 }
+/*
 //-- handle updating data
 function updateJeditElement(el, value, settings){
 
@@ -520,9 +518,9 @@ function updateJeditElement(el, value, settings){
  
   return value;
 }
-
+*/
 //-- file attachment handling
-
+/*
 function readyAttachment(filesToAdd){
   var joha = new Joha();
    $j('#pending_file_attachments').children().remove();
@@ -572,13 +570,16 @@ function readyAttachment(filesToAdd){
      $j('#pending_file_attachments').append(fileWr);
   }
 };
+*/
 
-
+/*
 function redirectSubmit(){
   $('add_attach_form').target = 'files_uploaded_iframe'; //return result goes to iframe
   $('add_attach_form').submit();
 };
+*/
   //
+/*
 function uploadAttachments(){  
     var node_id = $j('#current_node_id').text()
     $j("#node_id_input_edit").val(node_id);
@@ -588,13 +589,16 @@ function uploadAttachments(){
     //with return value of Ajax (it's in the hidden iframe)
 
 };
+*/
 
+/*
 function downloadAttachment(nodeId, attName) {
   var downloadUrl = "/download/" + nodeId + "/" + attName
   window.location.href = downloadUrl;
 }
+*/
 
-
+/*
 //-- -- data structures 
 var files_element_format = function(filenames, divIdBase, el){
   var joha = new Joha;
@@ -624,7 +628,8 @@ var files_element_format = function(filenames, divIdBase, el){
     alert('zero length filenames passed');
   }
 }
-
+*/
+/*
 
 //move out of Global space at some point
 var johaSpecialFunctions = {
@@ -687,7 +692,8 @@ var johaSpecialFunctions = {
 
   },
 }
-
+*/
+/*
 var johaConfig = {
   
   specialTreatmentFields: {
@@ -697,7 +703,7 @@ var johaConfig = {
     "attached_files": johaSpecialFunctions.edit_file_elements  
   },
 }
-
+*/
 // -- Autocomplete helpers
 var johaNodeData = {};
 
@@ -740,6 +746,7 @@ function johaIndex(graphData){
   return johaNodeData;
 }
 
+/*
 function figureOutDataOps(rawData, opType, op) {
   console.log('raw Data', rawData);
   console.log('opType', opType);
@@ -810,7 +817,8 @@ function figureOutDataOps(rawData, opType, op) {
   console.log(serverSubCommand);
   return serverSubCommand;  
 }
-
+*/
+/*
 //-- Transform data collected from DOM to more suitable for server
 //function johaMake
 function johaSaveDataFix(nodeId, domSaveObj) {
@@ -862,11 +870,11 @@ function johaSaveDataFix(nodeId, domSaveObj) {
       xformObj[fieldName]["rawData"].push(tmpOpObj);
       xformObj[fieldName]["op_type"] = dataType;
 
-      //**//filter uneccessary operations
+      ////filter uneccessary operations
       //**var ops = get_keys(xformObj[fieldName]);
       //**console.log('Ops before filtering');
       //**console.log(ops);
-      //**//-- add + delete = NOOP
+      ////-- add + delete = NOOP
       //**if (array_contains(ops, "adds") && array_contains(ops, "deletes")){
       //**  xformObj[fieldName] = {};
       //**}
@@ -913,7 +921,7 @@ function johaSaveDataFix(nodeId, domSaveObj) {
     return {}
   }
 }
-
+*/
 function dynamicEditForm(nodeData){
 
   $j('.joha_edit').removeClass('joha_update joha_add joha_delete');
@@ -930,7 +938,7 @@ function dynamicEditForm(nodeData){
   //alert("Not all Required Data Elements are present in Node ID: " + nodeCopy.id + "Keys:" + nodeKeys) };
   
   
-  var specialTreatment = johaConfig.specialTreatmentFields;
+//  var specialTreatment = johaConfig.specialTreatmentFields;
 
   
   //TODO: pass the Dom locations as a parameter in the special functions rather than
@@ -942,7 +950,7 @@ function dynamicEditForm(nodeData){
   
   var SHOW_EVEN_IF_NULL = [];//["user_data"];  // show this field in the form even if it doesn't exist in the data
   console.log('node copy', nodeCopy);
-  console.log('Special Treat', specialTreatment);
+  //console.log('Special Treat', specialTreatment);
   var joha_data_def = $joha_data_def();
   //var someObj = domNodeFactory(nodeCopy, specialTreatment, joha_data_def, SHOW_EVEN_IF_NULL);
   var baseObj = new JohaNodeEditor(nodeCopy);
@@ -954,6 +962,7 @@ function dynamicEditForm(nodeData){
   //in dynform.js library
 }
 
+/*
 function createNewField(newFieldName) {
   var newType = $joha_data_def()[newFieldName];
   
@@ -978,7 +987,8 @@ function createNewField(newFieldName) {
     dataValue = {};
   }
 }  
- 
+ */
+ /*
 function createCommon(newFieldName, newType, dataValue) {
   var fieldData = {};
   fieldData[newFieldName] = dataValue;
@@ -1005,7 +1015,8 @@ function createCommon(newFieldName, newType, dataValue) {
   }
   //setTimeout(function(){$j('#add_field_combobox').next().blur();},2);
 }
-
+*/
+/*
 function createLinks(){
   var elId = JOHA_ID + "_links";
   var myJoha = new Joha;
@@ -1013,11 +1024,14 @@ function createLinks(){
   console.log(myLinksEl);
   $j('#dn_link_data').append(myLinksEl);
 }
+*/
 
+/*
 function get_current_node_attachment(filename){
   var currentNodeId = $j('#current_node_id').text();
   //alert("Current Node: " + currentNodeId + " Filename: " + filename + ".");
 }
+*/
     
 //Graphing helpers and interactions
 function insertNodesIntoGraph(aGraph, nodeLoc){
@@ -1039,6 +1053,7 @@ function insertNodesIntoGraph(aGraph, nodeLoc){
 
 function actLikeNodeClicked(node_id) {
   var visnode = johaGraph.myGraph.graph.getNode(node_id);
+  alert(visnode);
   johaGraph.myGraph.onClick(visnode.id);
   routeClickedNodeDataToElements(visnode);
 }
@@ -1069,18 +1084,21 @@ function routeClickedNodeDataToElements(nodeStale) {
   //Create dropdown box with the list of options determined by the edit node form
   
   //var contextEl = $j('#dn-node-data');
-  var select = $j('#add_field_combobox');
-  //console.log(contextEl)
-  updateComboBoxList(select, $joha_data_def());
-  select.combobox({
-    selected: function(event, ui) {
+//  var select = $j('#add_field_combobox');
+//  //console.log(contextEl)
+//  updateComboBoxList(select, $joha_data_def());
+//  select.combobox({
+//    selected: function(event, ui) {
 
       //console.log(event);
       //console.log(ui);
-      createNewField(ui.item.text);
-    }
-  });
+//      createNewField(ui.item.text);
+//    }
+//  });
 } 
+// ToDo: Remove the function from global space in all cases
+johaGraph.routeClickedNodeDataToElements = routeClickedNodeDataToElements;
+
 //-- finds all descendant data for a given node
 function add_descendant_data(el, node_data_type){
   //var attach_name = el.previousSibling.innerHTML;
@@ -1110,7 +1128,6 @@ function add_descendant_data(el, node_data_type){
 var Log = {
     elem: false,
     write: function(text){
-        alert('writing log');
         if (!this.elem)
             this.elem = document.getElementById('log');
         this.elem.innerHTML = text;
