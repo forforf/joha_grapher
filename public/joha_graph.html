@@ -143,49 +143,17 @@
             <div id="edit-node-data">
               <div id="dynamic_node_data_all">
                 <div id="dn_node_data"></div>
-                <div id="dn_link_data"></div>
-                <div id="dn_file_data">
-                  <span id="attachment_label" class="node_field_user_label">File Attachments</span>
-                  <div id="file_attachment_key_name" class="joha_field_name" style="display:none">file_attachments</div>
-                  <div class="joha_field_value_container">
-                    <div id="file_attachment_list" class="attachment_list">No Node Selected</div>
-                    <div id="delete_attach">
-                      <span class="delete_attach_list actionable action_gradient">Implement Deletions (permanent)</span>
-                    </div>                  
-                    <div id="add_attach" class="element-list">
-                      <span class="show_add_attach_form actionable action_gradient">Add new attachments</span>
-                    </div>
-
-                    <form id="add_attach_form" action="/upload_files"  method="post" enctype="multipart/form-data" style="display:none">
-    
-                      <input id="authtok_attach_form" type="hidden" value=" " name="authenticity_token" />
-                      <input id="node_id_input_edit" name="node_id" type="hidden" />
-
-                      <div id="att_button_area">
-                        <b>Add Attachments  </b><span class="hide_add_attach_form actionable action_gradient">hide this again</span> <br />
-                        <input id="add_attach_edit" name="add_files[]" type="file" multiple="multiple"/>
-                        <input class="ready_attachment_button" name="action" value="See Pending Files" type="button"  />
-                        <input class="upload_attachment_button" name="uploadFiles" value="Upload to Node" type="button"  />
-                      </div>
-
-                      <iframe id="files_uploaded_iframe" name="files_uploaded_iframe" src="" style="display:none">
-                      </iframe>
-
-                    </form>                  
-                    <div id="pending_file_attachments" class="pending_attachment_list"></div>
-                  </div>
-                </div>
               </div>
             </div>         
           </fieldset>
-          <div id="save_node_data" class="float_left">
-            <span class="actionable action_gradient">Save Node Data</span>
+          <div class="float_left">
+            <button id="save_node_data" >Save Node Data</button>
           </div>
-          <div id="clear_node_edits" class="float_left">
-            <span class="actionable action_gradient">Clear Current Edits</span>
+          <div class="float_left">
+            <button id="clear_node_edits">Clear Current Edits</button>
           </div>  
-          <div id="delete_node" class="float_right">
-            <span class="actionable action_gradient">Delete Entire Node</span>
+          <div class="float_right">
+            <button id="delete_node">Delete Entire Node</button>
           </div>     
           <div class="float_clear"></div>
         </div>

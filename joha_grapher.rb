@@ -387,8 +387,13 @@ get '/user/*/graph/*' do
   @base_graph_url = "/graph/#{username}/#{joha_class_name}"
   @avail_digraphs = @jm.digraphs_with_roots
   case @avail_digraphs.size
-    when 0,1
+    when 0
       #for 0 session[:top_node] should be nil (do this explicitly?)
+      session[:top_node] = nil
+      redirect '/joha_graph.html'
+    when 1
+      top_node = @avail_digraphs.keys.first
+      session[:top_node] = top_node
       redirect '/joha_graph.html'
     else
       erb :avail_digraphs
@@ -433,14 +438,19 @@ end
 get '/index_nodes' do
   puts "Session data @ index nodes"
   p session
-  p @@joha_model_map
+  #p @@joha_model_map
   #TODO: Figure out elegant fix to missing top nodes
   #like when creating a new graph
   top_node = session[:top_node]||"none"
   username = session[:friendly_id]
+  p username
   joha_class_name = session[:current_joha_class]
+  p joha_class_name
   #@jm = session[:current_jm] #|| create it
   @jm = @@joha_model_map[username][joha_class_name]
+  #p @jm.size
+  p top_node
+  p @jm.tree_graph(top_node)
   content_type :json
   ret_json = @jm.tree_graph(top_node)
 end

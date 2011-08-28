@@ -194,95 +194,34 @@ function set_up_onClicks() {
     confirmDelete.dialog('open');
   });
  
-  //Set up editing in place (JQuery plugin Jeditable)
-  //-- wrap it in .live so that future elements can use it
-  //changed 'click' to 'hover' so single click editing works
-  $j('.edit').live('hover', function(event) {
-
-    event.preventDefault();
-
-    console.log("click event", event);
-
-    //call the updateJeditElement function when an item is edited in place
-    $j(this).editable( function(value, settings){
-      var retVal = updateJeditElement(this, value, settings);
-      console.log(retVal);
-      return retVal
-      }, {
-      style: 'display: inline'
-    });
-    
-  });
 
   //ToDo: I think regular old bind/click will work here
   //Collect updated data when user selects to save the node data
   $j('#save_node_data').click(function(event) {
-  //$j('#save_node_data').live('click', function(event) {
-    
-    var all_edits = {};
-    fieldValueData = $j('.joha_field_value_container').map(function(){ return $j(this).data();}).get();
-    console.log('all field value containers data', fieldValueData);
+    console.log('save - current value', $johaGraph.currentNode.currentValue() );  
+    //ToDo: Add File Changes too
 
-    
-    //This is fairly elegant (but belongs somewhere else to be called by here)
-    //Reduce the user operations of add, update and delete to what makes sense
-    //any adds and deletes together result in NOOP (add something only to delete it?)
-    //update and delete is a delete
-    //add and update is add (with updated info)
-    
-    //This probably breaks kvlists (but not links)
-    //consider using a pseudo delete class to keep delete styling in case something
-    //breaks between this event and the node resetting
-    
-    noop = $j('.joha_add.joha_delete');
-    noop.removeClass('joha_add joha_delete joha_update');
-    
-    
-    addUpdate = $j('.joha_add.joha_update');
-    //jlog('Add Update Els', addUpdate);
-    addUpdate.removeClass('joha_update');
- 
-    
-    updateDelete = $j('.joha_update.joha_delete');
-    updateDelete.removeClass('joha_update')
-    //Done with filtering operations by updating classes ^^
-    
-    //fileAttachmentDeletes = $j('.file_attachment_name.joha_delete').map(function() {
-    //  return $j(this).text();
-    // }).get()
-    
-    
-    all_edits['updates'] = filterJohaData('.joha_update');
-    all_edits['adds']= filterJohaData('.joha_add');
-    all_edits['deletes'] = filterJohaData('.joha_delete');
-    //all_edits['file_deletes'] = fileAttachmentDeletes;
-    
-    var currentNodeId = $j('#current_node_id').text();
-    saveObj = johaSaveDataFix(currentNodeId, all_edits);
-    
-    console.log("Save Clicked", all_edits);
-    console.log("Save Obj", saveObj);
 
-    //post to server for updating
-    if (objSize(saveObj) > 0){
-      jQuery.post("./node_data_update", saveObj,
-        function(data){
-          
-          johaIndex(data);
-          $johaGraph.myGraph.loadJSON(data); 
-          $johaGraph.myGraph.refresh();
-          actLikeNodeClicked(currentNodeId);
-          //console.log(johaGraph.myGraph.toJSON());
-        },
-        "json");
-    } 
+//    //post to server for updating
+//    if (objSize(saveObj) > 0){
+//      jQuery.post("./node_data_update", saveObj,
+//        function(data){
+//          
+//          johaIndex(data);
+//          $johaGraph.myGraph.loadJSON(data); 
+//          $johaGraph.myGraph.refresh();
+//          actLikeNodeClicked(currentNodeId);
+//          //console.log(johaGraph.myGraph.toJSON());
+//        },
+//        "json");
+//    } 
     //revert data to default (by acting like the node is clicked)
     console.log("Save Clicked", "TODO: Revert updated data to unchanged after node is saved");
   });
 
 
   //Collect updated data when user selects to save the node data
-  $j('#clear_node_edits').live('click', function(event) {
+  $j('#clear_node_edits').click( function(event) {
     //clear the edit classes then reset the node
     var editClasses = ['joha_add', 'joha_delete', 'joha_update'];
     for (i in editClasses){
@@ -585,8 +524,8 @@ function dynamicEditForm(nodeData){
   var SHOW_EVEN_IF_NULL = [];// show this field in the form even if it doesn't exist in the data
   console.log('node copy', nodeCopy);
   
-  var baseObj = new JohaNodeEditor(nodeCopy);
-  var someObj = baseObj.view();
+  $johaGraph.currentNode = new JohaNodeEditor(nodeCopy);
+  var someObj = $johaGraph.currentNode.view();
   $j('#dn_node_data').append(someObj);
   //ToDo: Determine if node.label is flexible enough (will it always be label?)
   $j('#joha-edit-label--').text(nodeCopy.label);
@@ -603,17 +542,36 @@ function get_current_node_attachment(filename){
 function insertNodesIntoGraph(aJohaObj, nodeLoc){
   $johaGraph.johaObj = aJohaObj;
   aGraph = aJohaObj.thisRGraph;
-  $j.get(nodeLoc,
-    function(graph_data) {
+  $j.ajax(nodeLoc, {
+    type: 'GET',
+    dataType: 'json',
+    error: function(jqXHR, textStatus, errorThrown) {
+      alert('Ajax Error: ' + textStatus)
+    },
+    success: function(graph_data, textStatus, jqXHR){
       console.log(graph_data);
+      console.log(textStatus);
+      console.log(jqXHR);
       johaIndex(graph_data);
       console.log(aGraph);
       aGraph.loadJSON(graph_data);
   
       aGraph.refresh();
       $johaGraph.myGraph = aGraph; //remember this is Asynchonous.  This won't be set right away.
-    },
-  "json");
+    }
+  });
+  
+//  $j.get(nodeLoc,
+//    function(graph_data) {
+//      console.log(graph_data);
+//      johaIndex(graph_data);
+//      console.log(aGraph);
+//      aGraph.loadJSON(graph_data);
+  
+//      aGraph.refresh();
+//      $johaGraph.myGraph = aGraph; //remember this is Asynchonous.  This won't be set right away.
+//    },
+//  "json");
 }
 
 function actLikeNodeClicked(node_id) {
