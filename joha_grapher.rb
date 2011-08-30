@@ -40,6 +40,7 @@ joha_classes = { "JohaTestClass" => {:owner => "joha_test_user"},
 
 
 helpers do
+  
 =begin
   def protected(creds)!
     unless authorized?(creds)
@@ -63,7 +64,7 @@ helpers do
     valid = ok_user1 || ok_user2
   end
 =end
-
+=begin
   #TODO: move to model
   def update_node(jm, node_ops)
     puts "node ops:"
@@ -188,6 +189,7 @@ helpers do
 
   return jm.tree_graph(top_node)
   end
+=end
 end
 
 
@@ -526,7 +528,60 @@ end
 
 #TODO: See if this can be simplified
 post '/node_data_update' do
+  p params
+  node_id = params["id"]
+  raise "Node does not exist. Required for updating node" unless node_id
+  diff_data_json = params["diff"]
   
+  token = session[:token]
+  username = session[:friendly_id]
+  joha_class_name = session[:current_joha_class]
+  top_node = session[:top_node]
+  
+  p diff_data_json
+  diff_data = JSON.parse diff_data_json
+  p diff_data  
+  @jm = @@joha_model_map[username][joha_class_name] #or create it
+  
+  #update data here
+  tk_class = @jm.tinkit_class
+  tk_node = tk_class.get(node_id)
+     
+  #update algorithm:
+  ##replace field data by:
+  # #delete field (if it exists)
+  # #add updated field data
+  
+  diff_data.each do |field, field_diff_data|
+    orig_data = field_diff_data.first
+    new_data = field_diff_data.last
+    new_data.uniq! if new_data.respond_to? :"uniq!"
+    p orig_data
+    p new_data
+    #replace
+    #remove old data
+    tk_subtract = "#{field}_subtract"
+    tk_subtract_data = orig_data
+    tk_node.__send__(tk_subtract.to_sym, tk_subtract_data)
+    #Underlying model may be asynchrounous (i.e. a return doesn't mean the operation is completed)
+    #ToDo: Add replace method to model to ensure proper operation order
+    #add new data
+    #TODO: Fix tinkit so that keys defined in the data definiton can be created when initially defined
+    #Hack to get around tinkit bug
+    existing_keys = tk_node._user_data.keys
+    unless existing_keys.include?(field)
+      p tk_node._user_data.keys
+      p field
+      tk_node.__set_userdata_key(field.to_sym, nil)
+    end
+    #end hack  
+    tk_add = "#{field}_add"
+    tk_add_data = new_data
+    tk_node.__send__(tk_add.to_sym, tk_add_data)
+  end
+  
+  @jm.tree_graph(top_node)
+=begin  
   token = session[:token]
   username = session[:friendly_id]
   joha_class_name = session[:current_joha_class]
@@ -576,6 +631,7 @@ post '/node_data_update' do
   new_graph =  update_node(@jm, tinkit_ops)
   content_type :json
   return new_graph
+=end
 end
 
 post '/upload_files_html5' do

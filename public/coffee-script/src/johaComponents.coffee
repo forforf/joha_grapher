@@ -134,6 +134,7 @@ iframeUploader = (name) ->
   iframeDom.hide()
   iframeDom
 
+
 fileAttachmentButtons = ->
   controls = wrapHtml('div')
   uploadAttach = wrapHtml('button', 'Upload to Node')

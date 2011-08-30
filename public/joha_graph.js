@@ -85,6 +85,8 @@ var JohaNodeEditor = require('JohaNodeEditor').JohaNodeEditor;
 var johaRG = require('JohaRGraph')
 var makeJohaRGraph = johaRG.makeJohaRGraph;
 var JohaGraph = johaRG.JohaGraph;
+var forfLib = require('forf')
+//forfLib.diff used in update_node_data
 
 
 var $johaGraph = {};  //Global graph container
@@ -195,10 +197,72 @@ function set_up_onClicks() {
   });
  
 
-  //ToDo: I think regular old bind/click will work here
+
   //Collect updated data when user selects to save the node data
+  //The Save File Button id is JohaFileUploadButton
+  //ToDo: Set up button id to be configurable, rather than hardcoded
   $j('#save_node_data').click(function(event) {
-    console.log('save - current value', $johaGraph.currentNode.currentValue() );  
+    var diff = forfLib.diff;
+    var extend = forfLib.extend;
+
+    nodeCurVal = $johaGraph.currentNode.currentValue();
+    nodeOrigVal = $johaGraph.currentNode.origValue();
+    console.log('save - current value', nodeCurVal );
+    console.log('Original Value', nodeOrigVal );
+    nodeCurValTest = JSON.stringify(nodeCurVal);
+    nodeOrigValTest = JSON.stringify(nodeOrigVal);
+    nodeValueChanged = !(nodeCurValTest === nodeOrigValTest);
+    
+    console.log('Value Changed?', nodeValueChanged );
+    
+    //ToDo: Verify current and original node ids are the same
+    //Note: This should always be the case
+    
+    
+    if (nodeValueChanged) {
+      var diffVal = diff(nodeOrigVal, nodeCurVal);
+      var diffValStr = JSON.stringify(diffVal);
+      console.log('diffVal', diffValStr );
+      var nodeId = nodeCurVal.id;
+      
+      
+      var uploadData = { id: nodeId, diff: diffValStr };
+      var uploadParams = JSON.stringify(uploadData);
+      
+      console.log('uploadData', JSON.stringify(uploadData) );
+      console.log('uploadParams', uploadParams);
+      //upload any files
+      //Too danagerous to upload files and update node data
+      // simultaneously asynchronously
+      //$j('#JohaFileUploadButton').click()
+      $j.ajax({
+        url: "/node_data_update", 
+        type: 'POST',
+        //contentType: 'application/json; charset=utf-8',
+        dataType: 'json',
+        data: uploadData,
+        error: function(jqXHR, textStatus, errorThrown) {
+          alert('Ajax Error: ' + textStatus)
+        },
+        success: function(data, textStatus, jqXHR){
+          alert(JSON.stringify(data));
+          johaIndex(data);
+          $johaGraph.myGraph.loadJSON(data); 
+          $johaGraph.myGraph.refresh();
+          actLikeNodeClicked(nodeCurVal.id);
+        }
+      }); 
+ //     jQuery.post("./node_data_update", uploadData,
+ //       function(data){
+ //         johaIndex(data);
+ //         $johaGraph.myGraph.loadJSON(data); 
+ //         $johaGraph.myGraph.refresh();
+ //         actLikeNodeClicked(nodeCurVal.id);
+//          //console.log(johaGraph.myGraph.toJSON());
+//        },
+//        "json");
+    };
+              
     //ToDo: Add File Changes too
 
 
