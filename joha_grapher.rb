@@ -556,30 +556,63 @@ post '/node_data_update' do
     orig_data = field_diff_data.first
     new_data = field_diff_data.last
     new_data.uniq! if new_data.respond_to? :"uniq!"
+    new_data.compact! if new_data.respond_to? :"compact!"
     p orig_data
     p new_data
-    #replace
-    #remove old data
-    tk_subtract = "#{field}_subtract"
-    tk_subtract_data = orig_data
-    tk_node.__send__(tk_subtract.to_sym, tk_subtract_data)
-    #Underlying model may be asynchrounous (i.e. a return doesn't mean the operation is completed)
-    #ToDo: Add replace method to model to ensure proper operation order
-    #add new data
-    #TODO: Fix tinkit so that keys defined in the data definiton can be created when initially defined
-    #Hack to get around tinkit bug
-    existing_keys = tk_node._user_data.keys
-    unless existing_keys.include?(field)
-      p tk_node._user_data.keys
-      p field
-      tk_node.__set_userdata_key(field.to_sym, nil)
+    #ToDo: Figure out elegant fix for children
+    #children are a calculated field based on parent data
+    #as such changing children requires changing the parents
+    if field == "children"
+      #just for readability and emphasis that this is the children field
+      orig_children = orig_data 
+      new_children = new_data 
+      common_children = orig_data & new_data  #intersection
+      del_children = orig_children - common_children
+      add_children = new_children - common_children
+      del_children.each do |del_child_id|
+        child_node = tk_class.get(del_child_id)
+        next unless child_node
+        if child_node.parents
+          child_node.parents_subtract node_id  #delete this node (child's parent)
+        end
+      end
+      add_children.each do |add_child_id|
+        child_node = tk_class.get(add_child_id)
+        next unless child_node
+        if child_node.parents
+          child_node.parents_add node_id  #add this node, (child's parent)
+        else
+          child_node.__set_userdata_key(:parents, node_id)
+        end
+      end
+    else
+      #replace
+      #remove old data
+      tk_subtract = "#{field}_subtract"
+      tk_subtract_data = orig_data
+      tk_node.__send__(tk_subtract.to_sym, tk_subtract_data)
+      #Underlying model may be asynchrounous (i.e. a return doesn't mean the operation is completed)
+      #ToDo: Add replace method to model to ensure proper operation order
+      #add new data
+      #TODO: Fix tinkit so that keys defined in the data definiton can be created when initially defined
+      #Hack to get around tinkit bug
+      existing_keys = tk_node._user_data.keys
+      unless existing_keys.include?(field)
+        p tk_node._user_data.keys
+        p field
+        tk_node.__set_userdata_key(field.to_sym, nil)
+      end
+      #end hack  
+      tk_add = "#{field}_add"
+      tk_add_data = new_data
+      tk_node.__send__(tk_add.to_sym, tk_add_data)
     end
-    #end hack  
-    tk_add = "#{field}_add"
-    tk_add_data = new_data
-    tk_node.__send__(tk_add.to_sym, tk_add_data)
   end
   
+  @jm.refresh
+  #ToDo: Optimize so only structural changes (inter-node relations) are re-graphed
+  #Intra-node already saved, if changes are specific to that node, no need to regraph
+  #Is there a way to not re-graph?
   @jm.tree_graph(top_node)
 =begin  
   token = session[:token]

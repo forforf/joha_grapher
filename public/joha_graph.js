@@ -231,10 +231,12 @@ function set_up_onClicks() {
       
       console.log('uploadData', JSON.stringify(uploadData) );
       console.log('uploadParams', uploadParams);
+
       //upload any files
       //Too danagerous to upload files and update node data
-      // simultaneously asynchronously
+      // simultaneously asynchronously, holding off for now
       //$j('#JohaFileUploadButton').click()
+      
       $j.ajax({
         url: "/node_data_update", 
         type: 'POST',
@@ -245,7 +247,7 @@ function set_up_onClicks() {
           alert('Ajax Error: ' + textStatus)
         },
         success: function(data, textStatus, jqXHR){
-          alert(JSON.stringify(data));
+          //alert(JSON.stringify(data));
           johaIndex(data);
           $johaGraph.myGraph.loadJSON(data); 
           $johaGraph.myGraph.refresh();
