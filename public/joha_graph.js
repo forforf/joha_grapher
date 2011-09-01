@@ -92,10 +92,14 @@ var forfLib = require('forf')
 var $johaGraph = {};  //Global graph container
 $j(document).ready(function() {
   //Server provided Constants
-  JOHA_DATA_DEF = syncJax('/data_definition');
+  //Note: The data defs are only used when a node is creating a new field
+  //and provide handy shortcuts.  These data types are not enforced, and a given 
+  //field's data type is determined by the data it contains.
+  $johaGraph.JOHA_DATA_DEF = syncJax('/data_definition');
+  console.log('Data Def:', $johaGraph.JOHA_DATA_DEF);
 
   //do this to ensure we can't clobber the constant JOHA_DATA_DEF
-  $johaGraph.dataDef = function(){ return jQuery.extend(true, {}, JOHA_DATA_DEF); };
+  $johaGraph.dataDef = function(){ return jQuery.extend(true, {}, $johaGraph.JOHA_DATA_DEF); };
   
   //Temporary for Testing
   //johaGraph.dataDef()['user_data'] = "key_list_ops";
@@ -590,7 +594,8 @@ function dynamicEditForm(nodeData){
   var SHOW_EVEN_IF_NULL = [];// show this field in the form even if it doesn't exist in the data
   console.log('node copy', nodeCopy);
   
-  $johaGraph.currentNode = new JohaNodeEditor(nodeCopy);
+  var nodeEditorOptions = { availDropDownFields: $johaGraph.dataDef() };
+  $johaGraph.currentNode = new JohaNodeEditor(nodeCopy, nodeEditorOptions);
   var someObj = $johaGraph.currentNode.view();
   $j('#dn_node_data').append(someObj);
   //ToDo: Determine if node.label is flexible enough (will it always be label?)

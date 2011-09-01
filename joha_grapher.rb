@@ -321,6 +321,8 @@ get '/index_nodes' do
   username = session[:friendly_id]
   p username
   joha_class_name = session[:current_joha_class]
+  valid_session = username && joha_class_name
+  redirect '/login' unless valid_session
   p joha_class_name
   #@jm = session[:current_jm] #|| create it
   @jm = @@joha_model_map[username][joha_class_name]
@@ -332,11 +334,35 @@ get '/index_nodes' do
 end
 
 get '/data_definition' do
-  basic_data_def = JohaModel::JohaDataDefn
-  file_data_def = {:attached_files => :file_ops}
-  data_def = file_data_def.merge(basic_data_def)
+  model_data_def = JohaModel::JohaModelDataDefn
+  #map model data definition to application data definition
+  special_data_defs = {
+    :attached_files => :file_list,
+    :links => :link_list,
+  }
+  #file_data_def = {:attached_files => :file_ops}
+  #data_def = file_data_def.merge(model_data_def)
+  
+  #include the special data defs
+  app_data_def = special_data_defs
+  
+  model_data_def.each do |field, data_op|
+    case data_op
+      when :static_ops, "static_ops"
+        app_data_def[field] = :static_value
+      when :replace_ops, "replace_ops"
+        app_data_def[field] = :basic_value
+      when :list_ops, "list_ops"
+        app_data_def[field] = :array_value
+      when :key_list_ops, "key_list_ops"
+        app_data_def[field] = :key_list_value
+      else
+        app_data_def[field] = :basic_value
+    end
+  end
+
   content_type :json
-  data_def.to_json
+  app_data_def.to_json
 end
 
 post '/desc_data' do

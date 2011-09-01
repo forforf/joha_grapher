@@ -15,7 +15,9 @@ arrayRemoveSet = forfLib.arrayRemoveSet
 arrayRemoveItem = forfLib.arrayRemoveItem
 arrayContains = forfLib.arrayContains
 getKeys = forfLib.getKeys
-DeleteButtonBase = require('johaComponents').DeleteButtonBase
+johaComps = require('johaComponents')
+DeleteButtonBase = johaComps.DeleteButtonBase
+wrapHtml = johaComps.wrapHtml
 
 #jQueryContext = require('onDomReady').$jjq
 
@@ -33,11 +35,15 @@ class JohaNodeEditor
     @newFieldsId = 'joha-new-fields'
     #ToDo: Accept custom fields for id and label, etc
     defaultOptions =
-      availableFields:  ["test", "foo", "bar"]
+      availDropDownFields: {}
+      standardDropDownFields: 
+        New: 'new_value'
+      #availableFields:  ["test", "foo", "bar"]
 
     options = extend( defaultOptions, options)
+    console.log 'JNE Options', options
 
-    requiredUserFields = options['requiredFields'] || []
+    requiredUserFields = options['requiredFields'] || []#|| [@files]
     #determine required fields (note id and label are removed if 
     #included in the required fields, since they will be created if
     #they don't exist
@@ -46,7 +52,46 @@ class JohaNodeEditor
     for field in @requiredFields
       @nodeData[field] = null
       null
-    @availFields =  options['availableFields'] || []
+    allAvailFields =  extend(options['availDropDownFields'], options['standardDropDownFields'])
+    
+    reservedFields = ['id','label']
+    existingFields = getKeys(@nodeData)
+    @availFields = {}
+    for own field, value of allAvailFields
+      if arrayContains(reservedFields, field)
+        continue
+      if arrayContains(existingFields, field)
+        continue
+      @availFields[field] = value
+      null #ran for side effect of setting @availFields
+      
+    #map values (used in drop down) to corresponding function
+    #ToDo: Refactor so that node factory uses data type rather than field names
+    #Should be something like this
+    #@newFieldTypes = (dataType) ->
+    #  switch dataType
+    #    when static_value  
+    #  basic_value: null
+    #  array_value: null
+    #  key_list_value: null
+    #  file_list: null
+    #  link_list: null
+    #  new_value: null
+    
+    #instead doing this in the interim
+    @initialFieldValuesForFieldFactory = (dataType) ->
+      switch dataType
+        when "static_value" then alert('Need something to set initial static value')
+        #ok for numeric?
+        when "basic_value" then "new basic value"
+        when "array_value" then ['new item 1']
+        when "key_list_value" then {"new key": "new value"}
+        when "file_list" then null
+        when "link_list" then {"new URL": "new Label"}
+        when "new_value"
+          alert("dialog will go here")
+          "new new value"
+          
     @nodeData.id = @makeGUID() if not @nodeData[@id]
     @nodeId = @nodeData.id
     @nodeData.label = "node:" + @nodeData[@id] if not @nodeData[@label]
@@ -55,21 +100,31 @@ class JohaNodeEditor
 
   buildFieldDropDown: =>
     selectId = 'add-new-field-select'
-    mainForm = $('<form />')
+    mainForm = $('<div />')
     mainForm.text('Add New Field')
     select = $('<select />')
     select.attr('id', selectId)
     select.attr('name', 'addField')
-    for availField in @availFields
-      selectOption = $('<option />')
-      selectOption.text(availField)
+    dropDownLabels = getKeys(@availFields)
+    console.log "building dropdown", @availFields, dropDownLabels
+    blankOption = wrapHtml('option', "", "value=''")
+    #for some reason Chrome won't let me select first option
+    #this is a hack for that
+    select.append blankOption 
+    select.append
+    for own field, johaType of @availFields
+      attr = "value=\"#{johaType}\""
+      selectOption = wrapHtml('option', field, attr)
+      #selectOption.text(availField)
       select.append selectOption
     mainForm.append select
-    
+      
     select.change =>
-      newFieldName = select.val()
+      newFieldValueType = select.val()
+      newFieldName = $(':selected').text()
       newFieldsDom = $('#'+@newFieldsId)
-      @nodeFields[newFieldName] = nodeFieldFactory(newFieldName, null, @nodeId)
+      initValue = @initialFieldValuesForFieldFactory(newFieldValueType)
+      @nodeFields[newFieldName] = nodeFieldFactory(newFieldName, initValue, @nodeId)
       newFieldDom = @nodeFields[newFieldName].view()
       newFieldDom.addClass johaEditClass["create"]
       delBtnArgs =
@@ -79,6 +134,7 @@ class JohaNodeEditor
       delBtnDom = delBtnObj.get()
       newFieldDom.append delBtnDom
       newFieldsDom.append newFieldDom
+    mainForm
       
   #delete Function for delete Button
   delFn: (targetId) =>

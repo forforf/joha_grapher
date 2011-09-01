@@ -796,7 +796,10 @@ class FilesContainer extends ContainerBase
 
   #TODO: DRY up with next method
   viewInitFileInsert: (initFileContList) =>
+    console.log initFileContList
     for initFileCont in initFileContList
+      #ToDo: Catch nulls earlier on if possible
+      continue unless initFileCont.fileName
       fileDom = initFileCont.view()
       fileDom.addClass 'joha-file-item'
       @filesListDom.append fileDom
