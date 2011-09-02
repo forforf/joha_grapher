@@ -221,9 +221,9 @@ function getGraphData(node_id){
     }
   });
   
-  if(node_id == undefined){
-    var centerNode = $j('#current_node_id').text();
-    aGraph.onClick(centerNode)
+  //if(node_id == undefined){
+  //  var centerNode = $j('#current_node_id').text();
+  //  aGraph.onClick(centerNode)
   };
 };
  
