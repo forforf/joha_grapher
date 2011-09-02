@@ -635,6 +635,7 @@ function dynamicEditForm(nodeData){
   console.log('node copy', nodeCopy);
   
   var nodeEditorOptions = { availDropDownFields: $johaGraph.dataDef() };
+  console.log('node Editor Options', nodeEditorOptions);
   $johaGraph.currentNode = new JohaNodeEditor(nodeCopy, nodeEditorOptions);
   var someObj = $johaGraph.currentNode.view();
   $j('#dn_node_data').append(someObj);

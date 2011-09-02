@@ -350,7 +350,7 @@ get '/filter_nodes' do
 end
 
 get '/data_definition' do
-  model_data_def = JohaModel::JohaModelDataDefn
+  model_data_def = JohaModel::JohaDataDefn
   #map model data definition to application data definition
   special_data_defs = {
     :attached_files => :file_list,
@@ -444,7 +444,7 @@ end
 
 #TODO: See if this can be simplified
 post '/node_data_update' do
-  p params
+  #p params
   node_id = params["id"]
   raise "Node does not exist. Required for updating node" unless node_id
   diff_data_json = params["diff"]
@@ -454,7 +454,7 @@ post '/node_data_update' do
   joha_class_name = session[:current_joha_class]
   top_node = session[:top_node]
   
-  p diff_data_json
+  #p diff_data_json
   diff_data = JSON.parse diff_data_json
   p diff_data  
   @jm = @@joha_model_map[username][joha_class_name] #or create it
@@ -513,10 +513,14 @@ post '/node_data_update' do
       #TODO: Fix tinkit so that keys defined in the data definiton can be created when initially defined
       #Hack to get around tinkit bug
       existing_keys = tk_node._user_data.keys
-      unless existing_keys.include?(field)
+      unless existing_keys.include?(field.to_sym)
         p tk_node._user_data.keys
         p field
-        tk_node.__set_userdata_key(field.to_sym, nil)
+        if tk_node.__send__(field.to_sym)
+          raise"Error, Tinkit field #{field} already exists, stopping to prevent data from being overwritten"
+        else
+          tk_node.__set_userdata_key(field.to_sym, nil)
+        end
       end
       #end hack  
       tk_add = "#{field}_add"
@@ -535,6 +539,15 @@ end
 post '/upload_files_html5' do
   node_id = params["node_id"]
   params.delete("node_id")
+  token = session[:token]
+  username = session[:friendly_id]
+  joha_class_name = session[:current_joha_class]
+  jm = @@joha_model_map[username][joha_class_name] # or create it
+  tk_class = jm.tinkit_class
+  tk_node = tk_class.get(node_id)
+  p node_id
+  p tk_node.id
+  p params
   
   new_files = {}
   del_files = []
@@ -552,11 +565,35 @@ post '/upload_files_html5' do
   end
   p new_files
   p del_files
-  
+  new_files.each do |file_key, upload_data|
+    user_dir = token
+    tmp_file = upload_data[:tempfile]
+    src_filename = upload_data[:filename]
+    #TODO Fix tinkit so that a new filename can be assigned
+    # rather than using the existing filename
+    new_file_dir = "/tmp/#{user_dir.hash}"
+    new_file_loc = "/#{new_file_dir}/#{src_filename}"
+    if File.exist?(new_file_dir)
+      FileUtils.cp(tmp_file, new_file_loc)
+    else
+      FileUtils.mkdir(new_file_dir)
+      FileUtils.cp(tmp_file, new_file_loc)
+    end
+    FileUtils.rm(tmp_file)
     
-  #uploaded_files = params
-  #p 'uploaded_files'
-  #p uploaded_files
+    
+    add_file_data = {:src_filename => new_file_loc}
+    tk_node.files_add(add_file_data)
+  end
+  
+  del_files.each do |del_file|
+    tk_node.files_subtract(del_file) if del_file
+  end
+  
+  #jm.refresh
+  #content_type :json
+  #return jm.list_attachments(node_id).to_json
+    
   response = { :to_save => [], :to_delete => [] }
   new_files.each do |fname_key, filedata|
     filename = fname_key if fname_key == filedata[:filename]

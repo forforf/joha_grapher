@@ -606,7 +606,7 @@ class FileValueContainer extends BasicValueContainerNoMod
 
 #ToDo:  ContainerBase has some unnecessary cruft for files
 class FilesContainer extends ContainerBase
-  constructor: (@files, nodeId) ->
+  constructor: (@files, @nodeId) ->
     #ToDo: Organize this better
     #initialize container list variables
     @initFileContList = []  #list of existing files
@@ -670,13 +670,14 @@ class FilesContainer extends ContainerBase
         uploadForm.append(formDataKey, delFileName)
         null
 
-      uploadForm.append('node_id', "FIXME!!")
+      uploadForm.append('node_id', @nodeId)
    
       #HTML5 Only?
       self = this #maintain a reference to this context
       xhr = new XMLHttpRequest()
       xhr.open('POST', formDom.attr('action'), true)
       xhr.onload = (e) -> 
+        console.log this
         resp = JSON.parse(this.responseText)
         self.updateViewAfterUpload(self, resp)
         self.updateContsAfterUpload(self, resp)
@@ -698,7 +699,7 @@ class FilesContainer extends ContainerBase
     
     #ToDo: Figure out iframe approach to supprt pre-HTML5
     form = new AttachmentForm(formId, '/upload_files_html5', 'iframe-uploader', newFilesCallbackFn, uploadFn)
-    form.updateNodeId nodeId
+    form.updateNodeId @nodeId
     @formDom = form.get()
  
   findContByName: (basename, contList) =>
@@ -799,10 +800,12 @@ class FilesContainer extends ContainerBase
     console.log initFileContList
     for initFileCont in initFileContList
       #ToDo: Catch nulls earlier on if possible
-      continue unless initFileCont.fileName
+      continue unless initFileCont.filename
       fileDom = initFileCont.view()
       fileDom.addClass 'joha-file-item'
       @filesListDom.append fileDom
+      console.log @filesListDom
+      null
 
   viewNewFileInsert: (newFileContList) =>
     for newFileCont in newFileContList

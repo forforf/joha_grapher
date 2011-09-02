@@ -25,6 +25,7 @@ class JohaNodeEditor
   ni = 'not implemented'
   constructor: (@nodeData, options) ->
     console.log 'JNE constructor Entered'
+    console.log options
     #set prefix for IdTracker
     IdTracker.get(prefix: 'joha-node-edit-')
     @id = 'id'
