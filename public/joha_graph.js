@@ -193,15 +193,55 @@ function set_up_onClicks() {
           }
         ]
       });
-      
-    
-      
     //open dialog
     confirmDelete.dialog('open');
   });
  
+//ToDo: Refactor to consolidate the functions requesting tree maps
+function getGraphData(node_id){
+  var aGraph = $johaGraph.myGraph;
+  var params = {topnode: node_id};
+  $j.ajax('/filter_nodes', {
+    type: 'GET',
+    data: params,
+    dataType: 'json',
+    error: function(jqXHR, textStatus, errorThrown) {
+      alert('Ajax Error: ' + textStatus)
+    },
+    success: function(graph_data, textStatus, jqXHR){
+      //console.log(graph_data);
+      //console.log(textStatus);
+      //console.log(jqXHR);
+      johaIndex(graph_data);
+      console.log(aGraph);
+      aGraph.loadJSON(graph_data);
+  
+      aGraph.refresh();
+      //$johaGraph.myGraph = aGraph; //remember this is Asynchonous.  This won't be set right away.
+    }
+  });
+  
+  if(node_id == undefined){
+    var centerNode = $j('#current_node_id').text();
+    aGraph.onClick(centerNode)
+  };
+};
+ 
+$j('#filter_node').click(function(){
+  var node_id = $j('#current_node_id').text();
+  getGraphData(node_id);
+});
 
+$j('#remove_filter').click(function(){
+  //var centerNode = $j('#current_node_id').text();
+  //alert(centerNode);
+  getGraphData(undefined); // null will revert to the session top_node
 
+  //actLikeNodeClicked(centerNode);
+  //alert(centerNode);
+
+});  
+  
   //Collect updated data when user selects to save the node data
   //The Save File Button id is JohaFileUploadButton
   //ToDo: Set up button id to be configurable, rather than hardcoded

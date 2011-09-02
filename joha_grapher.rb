@@ -333,6 +333,22 @@ get '/index_nodes' do
   ret_json = @jm.tree_graph(top_node)
 end
 
+#ToDo: DRY up the requests that return an updated tree map
+get '/filter_nodes' do
+  top_node = params[:topnode] || session[:top_node] || "none"
+  username = session[:friendly_id]
+  #p username
+  joha_class_name = session[:current_joha_class]
+  valid_session = username && joha_class_name
+  redirect '/login' unless valid_session
+  @jm = @@joha_model_map[username][joha_class_name]
+  #p @jm.size
+  #p top_node
+  #p @jm.tree_graph(top_node)
+  content_type :json
+  ret_json = @jm.tree_graph(top_node)
+end
+
 get '/data_definition' do
   model_data_def = JohaModel::JohaModelDataDefn
   #map model data definition to application data definition
