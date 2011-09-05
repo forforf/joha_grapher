@@ -128,6 +128,16 @@ function syncJax(srcUrl) {
 
 //including onChange
 function set_up_onClicks() {
+  //ToDo: Move this to File Container (refactor required first)
+  //This is hack
+  $j('.joha-file-item').live('click', function(e) {
+    var node_id = $j('#current_node_id').text();
+    //console.log('joha-file', node_id);
+    //console.log('joha-file-evt', e);
+    //console.log(e.target.firstChild.data);
+    var downloadUrl = 'download/' + node_id + '/' + e.target.firstChild.data;
+    window.location.href = downloadUrl
+    });
 
   $j('#rotate_test').click(function(){
     var theta = Math.PI/2;

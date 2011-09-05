@@ -583,6 +583,8 @@ class FileValueContainer extends BasicValueContainerNoMod
   constructor: (@filename) ->
     @fileItemData = null
     super(@filename)
+    #ToDo: There is probably a better way to bind File to download
+      
 
   equiv: (fvc) =>
     return false if fvc is undefined
@@ -604,6 +606,9 @@ class FileValueContainer extends BasicValueContainerNoMod
       @fileItemData
     retVal
 
+  view: =>
+    super
+    
 #ToDo:  ContainerBase has some unnecessary cruft for files
 class FilesContainer extends ContainerBase
   constructor: (@files, @nodeId) ->
