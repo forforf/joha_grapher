@@ -14,9 +14,42 @@ require 'erb'
 set :root, File.dirname(__FILE__)
 enable :sessions
 
+#Persistent Storage for User Data
+
+WebAdminCouchDB = CouchRest.database!("http://127.0.0.1:5984/joha_web_app/")
+OpenIdGuidDefn = {:id => :static_ops,
+                  :guid => :replace_ops}
+                  
+UserDataDefn = {:id => :static_ops,
+                :friendly_name => :replace_ops,
+                :friendly_id => :replace_ops,
+                :joha_classes => :replace_ops} #joha_classes should actually be :key_key_ops if it existed
+            
+OpenIdGuidEnv = TinkitNodeFactory.env_formatter("couchrest",
+                                                 "OpenIdGuid",
+                                                 "JohaUser",
+                                                 WebAdminCouchDB.uri,
+                                                 WebAdminCouchDB.host)
+                                                 
+#hack until formatter is fixed
+OpenIdGuidEnv[:data_model][:field_op_set] = OpenIdGuidDefn
+    
+UserDataEnv = TinkitNodeFactory.env_formatter("couchrest",
+                                               "UserDataWebApp",
+                                               "JohaUser",
+                                               WebAdminCouchDB.uri,
+                                               WebAdminCouchDB.host)    
+#hack until formatter is fixed
+OpenIdGuidEnv[:data_model][:field_op_set] = UserDataDefn                                               
+
+OpenIdGuid = TinkitNodeFactory.make(OpenIdGuidEnv)
+UserDataWebApp = TinkitNodeFactory.make(UserDataEnv)
+
 URL_NS = UUIDTools::UUID_URL_NAMESPACE
 @@user_id_lookup = {} #open_id => johaGUID
+#@@user_id_lookup2 = CouchRest.database!("http://127.0.0.1:5984/joha_user_id_lookup/")
 @@user_data = {}
+#@@user_data2 = CouchRest.database!("http://127.0.0.1:5984/joha_user_web_data/")
 @@authed = {}  #username => auth_token
 @@joha_model_map = {} #fr_id => joha_class(es) => joha_model instance (or nil)
 
@@ -26,6 +59,11 @@ URL_NS = UUIDTools::UUID_URL_NAMESPACE
 TEST_GUID = "4c3e5962-f7ed-5ceb-8eb7-8bb191ef757b"
 TEST_OP_ID = "https://www.google.com/accounts/o8/id?id=AItOawkivKh4QX8-Un4VkJ0cFgxYVhkishiBs8k"
 @@user_id_lookup[TEST_OP_ID] = TEST_GUID
+#@@user_id_lookup2.save_doc({'_id' => TEST_OP_ID, 'guid' => TEST_GUID})
+#Create Test User in OpenIdGuidEnv
+test_user_id_map = OpenIdGuid.new( {:id => TEST_OP_ID, :guid => TEST_GUID} )
+test_user_id_map.__save
+
 
 uniq_postfix = TEST_OP_ID[-5,5] #last 5 chars
 fname = "dave"
@@ -38,32 +76,13 @@ joha_classes = { "JohaTestClass" => {:owner => "joha_test_user"},
                                           :friendly_id => fid,
                                           :joha_classes => joha_classes}
 
+#@@user_data2.save_doc({'_id' => TEST_GUID, :friendly_name => fname, :friendly_id => fid, :joha_classes => joha_classes})
+test_user_data = UserDataWebApp.new( {:id => TEST_GUID, :friendly_name => fname, :friendly_id => fid, :joha_classes => joha_classes} )
+test_user_data.__save
 
 helpers do
-  
-=begin
-  def protected(creds)!
-    unless authorized?(creds)
-      response['WWW-Authenticate'] = %(Basic realm="Restricted Area")
-      throw(:halt, [401, "Not authorized\n"])
-    end
-  end
 
-  def authorized?(creds)
-    check_auth(creds)
-  end
 
-  def check_auth(auth)
-    check_credentials(auth)
-  end
-
-  def check_credentials(creds)
-    #TODO: Check a protected secure database or something
-    ok_user1 = (creds[:un] == 'joha_test_user' && creds[:pw] == 'test2')
-    ok_user2 = (creds[:un] == "me" && creds[:pw] == 'mefi1')
-    valid = ok_user1 || ok_user2
-  end
-=end
 end
 
 
@@ -117,6 +136,10 @@ get '/application.js' do
   Stitch::Package.new(:paths => ["stitch/coffeescripts"], :dependencies => []).compile
 end
 
+get '/' do
+  redirect '/login'
+end
+
 #TODO: Need to fix bug where if user has a session but hasn't signed up, they will be redirected to the graph as a nil user
 get '/new_user' do
   erb :sign_up
@@ -149,25 +172,42 @@ get '/login' do
   redirect "/openid_login.html"
 end
 
+#From login form 
 post '/login' do
+  p params
   user_id = nil
-  resp = request.env["rack.openid.response"]
+  #resp = request.env["rack.openid.response"]
+  #p resp
+  #STOPHERE
     if resp = request.env["rack.openid.response"]
-
+ 
+      
       if resp.status == :success
+        #I'm not sure identity_url is correct (but it seems to work)
         op_id = resp.identity_url
         puts "Identity URL #{op_id}"
         
+        #p @@user_id_lookup
+
         #TODO: Make persistent
-        user_id = @@user_id_lookup[op_id]
+        #user_id = @@user_id_lookup[op_id]
+        #user_id = @@user_id_lookup2.get(op_id)['guid']
+        user = OpenIdGuid.get(op_id)
+        #user id is guid
+        user_id = user.guid
         if user_id
           puts "Found User: #{user_id}"
-          user_data = @@user_data[user_id]
-          puts "Name: #{user_data[:friendly_name].inspect}"
-          puts "Local ID: #{user_data[:friendly_id].inspect}"
-          puts "Existing Classes: #{user_data[:joha_classes].inspect}"
+          #user_data = @@user_data[user_id]
+          #user_data = @@user_data2.get(user_id)
+          user_data = UserDataWebApp.get(user_id)
+          #puts "Name: #{user_data[:friendly_name].inspect}"
+          #puts "Local ID: #{user_data[:friendly_id].inspect}"
+          #puts "Existing Classes: #{user_data[:joha_classes].inspect}"
+          puts "Name: #{user_data.friendly_name.inspect}"
+          puts "Local ID: #{user_data.friendly_id.inspect}"
+          puts "Existing Classes: #{user_data.joha_classes.inspect}"
         else
-          
+          raise "WORK ON NEW USER NOW"
           #ax = OpenID::AX::FetchResponse.from_success_response(resp)
           #email_address = ax.get_single("http://axschema.org/contact/email")
           
@@ -197,17 +237,19 @@ post '/login' do
     
     #set session data
     session[:user_id] = user_id
-    user_data = @@user_data[user_id]
-    session[:friendly_name] =user_data[:friendly_name]
-    friendly_id = user_data[:friendly_id]
-
+    #user_data = @@user_data[user_id]
+    #session[:friendly_name] =user_data[:friendly_name]
+    #friendly_id = user_data[:friendly_id]
+    session[:friendly_name] = user_data.friendly_name
+    friendly_id = user_data.friendly_id
   #TODO: create an "owner" field that is used for the joha username
     #That way other users can us (or copy) the joha model if they know the owner (and have owner permission, etc)
     #Actually, maybe have the ability to set the owner name and associate it with the class
     #The default would be friendly_id, but could be overwritten?
     
     session[:friendly_id] = friendly_id
-    session[:joha_classes] = user_data[:joha_classes]
+    #session[:joha_classes] = user_data[:joha_classes]
+    session[:joha_classes] = user_data.joha_classes
     puts session.inspect
     redirect "/user/#{friendly_id}"
 end
