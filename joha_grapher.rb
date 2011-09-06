@@ -350,7 +350,8 @@ get '/filter_nodes' do
 end
 
 get '/data_definition' do
-  model_data_def = JohaModel::JohaDataDefn
+  #updated from JohaDataDefn to JohaModelDataDefn in path, what about git?
+  model_data_def = JohaModel::JohaModelDataDefn
   #map model data definition to application data definition
   special_data_defs = {
     :attached_files => :file_list,
@@ -388,6 +389,7 @@ post '/desc_data' do
   joha_class_name = session[:current_joha_class]
   #@jm = session[:current_jm] #|| create it
   @jm = @@joha_model_map[username][joha_class_name]
+  
   node_id = params[:node_id]
   field = params[:node_data_type]
   raise "no node id" unless node_id

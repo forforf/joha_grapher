@@ -4,7 +4,7 @@
   <% node_data.each do |node_id, field_data| %>
     <% next unless field_data %>
     <% field_data.each do |att_name| %>
-      <a href="javascript:void(0)" class="desc desc_attached_files" onclick="downloadAttachment('<%=node_id%>', '<%= att_name %>')"><%= att_name %></a>
+      <a href="/download/<%= node_id %>/<%= att_name %>" class="desc desc_file_attachment"><%= att_name %></a>
     <% end %>
   <% end %>
 <% end %>
