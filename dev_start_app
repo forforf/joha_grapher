@@ -1,0 +1,9 @@
+echo "DEV Enviroment App Launcher"
+if [ -f public/application.js ]
+then 
+    echo "Deactivating current static application.js file to enable dynamic compiling"
+    mv public/application.js public/static_application.js
+else
+    echo "application.js file not present (this is ok since this is DEV)"
+fi
+thin --debug start -R config.ru

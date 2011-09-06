@@ -1,1 +1,15 @@
+echo "Static Assets App Launcher"
+if [ -f public/application.js ]
+then
+    echo "Using currently activated applicatoin.js file"
+else
+    if [ -f public/static_application.js ]
+    then
+      mv public/static_application.js public/application.js
+      echo "Activating static_application.js as application.js"
+    else
+      echo "WARNING: No application.js file types found, dynamic compiling will be used instead (possible performance hit)"
+    fi
+fi
+
 thin --debug start -R config.ru
