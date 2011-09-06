@@ -1,7 +1,7 @@
 echo "Static Assets App Launcher"
 if [ -f public/application.js ]
 then
-    echo "Using currently activated applicatoin.js file"
+    echo "Using currently activated application.js file"
 else
     if [ -f public/static_application.js ]
     then
