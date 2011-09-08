@@ -86,8 +86,8 @@ class JohaGrapherApp < Sinatra::Application
     #TODO: People can overwrite other peoples graphs right now
     #Note that a new graph will not erase an older one, just use it.
     joha_class_name = params[:graph_name]
-    joha_class_owner = params[:graph_owner]
-    new_joha_class_data = {joha_class_name => {:owner => joha_class_owner}}
+    joha_tinkit_id = params[:graph_id]
+    new_joha_class_data = {joha_class_name => {:owner => joha_tinkit_id}}
     puts "new joha class data"
     p new_joha_class_data
     user_id = session[:user_id]
