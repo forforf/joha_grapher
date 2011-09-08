@@ -1,4 +1,6 @@
 #load primary routes
+require_relative 'interface_testing'
+require_relative 'grapher_api'
 require_relative 'login'
 require_relative 'new_user'
 require_relative 'stitch_js'
