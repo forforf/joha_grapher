@@ -1,18 +1,69 @@
 #defines the data store for holding models associated with each user
 require_relative "../models/joha_model_cache"
+require_relative "../models/user_session_cache"
 
 class JohaGrapherApp < Sinatra::Application
 
-  #user related class variable
-#  @@joha_model_map = {}
+  #Flow
+  #example data
+  #session[:friendly_id] -> username -> dave
+  #session[:joha_classes] one of is -> joha_class_name -> my_joha
+  
+  
+  # /user/dave
+  # sends directly to graph if there is only one tinkit
+  #   format /user/dave/graph/my_joha
+  # otherwise let user choose the tinkit
+  
+  # /user/select_domain/dave
+  # choose the tinkit
+  # return format /user/dave/graph/my_joha
+  
+  #user/dave/graph/my_joha
+  #TODO: Change class_owner to tinkit_id
+
+  helpers do
+    def get_user
+      uid = session[:user_id]
+      user = JohaUserCache.get_user_node(uid)
+      #convert strings to symbols
+      p user._user_data
+      if user.joha_model_names
+        user.joha_model_names.each do |model_name, model_data|
+          user.joha_model_names[model_name] = HashKeys.str_to_sym model_data
+        end
+      end
+      return user
+    end
+  end
+  
   get "/user/:username" do |username|
-    joha_classes = session[:joha_classes] 
-    case joha_classes.size
+    #joha_classes = session[:joha_classes] 
+    #joha_models = session[:joha_models]
+    puts "Does fid == username?"
+    puts "username: #[username]"
+    user = get_user
+    puts "fid: #{user.friendly_id}"
+    joha_model_names = user.joha_model_names
+    #case joha_classes.size
+    case joha_model_names.size
       when 1
-        joha_class_name = joha_classes.keys.first
-        session[:joha_class_name] = joha_class_name
-        fid = session[:friendly_id]
-        redirect "/user/#{fid}/graph/#{joha_class_name}"
+        #joha_class_name = joha_classes.keys.first
+        joha_model_name = user.joha_model_names.keys.first
+        #p user.joha_model_names.keys
+        #p joha_model_name
+        #tinkit_class_name = joha_model_names[joha_model_name][:tinkit_class_name]
+        #user.friendly_name_add "add_test_to_friendly_name"
+        #user.current_joha_model_name_add "test"
+        user.current_joha_model_name_add joha_model_name
+        #session[:joha_class_name] = joha_class_name
+        #session[:tinkit_class_name] = tinkit_class_name
+        #session[:joha_model_name] = joha_model_name
+        #fid = session[:friendly_id]
+        fid = user.friendly_id
+        #tinkit_class_name = user.current_tinkit_class_name
+        #redirect "/user/#{fid}/graph/#{joha_class_name}"
+        redirect "/user/#{fid}/graph/#{joha_model_name}"
       when 0
         raise "Error assigning default joha graph"
       else
@@ -21,30 +72,56 @@ class JohaGrapherApp < Sinatra::Application
   end 
   
   get "/user/select_domain/:friendly_id" do |fr_id|
-    @joha_classes = session[:joha_classes]
+    #@joha_classes = session[:joha_classes]
+    user = get_user
+    #@joha_models = session[:joha_models]
+    @joha_models = user.joha_model_names
     @base_domain_url = "/user/#{fr_id}/graph"
-    erb :choose_domains
+    erb :choose_domains   #sends to /user/fr_id/graph/model_name
   end
   
     #@@joha_model_map = {}
     
   get '/user/*/graph/*' do
     username = params[:splat][0]
-    joha_class_name = params[:splat][1]
-    session[:current_joha_class] = joha_class_name
-    #ToDo: Fix the mixture of strings and symbols
-    class_owner = session[:joha_classes][joha_class_name]["owner"]
+    puts "fid and username part 2"
+    puts "/user/*/graph/* username: #{username}"
+    #joha_class_name = params[:splat][1]
+    joha_model_name = params[:splat][1]
+    user = get_user
+    puts "Friednly id: #{user.friendly_id}"
+    user.current_joha_model_name_add params[:splat][1]
     
-    session[:current_owner] = class_owner
+    #session[:current_joha_class] = joha_class_name
+    #session[:current_joha_model] = joha_model_name
+    #tinkit_id = class_owner = session[:joha_classes][joha_class_name]["owner"]
+    #tinkit_id = class_owner = session[:joha_classes][joha_class_name][:tinkit_id]
+    #ToDo: Can joha_model_name be removed from session?
+    #raise "Model name mismatch, session corrupted? \n #{session.inspect}" unless joha_model_name == session[joha_model_name]
+    #tinkit_class_name = session[:tinkit_class_name]
+    #tinkit_id = session[:joha_models][joha_model_name][:tinkit_id]
+    p joha_model_name
+    p user.joha_model_names
+    p tinkit_class_name = user.joha_model_names[joha_model_name][:tinkit_class_name]
+    p tinkit_id = user.joha_model_names[joha_model_name][:tinkit_id]
+    p model_owner = user.joha_model_names[joha_model_name][:owner]
+    #model_owner = session[:joha_models][joha_model_name][:tinkit_id]
+    raise "tinkit_id not set correctly for session:\n #{session.inspect}" unless tinkit_id
+    #session[:tinkit_id] = tinkit_id #session[:current_owner] = class_owner
     
-    #list avaialbe classes, go to next if only one class
-    #username = session[:username]
-    #@jm = JohaModel.new(TestClass, username)
-    
-    @jm = JohaModel.new(joha_class_name, session[:current_owner])
+    #@jm = JohaModel.new(joha_class_name, session[:current_owner], session[:current_owner])
+    #@jm = JohaModel.new(joha_class_name, username, tinkit_id)
+    puts "Tinkit Class Name: #{tinkit_class_name}"
+    puts "Owner: #{model_owner}"
+    puts "tinkit id: #{tinkit_id}"
+    user_datastore_id = model_owner
+    @jm = JohaModel.new(tinkit_class_name, user_datastore_id, tinkit_id)
+    p @jm
     #@@joha_model_map[username] = {joha_class_name => @jm}
-    JohaModelCache.add_model(username, joha_class_name, @jm)
-    @base_graph_url = "/graph/#{username}/#{joha_class_name}"
+    
+    JohaModelCache.add_model(username, tinkit_class_name, @jm)
+    
+    @base_graph_url = "/graph/#{username}/#{joha_model_name}"
 
     @avail_digraphs = @jm.digraphs_with_roots
     case @avail_digraphs.size
@@ -62,26 +139,26 @@ class JohaGrapherApp < Sinatra::Application
     end
   end
   
-  #called by avail_digraphs view
   get '/graph/*/*/*' do 
     username = params[:splat][0]
     joha_class_name = params[:splat][1]
     @top_node = params[:splat][2]
     session[:top_node] = @top_node
-    session[:joha_class_name] = joha_class_name
+    #session[:joha_class_name] = joha_class_name
     
-    token = session[:token]
+    #token = session[:token]
     #@jm = @@joha_model_map[username][joha_class_name]  #|| create it
     @jm = JohaModelCache.get_model(username, joha_class_name)
     redirect '/joha_graph.html'
   end
   
+
   #Called by 'Create New Graph' in the Joha Graph view
   #ToDo: Add to user landing page
   get '/configure_new_graph' do
     erb :configure_new_graph
   end
-
+  #TODO: FIX FOR NEW joha model arch
   post '/create_new_graph' do
     #TODO: People can overwrite other peoples graphs right now
     #Note that a new graph will not erase an older one, just use it.

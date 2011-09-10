@@ -147,7 +147,10 @@ class JohaGrapherApp < Sinatra::Application
     #like when creating a new graph
     top_node = session[:top_node]||"none"
     username = session[:friendly_id]
-    joha_class_name = session[:current_joha_class]
+    #joha_class_name = session[:current_joha_class]
+    joha_model_name = session[:current_joha_model]
+    joha_models = session[:joha_models]
+    tinkit_class_name = joha_models[joha_model_name][:tinkit_class_name]
     #valid_session = username && joha_class_name
     #redirect '/login' unless valid_session
 
@@ -159,7 +162,7 @@ class JohaGrapherApp < Sinatra::Application
     #p @jm.tree_graph(top_node)
     content_type :json
     #ret_json = @jm.tree_graph(top_node)
-    ret_json = get_tree_graph(top_node, username, joha_class_name)
+    ret_json = get_tree_graph(top_node, username, tinkit_class_name)
   end
 
   #ToDo: DRY up the requests that return an updated tree map
