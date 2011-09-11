@@ -9,8 +9,6 @@ module JohaUserCache
   
   def self.add_user_node(uid, user_tinkit_node)
     self.store[uid] = user_tinkit_node
-    #self.store[user][model_name] ||= model_name
-    #self.store[user][model_name] = model
   end
   
   def self.get_user_node(uid)

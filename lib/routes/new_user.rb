@@ -31,6 +31,6 @@ class JohaGrapherApp < Sinatra::Application
     JohaUserCache.add_user_node(user_id, new_user)
     new_user.__save
     
-    redirect "/select_model" ##"/user/select_model" ##{fid}"
+    redirect "/select_model"
   end
 end

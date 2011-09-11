@@ -38,7 +38,7 @@ class JohaGrapherApp < Sinatra::Application
       JohaUserCache.add_user_node(uid, user)
       if user
         friendly_id = user.friendly_id
-        send_to_url = "/select_model" #"/user/select_model" #/#{friendly_id}"
+        send_to_url = "/select_model" 
       else
         send_to_url = "/new_user"
       end
