@@ -32,6 +32,10 @@ class JohaGrapherApp < Sinatra::Application
         new_data.compact! if new_data.respond_to? :"compact!"
         p orig_data
         p new_data
+        #ToDo: create field in node if it doesn't exist
+        unless tk_node.respond_to?(field.to_sym)
+          tk_node.__set_userdata_key(field.to_sym, orig_data)
+        end
         #ToDo: Figure out elegant fix for children
         #children are a calculated field based on parent data
         #as such changing children requires changing the parents
