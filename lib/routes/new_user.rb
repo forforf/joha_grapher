@@ -10,8 +10,6 @@ class JohaGrapherApp < Sinatra::Application
 
   post '/user_sign_up' do
     user_id = session[:user_id]
-    #Test to see if we need uniq friendly ids (I don't think so)
-    #so fid and friendly_name are currently equal
     
     #TODO: Remove joha_class data
     default_joha_class = {"JohaTestClass" => {:tinkit_id => "joha_test_user"}}
@@ -19,10 +17,12 @@ class JohaGrapherApp < Sinatra::Application
                                               :owner => "shared_scratch",
                                               :tinkit_id => "joha_test_user"}
                           } 
-    fid = params[:fid]
+    friendly_name = params[:username]
+    friendly_id = friendly_name + user_id[-4,4]
+    
     new_user_data = {:id => user_id,
-                     :friendly_id => fid,
-                     :friendly_name => fid,
+                     :friendly_id => friendly_id,
+                     :friendly_name => friendly_name,
                      :joha_classes => default_joha_class,
                      :joha_model_names => default_joha_models,
                      :current_joha_model_name => nil}
@@ -31,11 +31,6 @@ class JohaGrapherApp < Sinatra::Application
     JohaUserCache.add_user_node(user_id, new_user)
     new_user.__save
     
-    #session[:joha_classes] = new_user.joha_classes
-    #session[:joha_models] = new_user.joha_models
-    #session[:friendly_id] = new_user.friendly_id
-    #friendly_id = session[:friendly_name] = new_user.friendly_name
-    #session[:stored] = true
-    redirect "/user/#{fid}"
+    redirect "/select_model" ##"/user/select_model" ##{fid}"
   end
 end

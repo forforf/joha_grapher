@@ -7,13 +7,19 @@ module JohaModelCache
     attr_accessor :store
   end
   
-  def self.add_model(user, model_name, model)
-    self.store[user] ||= {}
-    self.store[user][model_name] ||= model_name
-    self.store[user][model_name] = model
+  def self.add_model(uid, model_name, model)
+    raise "Invalid UID: #{uid}" unless uid.length == 32
+    self.store[uid] ||= {}
+    self.store[uid][model_name] ||= model_name
+    self.store[uid][model_name] = model
   end
   
-  def self.get_model(user, model_name)
-    self.store[user][model_name]
+  def self.get_model(uid, model_name)
+    rtn_val = if self.store && self.store[uid]
+      self.store[uid][model_name]
+    else
+      nil
+    end
+    return rtn_val
   end
 end

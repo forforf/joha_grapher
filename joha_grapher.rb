@@ -1,4 +1,3 @@
-
 class JohaGrapherApp < Sinatra::Application
   use Rack::Session::Cookie
 

@@ -5,11 +5,7 @@ require_relative "../models/user_session_cache"
 class JohaGrapherApp < Sinatra::Application
 
   #Flow
-  #example data
-  #session[:friendly_id] -> username -> dave
-  #session[:joha_classes] one of is -> joha_class_name -> my_joha
-  
-  
+ 
   # /user/dave
   # sends directly to graph if there is only one tinkit
   #   format /user/dave/graph/my_joha
@@ -22,111 +18,56 @@ class JohaGrapherApp < Sinatra::Application
   #user/dave/graph/my_joha
   #TODO: Change class_owner to tinkit_id
 
-  helpers do
-    def get_user
-      uid = session[:user_id]
-      user = JohaUserCache.get_user_node(uid)
-      #convert strings to symbols
-      p user._user_data
-      if user.joha_model_names
-        user.joha_model_names.each do |model_name, model_data|
-          user.joha_model_names[model_name] = HashKeys.str_to_sym model_data
-        end
-      end
-      return user
-    end
-  end
-  
-  get "/user/:username" do |username|
-    #joha_classes = session[:joha_classes] 
-    #joha_models = session[:joha_models]
-    puts "Does fid == username?"
-    puts "username: #[username]"
-    user = get_user
-    puts "fid: #{user.friendly_id}"
-    joha_model_names = user.joha_model_names
-    #case joha_classes.size
-    case joha_model_names.size
-      when 1
-        #joha_class_name = joha_classes.keys.first
-        joha_model_name = user.joha_model_names.keys.first
-        #p user.joha_model_names.keys
-        #p joha_model_name
-        #tinkit_class_name = joha_model_names[joha_model_name][:tinkit_class_name]
-        #user.friendly_name_add "add_test_to_friendly_name"
-        #user.current_joha_model_name_add "test"
-        user.current_joha_model_name_add joha_model_name
-        #session[:joha_class_name] = joha_class_name
-        #session[:tinkit_class_name] = tinkit_class_name
-        #session[:joha_model_name] = joha_model_name
-        #fid = session[:friendly_id]
-        fid = user.friendly_id
-        #tinkit_class_name = user.current_tinkit_class_name
-        #redirect "/user/#{fid}/graph/#{joha_class_name}"
-        redirect "/user/#{fid}/graph/#{joha_model_name}"
-      when 0
-        raise "Error assigning default joha graph"
-      else
-        redirect "/user/select_domain/#{username}"
-    end
-  end 
-  
-  get "/user/select_domain/:friendly_id" do |fr_id|
-    #@joha_classes = session[:joha_classes]
-    user = get_user
-    #@joha_models = session[:joha_models]
-    @joha_models = user.joha_model_names
-    @base_domain_url = "/user/#{fr_id}/graph"
-    erb :choose_domains   #sends to /user/fr_id/graph/model_name
-  end
-  
-    #@@joha_model_map = {}
-    
-  get '/user/*/graph/*' do
-    username = params[:splat][0]
-    puts "fid and username part 2"
-    puts "/user/*/graph/* username: #{username}"
-    #joha_class_name = params[:splat][1]
-    joha_model_name = params[:splat][1]
-    user = get_user
-    puts "Friednly id: #{user.friendly_id}"
-    user.current_joha_model_name_add params[:splat][1]
-    
-    #session[:current_joha_class] = joha_class_name
-    #session[:current_joha_model] = joha_model_name
-    #tinkit_id = class_owner = session[:joha_classes][joha_class_name]["owner"]
-    #tinkit_id = class_owner = session[:joha_classes][joha_class_name][:tinkit_id]
-    #ToDo: Can joha_model_name be removed from session?
-    #raise "Model name mismatch, session corrupted? \n #{session.inspect}" unless joha_model_name == session[joha_model_name]
-    #tinkit_class_name = session[:tinkit_class_name]
-    #tinkit_id = session[:joha_models][joha_model_name][:tinkit_id]
-    p joha_model_name
-    p user.joha_model_names
-    p tinkit_class_name = user.joha_model_names[joha_model_name][:tinkit_class_name]
-    p tinkit_id = user.joha_model_names[joha_model_name][:tinkit_id]
-    p model_owner = user.joha_model_names[joha_model_name][:owner]
-    #model_owner = session[:joha_models][joha_model_name][:tinkit_id]
-    raise "tinkit_id not set correctly for session:\n #{session.inspect}" unless tinkit_id
-    #session[:tinkit_id] = tinkit_id #session[:current_owner] = class_owner
-    
-    #@jm = JohaModel.new(joha_class_name, session[:current_owner], session[:current_owner])
-    #@jm = JohaModel.new(joha_class_name, username, tinkit_id)
-    puts "Tinkit Class Name: #{tinkit_class_name}"
-    puts "Owner: #{model_owner}"
-    puts "tinkit id: #{tinkit_id}"
-    user_datastore_id = model_owner
-    @jm = JohaModel.new(tinkit_class_name, user_datastore_id, tinkit_id)
-    p @jm
-    #@@joha_model_map[username] = {joha_class_name => @jm}
-    
-    JohaModelCache.add_model(username, tinkit_class_name, @jm)
-    
-    @base_graph_url = "/graph/#{username}/#{joha_model_name}"
 
-    @avail_digraphs = @jm.digraphs_with_roots
+  #ToDo: Configure so that one can go directly to a model (and/or graph) by default (with way to return from graph screen
+  get "/select_model" do 
+    user = get_user
+    #fr_id = user.friendly_id
+    @joha_models = user.joha_model_names
+    #@base_domain_url = "/user/#{fr_id}/graph"
+    @base_domain_url = "/model"
+    erb :choose_model   #sends /model/:joha_model_name
+  end
+    
+  post '/delete_model' do
+  #remove model name from user node
+  #and save
+  #remove from model cache
+  #go back to select domain
+  end
+  
+  #ToDo: See if joha_model_cache can be consolidated into user data
+  get '/model/:joha_model_name' do |joha_model_name|
+    #Set the current model (in memory)
+    #ToDo: Is there any reason to persist the current model in storage?
+    user = get_user
+    user.current_joha_model_name_add joha_model_name
+    #username = params[:splat][0]
+    #joha_model_name = params[:splat][1]
+    #user = get_user
+    #uid = user.id
+    #username = user.friendly_id
+    #user.current_joha_model_name_add joha_model_name #params[:splat][1]
+    #tinkit_class_name = user.joha_model_names[joha_model_name][:tinkit_class_name]
+    #tinkit_id = user.joha_model_names[joha_model_name][:tinkit_id]
+    #model_owner = user.joha_model_names[joha_model_name][:owner]
+   
+    #raise "tinkit_id not set correctly for session:\n #{session.inspect}" unless tinkit_id
+    #user_datastore_id = model_owner
+    #jm = JohaModel.new(tinkit_class_name, user_datastore_id, tinkit_id)
+    #JohaModelCache.add_model(uid, tinkit_class_name, jm)
+    jm = get_joha_model
+    @base_graph_url = "/graph/#{jm.model_name}"
+    #this isn't really that intensive comparatively
+    @avail_digraphs = jm.digraphs_with_roots
+    puts "Avail Digraphs"
+    puts "Size: #{@avail_digraphs.size}"
+    @avail_digraphs.each do |graph|
+      puts "  GRAPH"
+      p graph
+    end
     case @avail_digraphs.size
       when 0
-        #for 0 session[:top_node] should be nil (do this explicitly?)
         session[:top_node] = nil
         redirect '/joha_graph.html'
       when 1
@@ -135,20 +76,20 @@ class JohaGrapherApp < Sinatra::Application
         redirect '/joha_graph.html'
       else
         erb :avail_digraphs
-    #if no nodes or only one digraph {@base_graph_url}/#{top_node}
     end
   end
   
-  get '/graph/*/*/*' do 
-    username = params[:splat][0]
-    joha_class_name = params[:splat][1]
-    @top_node = params[:splat][2]
-    session[:top_node] = @top_node
-    #session[:joha_class_name] = joha_class_name
-    
-    #token = session[:token]
-    #@jm = @@joha_model_map[username][joha_class_name]  #|| create it
-    @jm = JohaModelCache.get_model(username, joha_class_name)
+  #Called when user selects a specfic digraph from erb :avail_digraphs
+  get '/graph/*/*' do 
+    #user = get_user
+    #username = params[:splat][0]
+    #username = user.friendly_id
+    #joha_class_name = params[:splat][0]
+    #@top_node = params[:splat][1]
+    top_node = params[:splat][1]
+    session[:top_node] = top_node
+    #@jm = JohaModelCache.get_model(user.id, joha_class_name)
+    jm = get_joha_model
     redirect '/joha_graph.html'
   end
   
@@ -159,28 +100,53 @@ class JohaGrapherApp < Sinatra::Application
     erb :configure_new_graph
   end
   #TODO: FIX FOR NEW joha model arch
+  
+   post '/add_new_model' do
+  #get model name
+  #get tinkit class name (user + model name)?
+  #get tinkit_id: (user + model name)?
+  #get owner
+  #add to user node (and save)
+  #go back to select domain
+  end
+  
   post '/create_new_graph' do
+    user = get_user
     #TODO: People can overwrite other peoples graphs right now
     #Note that a new graph will not erase an older one, just use it.
-    joha_class_name = params[:graph_name]
-    joha_tinkit_id = params[:graph_id]
-    new_joha_class_data = {joha_class_name => {:owner => joha_tinkit_id}}
-    puts "new joha class data"
-    p new_joha_class_data
-    user_id = session[:user_id]
-    p user_id
-    user_data = UserDataStore.get(user_id)
+    #ToDo: Use model ids so that model names can be changed
+    new_joha_model_name = params[:graph_name]
+    #new_tinkit_id = params[:graph_id]
+    new_tinkit_id = "joha_#{user.id}_#{new_joha_model_name}"
+    new_tinkit_class_name = "Joha#{user.id}#{new_joha_model_name}"
+    owner = user.id
+    
+    new_model_data = {new_joha_model_name => {:tinkit_class_name => new_tinkit_class_name,
+                                          :owner => owner,
+                                          :tinkit_id => new_tinkit_id}
+                     }
+    
+    merged_model_data = user.joha_model_names.merge(new_model_data)
+    
+    user.joha_model_names_add merged_model_data
+    user.__save
+    
+    #puts "new joha class data"
+    #p new_joha_class_data
+    #user_id = session[:user_id]
+    #p user_id
+    #user_data = UserDataStore.get(user_id)
     #This is where a defined data operation for joha_classes would have come in handy
-    user_joha_classes = user_data.joha_classes
-    merged_joha_classes = user_joha_classes.merge(new_joha_class_data)
-    user_data.joha_classes_add merged_joha_classes
+    #user_joha_classes = user_data.joha_classes
+    #merged_joha_classes = user_joha_classes.merge(new_joha_class_data)
+    #user_data.joha_classes_add merged_joha_classes
     #@@user_data[user_id][:joha_classes].merge!(new_joha_class_data)
     #puts "User Data"
     #p @@user_data
     #session[:joha_classes] = @@user_data[user_id][:joha_classes]
-    session[:joha_classes] = user_data.joha_classes
-    username = session[:friendly_id]
-    redirect "/user/#{username}/graph/#{joha_class_name}"
+    #session[:joha_classes] = user_data.joha_classes
+    #username = session[:friendly_id]
+    redirect "/select_model"
   end  
   
 end

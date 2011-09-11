@@ -9,3 +9,4 @@ gem 'jsivt_grapher', :git => "git@github.com:/forforf/jsivt_grapher.git", :branc
 #gem 'jsivt_grapher', :path => "/home/bufs/my_gems/jsivt_grapher"
 #gem "joha_model", :git => "git@github.com:forforf/joha_model.git", :branch => "dev"
 gem "joha_model", :path => "/home/bufs/my_gems/joha_model"
+

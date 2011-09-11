@@ -6,22 +6,27 @@ class JohaGrapherApp < Sinatra::Application
 
   #refactor to a model if needed
   helpers do
-    def get_tree_graph(top_node, username, joha_class_name)
-      valid_session = username && joha_class_name
-      redirect '/login' unless valid_session
-      @jm = JohaModelCache.get_model(username, joha_class_name)
-      tree_json = @jm.tree_graph(top_node)
+    def get_tree_graph(top_node, refresh_needed=false)
+      #user = get_user
+      #username = user.friendly_id
+      #joha_model_name = user.current_joha_model_name
+      #valid_session = username && joha_model_name
+      #redirect '/login' unless valid_session
+      #jm = JohaModelCache.get_model(username, joha_class_name)
+      jm = get_joha_model
+      jm.refresh if refresh_needed
+      tree_json = jm.tree_graph(top_node)
     end
     
-    def diff_data(node_id, diff_data_json, username, joha_class_name)
+    def diff_data(node_id, diff_data_json)
       #p diff_data_json
       diff_data = JSON.parse diff_data_json
       p diff_data  
       #@jm = @@joha_model_map[username][joha_class_name] #or create it
-      @jm = JohaModelCache.get_model(username, joha_class_name)
-      
+      #@jm = JohaModelCache.get_model(username, joha_model_name)
+      jm = get_joha_model
       #update data here
-      tk_class = @jm.tinkit_class
+      tk_class = jm.tinkit_class
       tk_node = tk_class.get(node_id)
          
       #update algorithm:
@@ -98,22 +103,29 @@ class JohaGrapherApp < Sinatra::Application
   #Where does it belong user_pages or API? I'm leaning API
   get '/redirect_to_graphs' do
     #token = session[:token]
-    username = session[:friendly_id]
-    joha_class_name = session[:current_joha_class]
-    redirect "/user/#{username}/graph/#{joha_class_name}"  
+    #username = session[:friendly_id]
+ 
+    #joha_class_name = session[:current_joha_class]
+    user = get_user
+    joha_model_name = user.current_joha_model_name
+    #redirect "/user/#{username}/graph/#{joha_class_name}"  
+    redirect "/model/#{joha_model_name}"
   end
   
   post '/create_node' do
     #TODO: Validate against data def
     #token = session[:token]
-    username = session[:friendly_id]
-    joha_class_name = session[:current_joha_class]
+    #user = get_user
+    #username = session[:friendly_id]
+    #username = user.friendly_id
+    #joha_class_name = session[:current_joha_class]
+    #joha_model_name = user.current_joha_model_name
+    #tinkit_class_name = joha_model_names[joha_model_name][:tinkit_class_name]
     #@jm = @@session[token][joha_class_name] #|| create it
     #@jm = session[:current_jm]
     #@jm = @@joha_model_map[username][joha_class_name]
-    @jm = JohaModelCache.get_model(username, joha_class_name)
-
-    
+    #jm = JohaModelCache.get_model(username, joha_model_name)
+    jm = get_joha_model
     node_id = params[:node_id]
     node_label = params[:node_label]
     node_parents = params[:node_parents].split(',')
@@ -126,13 +138,13 @@ class JohaGrapherApp < Sinatra::Application
                       }
     
     
-    @jm.create_node(node_data)
-    @jm.refresh
+    jm.create_node(node_data)
+    jm.refresh
     #TODO: Find elegant way of handling mising top nodes 
     top_node = session[:top_node]||"none"
     #TODO: Fix the jsivt grapher and/or model so we don't have this mess
     #SO ugly my eyes burn (we're changing JSON to ruby to change back to JSON)
-    ruby_graph = JSON.parse(@jm.tree_graph(top_node))
+    ruby_graph = JSON.parse(jm.tree_graph(top_node))
     
     ret_val = { :node => node_data, :graph => ruby_graph }
     #p ret_val[:graph]
@@ -143,14 +155,19 @@ class JohaGrapherApp < Sinatra::Application
 
   
   get '/index_nodes' do
+    #user = get_user
+    #raise "user session lost, try logging in again" unless user
     #TODO: Figure out elegant fix to missing top nodes
     #like when creating a new graph
     top_node = session[:top_node]||"none"
-    username = session[:friendly_id]
+    #username = user.friendly_id
     #joha_class_name = session[:current_joha_class]
-    joha_model_name = session[:current_joha_model]
-    joha_models = session[:joha_models]
-    tinkit_class_name = joha_models[joha_model_name][:tinkit_class_name]
+    #joha_model_name = session[:current_joha_model]
+    #joha_model_name = user.current_joha_model_name
+    #joha_models = session[:joha_models]
+    #joha_models = user.joha_model_names
+    #tinkit_class_name = joha_models[joha_model_name][:tinkit_class_name]
+    #tinkit_class_name = get_tinkit_class_name #in init_routes helpers
     #valid_session = username && joha_class_name
     #redirect '/login' unless valid_session
 
@@ -162,15 +179,20 @@ class JohaGrapherApp < Sinatra::Application
     #p @jm.tree_graph(top_node)
     content_type :json
     #ret_json = @jm.tree_graph(top_node)
-    ret_json = get_tree_graph(top_node, username, tinkit_class_name)
+    ret_json = get_tree_graph(top_node)
   end
 
   #ToDo: DRY up the requests that return an updated tree map
   get '/filter_nodes' do
+    user = get_user
     top_node = params[:topnode] || session[:top_node] || "none"
-    username = session[:friendly_id]
+    #username = session[:friendly_id]
+    #username = user.friendly_id
     #p username
-    joha_class_name = session[:current_joha_class]
+    #joha_class_name = session[:current_joha_class]
+    #joha_model_name = user.current_joha_model_name
+    #tinkit_class_name = joha_models[joha_model_name][:tinkit_class_name]
+    #tinkit_class_name = get_tinkit_class_name #in init_routes helpers
     #valid_session = username && joha_class_name
     #redirect '/login' unless valid_session
     #@jm = @@joha_model_map[username][joha_class_name]
@@ -180,7 +202,7 @@ class JohaGrapherApp < Sinatra::Application
     #p @jm.tree_graph(top_node)
     content_type :json
     #ret_json = @jm.tree_graph(top_node)
-    ret_json = get_tree_graph(top_node, username, joha_class_name)
+    ret_json = get_tree_graph(top_node)
   end
 
   get '/data_definition' do
@@ -217,17 +239,21 @@ class JohaGrapherApp < Sinatra::Application
   end
 
   post '/desc_data' do
+    #user = get_user
     top_node = session[:top_node]
     #token = session[:token]
-    username = session[:friendly_id]
-    joha_class_name = session[:current_joha_class]
+    #username = session[:friendly_id]
+    #username = user.friendly_id
+    #joha_class_name = session[:current_joha_class]
+    #joha_model_name = user.current_joha_model_name
     #@jm = session[:current_jm] #|| create it
     #@jm = @@joha_model_map[username][joha_class_name]
-    @jm = JohaModelCache.get_model(username, joha_class_name)
+    #@jm = JohaModelCache.get_model(username, joha_model_name)
+    jm = get_joha_model
     node_id = params[:node_id]
     field = params[:node_data_type]
     raise "no node id" unless node_id
-    @desc_data =  @jm.find_all_descendant_data(node_id, field)
+    @desc_data =  jm.find_all_descendant_data(node_id, field)
     case field
       when 'attached_files'
         erb :descendant_attached_files
@@ -241,38 +267,50 @@ class JohaGrapherApp < Sinatra::Application
 
   #TODO: See if this can be simplified
   post '/node_data_update' do
+    #user = get_user
     #p params
     node_id = params["id"]
     raise "Node does not exist. Required for updating node" unless node_id
     diff_data_json = params["diff"]
     
     #token = session[:token]
-    username = session[:friendly_id]
-    joha_class_name = session[:current_joha_class]
+    #username = session[:friendly_id]
+    #username = user.friendly_id
+    #joha_class_name = session[:current_joha_class]
+    #joha_model_name = user.current_joha_model_name
     top_node = session[:top_node]
-    diff_data(node_id, diff_data_json, username, joha_class_name)
+    #user = get_user
+    #username = user.friendly_id
+    #joha_model_name = user.current_joha_model_name
+    diff_data(node_id, diff_data_json) #, username, joha_model_name)
     
-    @jm.refresh
+    #jm.refresh
     #ToDo: Optimize so only structural changes (inter-node relations) are re-graphed
     #Intra-node already saved, if changes are specific to that node, no need to regraph
     #Is there a way to not re-graph?
     #@jm.tree_graph(top_node)
-    ret_json = get_tree_graph(top_node, username, joha_class_name)
+    refresh = true
+    ret_json = get_tree_graph(top_node, refresh)
   end
 
   post '/upload_files_html5' do
+    user = get_user
+    user_tmp_dirname = user.id + user.current_joha_model_name
     node_id = params["node_id"]
     params.delete("node_id")
-    token = session[:token]
-    username = session[:friendly_id]
-    joha_class_name = session[:current_joha_class]
+    #token = session[:token]
+    #username = session[:friendly_id]
+    #username = user.friendly_id
+    #joha_class_name = session[:current_joha_class]
+    #joha_model_name = user.current_joha_model_name
     #jm = @@joha_model_map[username][joha_class_name] # or create it
-    jm = JohaModelCache.get_model(username, joha_class_name)
+    #jm = JohaModelCache.get_model(username, joha_model_name)
+    jm = get_joha_model
     tk_class = jm.tinkit_class
     tk_node = tk_class.get(node_id)
-    p node_id
-    p tk_node.id
-    p params
+    #p node_id
+    #p tk_node.id
+    #p params
     
     new_files = {}
     del_files = []
@@ -288,10 +326,10 @@ class JohaGrapherApp < Sinatra::Application
         del_files << del_fname
       end
     end
-    p new_files
-    p del_files
+    #p new_files
+    #p del_files
     new_files.each do |file_key, upload_data|
-      user_dir = token
+      user_dir = user_tmp_dirname
       tmp_file = upload_data[:tempfile]
       src_filename = upload_data[:filename]
       #TODO Fix tinkit so that a new filename can be assigned
@@ -331,7 +369,9 @@ class JohaGrapherApp < Sinatra::Application
     return response.to_json
   end
 
+  #ToDo: upload files (non-HTML5) is broken, fix it
   post '/upload_files' do
+    raise "upload files (non-HTML5) hasn't been updated yet"
     puts "Uploaded Files"
     token = session[:token]
     username = session[:friendly_id]
@@ -376,32 +416,39 @@ class JohaGrapherApp < Sinatra::Application
 
 
   get '/download/*/*' do
+    #user = get_user
     node_id = params[:splat][0]
     attachment_name = params[:splat][1]
-    username = session[:friendly_id]
-    joha_class_name = session[:current_joha_class]
-    puts "download data"
-    p node_id
-    p attachment_name
-    p username
-    p joha_class_name
+    #username = session[:friendly_id]
+    #joha_class_name = session[:current_joha_class]
+    #username = user.friendly_id
+    #joha_model_name = user.current_joha_model_name
+    #puts "download data"
+    #p node_id
+    #p attachment_name
+    #p username
+    #p joha_class_name
     #jm = @@joha_model_map[username][joha_class_name] # or create it
-    jm = JohaModelCache.get_model(username, joha_class_name)
+    #jm = JohaModelCache.get_model(username, joha_model_name)
+    jm = get_joha_model
     content_type 'application/octet-stream'
     jm.download_attachment(node_id, attachment_name)
   end
 
   
   post '/delete_files' do
+    #user = get_user
     node_id = params[:node_id]
     delete_files = params[:del_files]
-    token = session[:token]
-    username = session[:friendly_id]
-    joha_class_name = session[:joha_class_name]
+    #token = session[:token]
+    #username = session[:friendly_id]
+    #username = user.friendly_id
+    #joha_class_name = session[:joha_class_name]
     #jm = @@session[token][joha_class_name]
     #jm = session[:current_jm]
     #jm = @@joha_model_map[username][joha_class_name] #or create it
-    jm = JohaModelCache.get_model(username, joha_class_name)
+    #jm = JohaModelCache.get_model(username, joha_class_name)
+    jm = get_joha_model
 
     if delete_files && delete_files.size > 0
       #TODO: Update Model (jm) rather than pass through to tinkit directly
@@ -417,13 +464,14 @@ class JohaGrapherApp < Sinatra::Application
   post '/delete_node' do
     node_id = params[:node_id]
     delete_files = params[:del_files]
-    token = session[:token]
-    username = session[:friendly_id]
-    joha_class_name = session[:current_joha_class]
+    #token = session[:token]
+    #username = session[:friendly_id]
+    #joha_class_name = session[:current_joha_class]
     #jm = @@session[token][joha_class_name]
     #jm = session[:current_jm]
     #jm = @@joha_model_map[username][joha_class_name] #or create it
-    jm = JohaModelCache.get_model(username, joha_class_name)
+    #jm = JohaModelCache.get_model(username, joha_class_name)
+    jm = get_joha_model
     jm.destroy_node(node_id)
     jm.refresh
     top_node = session[:top_node]

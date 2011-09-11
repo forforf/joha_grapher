@@ -1,0 +1,8 @@
+<h2>Choose the model you want to use.</h2>
+
+<ul>
+<% @joha_models.each do |model_name, model_data|%>
+  <li><%= "<a href=\"#{@base_domain_url}/#{model_name}\">#{model_name}</a> tinkit_id: #{model_data[:tinkit_id]}, owner: #{model_data[:owner]}" %></li>
+<% end %>
+
+</ul>
