@@ -53,7 +53,7 @@ class JohaGrapherApp < Sinatra::Application
   #From openid_login.html form
   post '/login' do
     uid = openid_login
-    puts "UID: #{uid}"
+    #puts "UID: #{uid}"
     next_url = setup_user(uid)
     redirect next_url
   end

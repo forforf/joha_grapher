@@ -17,7 +17,6 @@ class JohaGrapherApp < Sinatra::Application
       raise "No session found for user" unless uid
       user = JohaUserCache.get_user_node(uid)
       #convert strings to symbols
-      p user._user_data
       if user.joha_model_names
         user.joha_model_names.each do |model_name, model_data|
           user.joha_model_names[model_name] = HashKeys.str_to_sym model_data
@@ -31,9 +30,6 @@ class JohaGrapherApp < Sinatra::Application
     user = get_user
     uid = user.id
     joha_model_name = user.current_joha_model_name
-    puts "Getting Joha Model"
-    puts "uid: #{uid}"
-    puts "model name: #{joha_model_name}"
     #check cache first
     jm = JohaModelCache.get_model(uid, joha_model_name)
 

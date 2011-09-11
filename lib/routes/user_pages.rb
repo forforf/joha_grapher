@@ -7,9 +7,7 @@ class JohaGrapherApp < Sinatra::Application
   #ToDo: Configure so that one can go directly to a model (and/or graph) by default (with way to return from graph screen
   get "/select_model" do 
     user = get_user
-    #fr_id = user.friendly_id
     @joha_models = user.joha_model_names
-    #@base_domain_url = "/user/#{fr_id}/graph"
     @base_domain_url = "/model"
     erb :choose_model   #sends /model/:joha_model_name
   end
