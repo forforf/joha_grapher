@@ -1,5 +1,7 @@
 class JohaGrapherApp < Sinatra::Application
+
   use Rack::Session::Cookie
+  
 
   set :root, File.dirname(__FILE__)
   enable :sessions

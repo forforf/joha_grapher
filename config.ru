@@ -8,4 +8,7 @@ require File.join(APP_ROOT,'lib/init')
 
 
 require './joha_grapher'
+  ca_file_location = File.join(File.dirname(__FILE__), "ca-bundle/ca-bundle.crt")
+  puts ca_file_location
+  OpenID.fetcher.ca_file = ca_file_location
 run JohaGrapherApp
