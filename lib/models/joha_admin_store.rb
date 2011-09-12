@@ -9,9 +9,9 @@ module JohaAdminStore
     user_data_defn = {:id => :static_ops,
                       :friendly_name => :replace_ops,
                       :friendly_id => :replace_ops,
-                      :joha_classes => :replace_ops, #joha_classes should actually be :key_key_ops if it existed
-                      :joha_model_names => :replace_ops, #should be :key_replace_ops if it existed
-                      :current_joha_model_name => :replace_ops}
+                      #deprecated :joha_classes => :replace_ops, #joha_classes should actually be :key_key_ops if it existed
+                      :joha_model_ids => :replace_ops, #should be :key_replace_ops if it existed
+                      :current_joha_model_id => :replace_ops}
                       #:persisted => :replace_ops } #should be :boolean if it existed
     
     user_data_env = TinkitNodeFactory.env_formatter("couchrest",

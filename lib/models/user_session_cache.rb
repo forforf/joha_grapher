@@ -1,4 +1,4 @@
-
+=begin
 #a namespaced hash map to hold the
 #user data associated with given uid
 module JohaUserCache
@@ -15,3 +15,4 @@ module JohaUserCache
     self.store[uid]
   end
 end
+=end

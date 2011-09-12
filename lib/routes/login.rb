@@ -35,9 +35,10 @@ class JohaGrapherApp < Sinatra::Application
       send_to_url = nil
       session[:user_id] = uid
       user = UserDataStore.get(uid)
-      JohaUserCache.add_user_node(uid, user)
+
+      #JohaUserCache.add_user_node(uid, user)
       if user
-        friendly_id = user.friendly_id
+        #friendly_id = user.friendly_id
         send_to_url = "/select_model" 
       else
         send_to_url = "/new_user"

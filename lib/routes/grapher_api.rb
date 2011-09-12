@@ -97,8 +97,8 @@ class JohaGrapherApp < Sinatra::Application
   #(called in joha_graph.js)
   get '/redirect_to_graphs' do
     user = get_user
-    joha_model_name = user.current_joha_model_name
-    redirect "/model/#{joha_model_name}"
+    joha_model_id = user.current_joha_model_id
+    redirect "/model/#{joha_model_id}"
   end
   
   post '/create_node' do
@@ -208,7 +208,7 @@ class JohaGrapherApp < Sinatra::Application
 
   post '/upload_files_html5' do
     user = get_user
-    user_tmp_dirname = user.id + user.current_joha_model_name
+    user_tmp_dirname = user.id + user.current_joha_model_id
     node_id = params["node_id"]
     params.delete("node_id")
     jm = get_joha_model

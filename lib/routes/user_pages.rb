@@ -7,9 +7,9 @@ class JohaGrapherApp < Sinatra::Application
   #ToDo: Configure so that one can go directly to a model (and/or graph) by default (with way to return from graph screen
   get "/select_model" do 
     user = get_user
-    @joha_models = user.joha_model_names
+    @joha_models = user.joha_model_ids
     @base_domain_url = "/model"
-    erb :choose_model   #sends /model/:joha_model_name
+    erb :choose_model   #sends /model/:joha_model_id
   end
     
   post '/delete_model' do
@@ -20,11 +20,13 @@ class JohaGrapherApp < Sinatra::Application
   end
   
   #ToDo: See if joha_model_cache can be consolidated into user data
-  get '/model/:joha_model_name' do |joha_model_name|
+  get '/model/:joha_model_id' do |joha_model_id|
     #ToDo: Is there any reason to persist the current model in storage?
     user = get_user
-    user.current_joha_model_name_add joha_model_name
+    user.current_joha_model_id_add joha_model_id
     jm = get_joha_model
+    #ToDo Refactor joha_model.rb to change jm.model_name to joha_model.id
+    #jm.model_name is the same as joha_model_id
     @base_graph_url = "/graph/#{jm.model_name}"
     @avail_digraphs = jm.digraphs_with_roots
     case @avail_digraphs.size
@@ -68,18 +70,21 @@ class JohaGrapherApp < Sinatra::Application
     user = get_user
     #ToDo: Use model ids so that model names can be changed
     new_joha_model_name = params[:graph_name]
-    new_tinkit_id = "joha_#{user.id}_#{new_joha_model_name}"
-    new_tinkit_class_name = "Joha#{user.id}#{new_joha_model_name}"
+    new_joha_model_id = camel_case(new_joha_model_name)
+    new_tinkit_id = "joha_#{user.id}_#{new_joha_model_id}"
+    #model_name = "Joha#{user.id}#{new_joha_model_name}"
+    new_tinkit_class_name = new_joha_model_id
     owner = user.id
     
-    new_model_data = {new_joha_model_name => {:tinkit_class_name => new_tinkit_class_name,
+    new_model_data = {new_joha_model_id => {:model_name => new_joha_model_name,
+                                          :tinkit_class_name => new_tinkit_class_name,
                                           :owner => owner,
                                           :tinkit_id => new_tinkit_id}
                      }
     
-    merged_model_data = user.joha_model_names.merge(new_model_data)
+    merged_model_data = user.joha_model_ids.merge(new_model_data)
     
-    user.joha_model_names_add merged_model_data
+    user.joha_model_ids_add merged_model_data
     user.__save
     
     redirect "/select_model"
