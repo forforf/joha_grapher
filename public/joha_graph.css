@@ -141,7 +141,12 @@ button {
     width:500px;
 }
 
-
+/* Actionable - need to organize this better */
+.actionable {
+  color: blue;
+  text-decoration: underline;
+  cursor: pointer;
+}
 
 
 textarea#related_tags_edit {
@@ -309,33 +314,6 @@ a.borg_link_text {
 }
 
 
-
-/* Dynamically Appearing Elements */
-/*
-.node_field_data {
-    border: solid 1px;
-    margin: 2px;
-}
-
-.node_field_data  .joha_field_name {
-    color: #393840;
-    font-weight: 700;
-}
-*/
-
-
-
-
-
-/* Data Styling */
-/*
-span.fixture_text {
-  color: white;
-  background: #889;
-  font-weight: 400;
-  padding: 2px 3px 2px 1px;
-}
-*/
 
 /*File Attachments*/
 #file_attachment_list .delete_controls {

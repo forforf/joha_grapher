@@ -2,7 +2,7 @@ require 'digest/md5'
 
 #defines UserDataStore
 require_relative "../models/joha_admin_store"
-require_relative "../models/user_session_cache"
+#require_relative "../models/user_session_cache"
 
 class JohaGrapherApp < Sinatra::Application
   use Rack::Session::Cookie
@@ -14,6 +14,7 @@ class JohaGrapherApp < Sinatra::Application
   helpers do
 
     def openid_login
+      #session[:uid] = nil
       uid = nil
       if resp = request.env["rack.openid.response"]
         if resp.status == :success
@@ -33,7 +34,7 @@ class JohaGrapherApp < Sinatra::Application
     def setup_user(uid)
       raise "Redirect to Error Page" unless uid
       send_to_url = nil
-      session[:user_id] = uid
+      #session[:user_id] = uid
       user = UserDataStore.get(uid)
 
       #JohaUserCache.add_user_node(uid, user)
@@ -53,10 +54,16 @@ class JohaGrapherApp < Sinatra::Application
 
   #From openid_login.html form
   post '/login' do
-    uid = openid_login
+    uid = session[:uid] = openid_login
     #puts "UID: #{uid}"
     next_url = setup_user(uid)
     redirect next_url
+  end
+  
+  get '/logout' do
+    session.clear
+    #session[:uid] = :logout
+    redirect '/login'
   end
    
 end

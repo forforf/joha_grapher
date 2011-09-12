@@ -21,15 +21,16 @@ class JohaGrapherApp < Sinatra::Application
     
     def get_user(user=nil)
       unless user
-        uid = session[:user_id]
-        raise "No user id found in session for user: #{user.inspect}" unless uid
+        uid = session[:uid]
+        #redirect to root unless they've logged in
+        redirect '/' unless uid
         user = UserDataStore.get(uid)
-      end
-      #convert strings to symbols
-      if user.joha_model_ids
-        user.joha_model_ids.each do |model_id, model_data|
-          user.joha_model_ids[model_id] = HashKeys.str_to_sym model_data
-        end
+        #convert strings to symbols
+        if user.joha_model_ids
+          user.joha_model_ids.each do |model_id, model_data|
+            user.joha_model_ids[model_id] = HashKeys.str_to_sym model_data
+          end
+        end        
       end
       return user
     end
@@ -60,7 +61,7 @@ class JohaGrapherApp < Sinatra::Application
     tinkit_class_name = joha_models[joha_model_name][:tinkit_class_name]
   end
 
-  get '/' do
+  get '/?' do
     redirect '/login'
   end
 end

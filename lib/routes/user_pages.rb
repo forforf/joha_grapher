@@ -1,6 +1,6 @@
 #defines the data store for holding models associated with each user
 require_relative "../models/joha_model_cache"
-require_relative "../models/user_session_cache"
+#require_relative "../models/user_session_cache"
 
 class JohaGrapherApp < Sinatra::Application
 

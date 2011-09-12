@@ -216,7 +216,7 @@ function set_up_onClicks() {
       data: params,
       dataType: 'json',
       error: function(jqXHR, textStatus, errorThrown) {
-        alert('Ajax Error: ' + textStatus)
+        alert('Ajax Error: ' + errorThrown)
       },
       success: function(graph_data, textStatus, jqXHR){
         //console.log(graph_data);
@@ -298,7 +298,7 @@ function set_up_onClicks() {
         dataType: 'json',
         data: uploadData,
         error: function(jqXHR, textStatus, errorThrown) {
-          alert('Ajax Error: ' + textStatus)
+          alert('Ajax Error: ' + errorThrown)
         },
         success: function(data, textStatus, jqXHR){
           //alert(JSON.stringify(data));
@@ -378,8 +378,12 @@ function newNodeCreated(data){
       actLikeNodeClicked(nodeId);
     } else if (topNodeId===undefined) { 
       //topNodeId doesn't exist, redirect (i.e. a brand new graph)
-      alert(topNodeId);
-      window.location = "redirect_to_graphs";
+      var is_new = confirm("No parent node found, create new graph?");
+      if (is_new) {
+        window.location = "/redirect_to_graphs";
+      } else {
+        return null;
+      }
     } else {  
         var msg = "The new node (" + nodeId + ") is not linked to this graph.  "
         msg += "You can stay on this graph, or go to the graph select screen to select the graph with the new node";
