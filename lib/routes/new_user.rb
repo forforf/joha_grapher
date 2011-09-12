@@ -9,7 +9,7 @@ class JohaGrapherApp < Sinatra::Application
   end
 
   post '/user_sign_up' do
-    user_id = session[:user_id]
+    user_id = session[:uid]
     
     #TODO: Remove joha_class data
     default_joha_class = {"JohaTestClass" => {:tinkit_id => "joha_test_user"}}

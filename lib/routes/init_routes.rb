@@ -24,7 +24,9 @@ class JohaGrapherApp < Sinatra::Application
         uid = session[:uid]
         #redirect to root unless they've logged in
         redirect '/' unless uid
+        #puts "Get User: UID: #{uid}"
         user = UserDataStore.get(uid)
+        #p user
         #convert strings to symbols
         if user.joha_model_ids
           user.joha_model_ids.each do |model_id, model_data|
