@@ -1,9 +1,46 @@
-<h2>Choose the model you want to use.</h2>
+<head>
+<style type="text/css">
+   .del-model {
+     background-color: yellow;
+     text-decoration: underline;
+     }
+ </style>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+<script>
+  $(function() {
+  $('.del-model').click(function() {
+    var parent = $(this).parent();
+    var tinkit_id = $(parent).find('.jm-tid').text();
+    var owner = $(parent).find('.jm-own').text();
+    var model_id = $(parent).find('.joha-user-model').text();
+    //console.log(model_id, tinkit_id, owner);
+    var params = { model_id: model_id, tinkit_id: tinkit_id, owner: owner}
+    //var params = { model_id: model_id }
+    parent.load( '/delete_model', params);  //replace parent contents
+    return null;
+  });
+  return null;
+});
+</script>
+</head>
+<h2>Choose the model you would like to use.</h2>
+<body>
 
 <ul>
 <% @joha_models.each do |model_id, model_data|%>
+  <% model_url = "#{@base_domain_url}/#{model_id}" %>
   <% model_name = model_data[:model_name] %>
-  <li><%= "<a href=\"#{@base_domain_url}/#{model_id}\">#{model_name}</a> tinkit_id: #{model_data[:tinkit_id]}, owner: #{model_data[:owner]}" %></li>
+  <% model_link = "<a href=\"#{model_url}\">#{model_name}</a>" %>
+  <% del_model = "<span class=\"del-model\"> delete </span>" %>
+  <% model_id_data = "model_id: <span class=\"joha-user-model\">#{model_id}</span>" %>
+  <% tinkit_data = "tinkit_id: <span class=\"jm-tid\">#{model_data[:tinkit_id]}</span>" %>
+  <% owner_data = "owner: <span class=\"jm-own\">#{model_data[:owner]}</span>" %>
+  <% model_info = "#{model_id_data} , #{tinkit_data} , #{owner_data}" %>
+  <li>
+    <!-- erb= "<a href=\"#{@base_domain_url}/#{model_id}\">#{model_name}</a><span class=\"del-model\">delete</span> #{model_info}" erb -->
+    <%= "#{model_link}&nbsp&nbsp&nbsp#{del_model}&nbsp&nbsp&nbsp&nbsp#{model_info}" %>
+  </li>
 <% end %>
 </ul>
 <a href="/configure_new_graph">Add new model</a>
+</body>

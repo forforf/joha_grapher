@@ -1,6 +1,28 @@
-<div> Choose a graph </div>
+<h2> Choose a graph </h2>
 <ul>
 <% @avail_digraphs.each do |top_node, graph|%>
   <li><%= "<a href=\"#{@base_graph_url}/#{top_node}\">#{top_node}</a> : #{graph.size}" %></li>
 <% end %>
 </ul>
+
+<h2> Orphans </h2>
+<h3> To move orphans to the graph assign them a parent</h3>
+<% @orphans = [] unless @orphans %>
+<%= "No orphans found" unless @orphans.size > 0  %>
+<% @orphans.each do |orphan_group| %>
+<%   next unless orphan_group %>
+<ul> Orphan Group
+  <% orphan_group.each do |orphan| %>
+  <li>
+    <%= orphan.inspect %>
+    <form name="add_parent" action="/add_parent_to_node" method="post">
+      Parent ID:
+      <input type="text" name="parent" />
+      <input type="hidden" name="model_id" value="<%= @jm_id %>" />
+      <input type="hidden" name="node_id" value="<%= orphan[:id] %>" />
+      <input type="submit" value="Add" />
+    </form>
+  </li>
+  <% end %>
+ </ul>
+ <% end %>
