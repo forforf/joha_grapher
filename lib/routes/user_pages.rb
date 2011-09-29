@@ -9,10 +9,22 @@ class JohaGrapherApp < Sinatra::Application
     user = get_user
     @joha_models = user.joha_model_ids
     @base_domain_url = "/model"
+    @del_link = "/delete_model"
     erb :choose_model   #sends /model/:joha_model_id
   end
     
   post '/delete_model' do
+    model_id = params[:model_id]
+    user = get_user
+    joha_models = user.joha_model_ids
+    joha_models.delete(model_id)
+    user.joha_model_ids_add joha_models
+    user.__save
+    tinkit_id = params[:tinkit_id]
+    owner = params[:owner]
+    #content_type :json
+    #return params.to_json
+    "--- model deleted ---  was: #{model_id} - #{tinkit_id} - #{owner}"
   #remove model name from user node
   #and save
   #remove from model cache
