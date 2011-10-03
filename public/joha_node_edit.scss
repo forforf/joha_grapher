@@ -107,8 +107,8 @@ $joha_el_margin: 0.2em 0.2em 0.2em 0.2em;
   margin-top: 0.5em;
   padding-left: 0.25em;
 
-  .joha-label{
-    @include joha-node-label
+  .joha-label {
+    @include joha-node-label;
   }
 
  .value-container {
@@ -120,7 +120,7 @@ $joha_el_margin: 0.2em 0.2em 0.2em 0.2em;
 }
 
 /* basic value container styling */
-.joha-field .basic-vc {
+.joha-field .basic-vc  {
   @include item-color;
   @include joha-inline-block;
   @include joha-margin;
@@ -133,6 +133,48 @@ $joha_el_margin: 0.2em 0.2em 0.2em 0.2em;
   @include joha-propagation;
   padding-left: 0.5em;
 }
+
+/* Id and Label styling */
+.id-lab {
+  font-weight: bold;
+}
+.id-lab:after  {
+  content: ": ";
+}
+
+.field-label {
+  border-color: $C0;
+  border-style: solid;
+  border-width: 1px;
+  margin-top: 0.5em;
+  padding-left: 0.25em;
+
+  .label-label {
+    @include joha-node-label;
+  }
+
+  div {
+    @include bg-color-base;
+    @include joha-field-positioning;
+    @include joha-propagation;
+    padding: $joha_field_el_padding;
+    span {
+      @include item-color;
+      @include joha-inline-block;
+      @include joha-margin;
+      @include joha-propagation;
+    }
+  }
+}
+
+.field_label {
+  @include item-color;
+  @include joha-inline-block;
+  @include joha-margin;
+  @include joha-propagation;
+
+}
+
 
 /* Complex JSON Object Styling */
 /* Styling must scale to arbitrary complexity */

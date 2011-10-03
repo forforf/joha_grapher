@@ -59,6 +59,54 @@ input {
   text-decoration: inherit;
   padding-left: 0.5em; }
 
+/* Id and Label styling */
+.id-lab {
+  font-weight: bold; }
+
+.id-lab:after {
+  content: ": "; }
+
+.field-label {
+  border-color: #f3eded;
+  border-style: solid;
+  border-width: 1px;
+  margin-top: 0.5em;
+  padding-left: 0.25em; }
+  .field-label .label-label {
+@incluce joha-field-positioning;
+    border-color: #f3eded;
+    border-style: solid;
+    border-width: 1px;
+    background-color: #f3eded;
+    border-top-left-radius: 0.3em;
+    border-top-right-radius: 0.3em;
+    padding: 0.1em 0.1em 0.1em 0.1em; }
+  .field-label div {
+    background-color: #f3eded;
+    position: relative;
+    left: -0.1em;
+    text-decoration: inherit;
+    padding: 0.1em 0.1em 0.1em 0.1em; }
+    .field-label div span {
+      background-color: #edf3ef;
+      border-color: #81a68c;
+      border-style: solid;
+      border-width: 1px;
+      display: inline-block;
+      vertical-align: top;
+      margin: 0.2em 0.2em 0.2em 0.2em;
+      text-decoration: inherit; }
+
+.field_label {
+  background-color: #edf3ef;
+  border-color: #81a68c;
+  border-style: solid;
+  border-width: 1px;
+  display: inline-block;
+  vertical-align: top;
+  margin: 0.2em 0.2em 0.2em 0.2em;
+  text-decoration: inherit; }
+
 /* Complex JSON Object Styling */
 /* Styling must scale to arbitrary complexity */
 /* Array Styling */

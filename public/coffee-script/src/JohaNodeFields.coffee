@@ -68,8 +68,8 @@ class NodeIdField extends NodeField
 
   view: ->
     #temp
-    nameHtml = '<span>' + @fieldName + '</span>'
-    valueHtml = '<span>' + @idFieldValue + '</span>'
+    nameHtml = "<span class=\"id-lab\">" + @fieldName + '</span>'
+    valueHtml = "<span class=\"id-val\">" + @idFieldValue + '</span>'
     html = '<div>'+ nameHtml + valueHtml + '</div>'
     idCont = $(html)
     idCont.addClass @fieldClass
@@ -85,7 +85,7 @@ class NodeLabelField extends NodeField
     @origValue = @labelFieldValue
     #Since value is a string, container will be string container
     @labelName = $('<span>' + @fieldName + '</span>')
-    @labelName.addClass @className +  '-label'
+    @labelName.addClass @fieldName +  '-label'
     @labelContainer = new BasicValueContainerNoDel @fieldValue
   
   currentValue: => 
