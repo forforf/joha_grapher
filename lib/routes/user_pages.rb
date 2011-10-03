@@ -49,17 +49,17 @@ class JohaGrapherApp < Sinatra::Application
     #ToDo: Add back in the ability to go directly to a graph
     #orph_test = 2 if orph_test = 1 #so it will get sent correctly
     
-    #case @avail_digraphs.size
-    #  when 0
-    #    session[:top_node] = nil
-    #    redirect '/joha_graph.html'
+    case @avail_digraphs.size
+      when 0
+        session[:top_node] = nil
+        redirect '/joha_graph.html'
     #  when 1
     #    top_node = @avail_digraphs.keys.first
     #    session[:top_node] = top_node
     #    redirect '/joha_graph.html'
-    #  else
-    #    erb :avail_digraphs
-    #end
+      else
+        erb :avail_digraphs
+    end
     erb :avail_digraphs
   end
   
