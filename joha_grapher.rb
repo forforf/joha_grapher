@@ -7,6 +7,7 @@ class JohaGrapherApp < Sinatra::Application
   enable :sessions
 
   #initialize default routes, and load all other routes
+  puts "loading initial routes ..."
   require_relative "lib/routes/init_routes"
   #models are called by the code depeding on them
 

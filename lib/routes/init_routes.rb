@@ -1,11 +1,18 @@
 #load primary routes
+puts "Loading interface_testing"
 require_relative 'interface_testing'
+puts "Loading grapher_api"
 require_relative 'grapher_api'
+puts "Loading login"
 require_relative 'login'
+puts "Loading new_user"
 require_relative 'new_user'
+puts "Loading stitch_js"
 require_relative 'stitch_js'
+puts "Loading user_pages"
 require_relative 'user_pages'
 
+puts "Done loading routes ..."
 
 #these are only ran (I think -- needs testing) if the ones above aren't found
 #default route(s)

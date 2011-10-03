@@ -2,9 +2,10 @@
 
 # Persistence Class Creator
 module JohaAdminStore
-  
-  WebAdminCouchDB = CouchRest.database!("http://127.0.0.1:5984/joha_web_app/")  
-  
+  CouchDbPath = "http://#{JohaGrapher::CouchDbHost}:5984/joha_web_app/" 
+  #WebAdminCouchDB = CouchRest.database!("http://127.0.0.1:5984/joha_web_app/")  
+  WebAdminCouchDB = CouchRest.database!(CouchDbPath)
+
   def self.make_user_data_class(user_data_class_name)
     user_data_defn = {:id => :static_ops,
                       :friendly_name => :replace_ops,
