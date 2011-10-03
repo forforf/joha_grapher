@@ -515,6 +515,7 @@ function indexData(treeData, indexedSet){
 }
 
 function setFinder() {
+    //johaNodeData is used in deleteNode too
 		var nodes = johaNodeData;
     var names = get_keys(nodes);
     console.log('Node Names', names);

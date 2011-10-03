@@ -14,7 +14,7 @@ class JohaGrapherApp < Sinatra::Application
     
     def diff_data(node_id, diff_data_json)
       diff_data = JSON.parse diff_data_json
-      p diff_data  
+ 
       jm = get_joha_model
       #update data here
       tk_class = jm.tinkit_class
@@ -30,8 +30,7 @@ class JohaGrapherApp < Sinatra::Application
         new_data = field_diff_data.last
         new_data.uniq! if new_data.respond_to? :"uniq!"
         new_data.compact! if new_data.respond_to? :"compact!"
-        p orig_data
-        p new_data
+
         #ToDo: create field in node if it doesn't exist
         unless tk_node.respond_to?(field.to_sym)
           tk_node.__set_userdata_key(field.to_sym, orig_data)
@@ -107,7 +106,7 @@ class JohaGrapherApp < Sinatra::Application
     node_id = params[:node_id]
     node_label = params[:node_label]
     node_parents = params[:node_parents].split(',')
-    node_parents = ["none"] if node_parents.empty?
+#    node_parents = ["none"] if node_parents.empty?
     
     node_data = {  :id => node_id,
                           :label => node_label,
@@ -117,7 +116,7 @@ class JohaGrapherApp < Sinatra::Application
     jm.create_node(node_data)
     jm.refresh
     #TODO: Find elegant way of handling mising top nodes 
-    top_node = session[:top_node]||"none"
+    top_node = session[:top_node] #||"none"
     #TODO: Fix the jsivt grapher and/or model so we don't have this mess
     #SO ugly my eyes burn (we're changing JSON to ruby to change back to JSON)
     ruby_graph = JSON.parse(jm.tree_graph(top_node))
@@ -130,14 +129,14 @@ class JohaGrapherApp < Sinatra::Application
 
   
   get '/index_nodes' do
-    top_node = session[:top_node]||"none"
+    top_node = session[:top_node] #||"none"
     content_type :json
     ret_json = get_tree_graph(top_node)
   end
 
   get '/filter_nodes' do
     user = get_user
-    top_node = params[:topnode] || session[:top_node] || "none"
+    top_node = params[:topnode] || session[:top_node] #|| "none"
     content_type :json
     ret_json = get_tree_graph(top_node)
   end
@@ -196,8 +195,16 @@ class JohaGrapherApp < Sinatra::Application
   post '/node_data_update' do
     node_id = params["id"]
     raise "Node does not exist. Required for updating node" unless node_id
-    diff_data_json = params["diff"]
     top_node = session[:top_node]
+    #DRY this up.  It's a bug fix for virtual nodes
+    jm = get_joha_model
+    #update data here
+    tk_class = jm.tinkit_class
+    tk_node = tk_class.get(node_id)
+    return get_tree_graph(top_node, true) unless tk_node
+    
+    diff_data_json = params["diff"]
+    
     diff_data(node_id, diff_data_json) #, username, joha_model_name)
     #ToDo: Optimize so only structural changes (inter-node relations) are re-graphed
     #Intra-node already saved, if changes are specific to that node, no need to regraph
