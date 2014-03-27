@@ -1,0 +1,12 @@
+---
+ratings:
+  stable: 4
+  useful: 6
+  caliber: 4
+  tidy: 3
+  tended: 5
+  tests: 1
+  unique: 7
+progress:
+  "in-development":
+    "sporadic development"
